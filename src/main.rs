@@ -21,6 +21,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         builder = builder.set(WindowPlugin {
             window: WindowDescriptor {
                 title: "Spaceviata".to_string(),
+                fit_canvas_to_parent: true,
                 ..default()
             },
             ..default()

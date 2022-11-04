@@ -1,11 +1,29 @@
 <!doctype html>
 <html lang="en">
+<title>
+  Spaceviata
+</title>
+<style>
+  .disable-select {
+    user-select: none;
+    /* supported by Chrome and Opera */
+    -webkit-user-select: none;
+    /* Safari */
+    -khtml-user-select: none;
+    /* Konqueror HTML */
+    -moz-user-select: none;
+    /* Firefox */
+    -ms-user-select: none;
+    /* Internet Explorer/Edge */
+  }
+</style>
+
 <script type="module">
   import init from './spaceviata.js'
   init()
 </script>
 
-<body style="margin: 0px;">
+<body style="margin: 0px; height: 100vh" class="disable-select">
 
 </body>
 
