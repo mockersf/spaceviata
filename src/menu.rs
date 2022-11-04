@@ -59,7 +59,7 @@ impl From<MenuButton> for String {
         match button {
             MenuButton::NewGame => "New Game".to_string(),
             #[cfg(not(target_arch = "wasm32"))]
-            MenuButton::Quit => "Quit".to_string(),
+            MenuButton::Quit => "quit".to_string(),
         }
     }
 }
@@ -79,6 +79,7 @@ fn setup(
     mut keyboard_input: ResMut<Input<KeyCode>>,
     mut gamepad_input: ResMut<Input<GamepadButton>>,
     mut camera: Query<&mut Transform, With<Camera>>,
+    windows: Res<Windows>,
 ) {
     info!("Loading screen");
 
@@ -104,18 +105,20 @@ fn setup(
     let font_details = ui_handles.font_sub.clone_weak();
     let menu_indicator = ui_handles.selection_handle.clone_weak();
 
+    let height = windows.primary().height();
+
     commands
         .spawn(NodeBundle {
             style: Style {
                 position_type: PositionType::Absolute,
                 position: UiRect {
-                    left: Val::Percent(20.),
+                    left: Val::Percent(15.),
                     right: Val::Undefined,
                     bottom: Val::Undefined,
                     top: Val::Percent(25.),
                 },
                 size: Size {
-                    height: Val::Px(95.),
+                    height: Val::Px(height / 5.0),
                     width: Val::Auto,
                 },
                 flex_direction: FlexDirection::Column,
@@ -127,7 +130,7 @@ fn setup(
             title_parent.spawn(TextBundle {
                 style: Style {
                     size: Size {
-                        height: Val::Px(75.),
+                        height: Val::Px(height / 5.0),
                         ..Default::default()
                     },
                     ..Default::default()
@@ -137,7 +140,7 @@ fn setup(
                     TextStyle {
                         font: font.clone(),
                         color: ColorScheme::TEXT,
-                        font_size: 75.,
+                        font_size: height / 5.0,
                         ..Default::default()
                     },
                 ),
@@ -146,8 +149,12 @@ fn setup(
             title_parent.spawn(TextBundle {
                 style: Style {
                     size: Size {
-                        height: Val::Px(40.),
+                        height: Val::Px(height / 20.0),
                         ..Default::default()
+                    },
+                    position: UiRect {
+                        left: Val::Px(-height / 50.0),
+                        ..default()
                     },
                     ..Default::default()
                 },
@@ -156,7 +163,7 @@ fn setup(
                     TextStyle {
                         font: font_details.clone(),
                         color: ColorScheme::TEXT,
-                        font_size: 40.,
+                        font_size: height / 20.0,
                         ..Default::default()
                     },
                 ),
@@ -168,7 +175,7 @@ fn setup(
     let panel_style = Style {
         position_type: PositionType::Absolute,
         position: UiRect {
-            left: Val::Percent(53.),
+            left: Val::Percent(50.),
             right: Val::Undefined,
             bottom: Val::Percent(15.),
             top: Val::Undefined,
@@ -176,14 +183,15 @@ fn setup(
         margin: UiRect::all(Val::Px(0.)),
         justify_content: JustifyContent::Center,
         align_items: AlignItems::Center,
-        size: Size::new(Val::Px(400.), Val::Px(300.)),
+        size: Size::new(
+            Val::Px(height / 2.0),
+            Val::Px(height / 8.0 * MENU_BUTTONS.len() as f32),
+        ),
         align_content: AlignContent::Stretch,
         flex_direction: FlexDirection::Column,
         ..Default::default()
     };
 
-    let button_shift_start = 15.;
-    let button_shift = 45.;
     let buttons = MENU_BUTTONS
         .iter()
         .enumerate()
@@ -192,7 +200,7 @@ fn setup(
                 .spawn(NodeBundle {
                     style: Style {
                         margin: UiRect {
-                            left: Val::Px(button_shift_start + i as f32 * button_shift),
+                            left: Val::Px(15.0),
                             right: Val::Auto,
                             top: Val::Auto,
                             bottom: Val::Auto,
@@ -206,12 +214,12 @@ fn setup(
                 .id();
             let button = button.add(
                 &mut commands,
-                225.,
-                50.,
+                height / 3.0,
+                height / 15.0,
                 UiRect::all(Val::Auto),
                 font.clone(),
                 *button_item,
-                25.,
+                height / 30.0,
             );
             let indicator = commands
                 .spawn((

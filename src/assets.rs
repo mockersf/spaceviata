@@ -57,7 +57,7 @@ impl Plugin for AssetPlugin {
 struct RawUiAssets {
     #[asset(path = "ui/dotBlue.png")]
     selection_handle: Handle<Image>,
-    #[asset(path = "fonts/kenvector_future.ttf")]
+    #[asset(path = "fonts/StarJediRounded.ttf")]
     font_main: Handle<Font>,
     #[asset(path = "fonts/mandrill.ttf")]
     font_sub: Handle<Font>,
