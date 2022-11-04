@@ -62,3 +62,7 @@ bevy_embedded_assets = { git = "https://github.com/vleue/bevy_embedded_assets" }
 bevy_easings = { git = "https://github.com/vleue/bevy_easings" }
 bevy_ninepatch = { git = "https://github.com/vleue/bevy_ninepatch" }
 bevy_asset_loader = { git = "https://github.com/rparrett/bevy_asset_loader", branch = "bevy-9"}
+
+
+[package.metadata.release]
+release = true
