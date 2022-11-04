@@ -106,12 +106,14 @@ jobs:
         if: matrix.target.channel == 'wasm'
         run: |
           mkdir tmp
+          mkdir wasm-release
           wasm-bindgen --no-typescript --out-name ${{ env.binary }} --out-dir tmp --target web target/${{ matrix.target.target }}/${{ matrix.target.profile }}/${{ env.binary }}.wasm
-          wasm-opt -Oz tmp/${{ env.binary }}_bg.wasm --output wasm/${{ env.binary }}_bg.wasm
-          cp tmp/${{ env.binary }}.js wasm/
+          wasm-opt -Oz tmp/${{ env.binary }}_bg.wasm --output wasm-release/${{ env.binary }}_bg.wasm
+          cp tmp/${{ env.binary }}.js wasm-release/
+          cp wasm/index.html wasm-release/
           if [ "${{ env.package_assets }}" != "false" ]
           then
-            cp -r assets wasm/
+            cp -r assets wasm-release/
           fi
 
       - name: macOS packaging
@@ -134,7 +136,7 @@ jobs:
         if: matrix.target.channel == 'wasm'
         uses: papeloto/action-zip@v1
         with:
-          files: wasm
+          files: wasm-release
           dest: ${{ env.binary }}.${{ env.extension }}
 
       - name: Upload binaries to release
