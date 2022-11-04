@@ -5,7 +5,7 @@
 use bevy::{app::AppExit, prelude::*};
 
 mod assets;
-// mod game;
+mod game;
 mod lost;
 mod menu;
 mod splash;
@@ -59,7 +59,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .add_plugin(crate::assets::AssetPlugin)
         .add_plugin(crate::splash::Plugin)
         .add_plugin(crate::menu::Plugin)
-        // .add_plugin(crate::game::Plugin)
+        .add_plugin(crate::game::Plugin)
         .add_plugin(crate::lost::Plugin);
     #[cfg(feature = "debug-graph")]
     bevy_mod_debugdump::print_schedule(&mut builder);
@@ -81,10 +81,7 @@ pub(crate) enum GameState {
 }
 
 fn general_setup(mut commands: Commands) {
-    commands.spawn(Camera2dBundle {
-        transform: Transform::from_translation(Vec3::new(0.0, 1.0, 10.0)),
-        ..default()
-    });
+    commands.spawn(Camera2dBundle { ..default() });
 }
 
 fn exit(mut app_exit_events: EventWriter<AppExit>) {

@@ -78,14 +78,9 @@ fn setup(
     mut mouse_button_input: ResMut<Input<MouseButton>>,
     mut keyboard_input: ResMut<Input<KeyCode>>,
     mut gamepad_input: ResMut<Input<GamepadButton>>,
-    mut camera: Query<&mut Transform, With<Camera>>,
     windows: Res<Windows>,
 ) {
     info!("Loading screen");
-
-    let mut transform = camera.single_mut();
-    *transform = Transform::from_translation(Vec3::new(-1.0, 2.0, 10.0))
-        .looking_at(Vec3::new(0.0, 1.0, 0.0), Vec3::Y);
 
     commands.insert_resource(WinitSettings {
         focused_mode: UpdateMode::Reactive {
