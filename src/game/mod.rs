@@ -36,7 +36,7 @@ impl Iterator for GalaxyCreator {
         let arm_angle = ((360 / self.arms) % 360) as f32;
         let angular_spread = 180 / (self.arms * 2);
 
-        self.stars = self.stars - 1;
+        self.stars -= 1;
 
         let distance_to_center = rand.gen_range(0.0..self.radius);
         let angle = rand.gen_range(0.0..(angular_spread as f32));
