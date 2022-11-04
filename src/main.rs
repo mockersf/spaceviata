@@ -17,23 +17,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     builder.insert_resource(ClearColor(Color::rgb(0., 0., 0.01)));
 
     builder.add_plugins({
-        let builder = DefaultPlugins.build();
-        let builder = builder
-            .set(WindowPlugin {
-                window: WindowDescriptor {
-                    title: "Spaceviata".to_string(),
-                    ..default()
-                },
+        let mut builder = DefaultPlugins.build();
+        builder = builder.set(WindowPlugin {
+            window: WindowDescriptor {
+                title: "Spaceviata".to_string(),
                 ..default()
-            })
-            .set(ImagePlugin::default_nearest());
+            },
+            ..default()
+        });
         #[cfg(feature = "bundled")]
         {
-            builder.add_before::<bevy::asset::AssetPlugin, _>(
+            builder = builder.add_before::<bevy::asset::AssetPlugin, _>(
                 bevy_embedded_assets::EmbeddedAssetPlugin,
             );
         }
-        builder
+        builder.set(ImagePlugin::default_nearest())
     });
 
     builder
