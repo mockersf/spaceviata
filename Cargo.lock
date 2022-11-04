@@ -537,6 +537,7 @@ dependencies = [
 [[package]]
 name = "bevy_ninepatch"
 version = "0.8.0"
+source = "git+https://github.com/vleue/bevy_ninepatch#8c9ba3782ecbe9986eeced3efd6e98bae45cf3bb"
 dependencies = [
  "bevy",
 ]
