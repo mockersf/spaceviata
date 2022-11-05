@@ -22,6 +22,7 @@ struct GalaxyCreator {
     stars: u32,
     arms: u32,
     radius: f32,
+    generated: Vec<Vec2>,
 }
 
 impl Iterator for GalaxyCreator {
@@ -38,18 +39,29 @@ impl Iterator for GalaxyCreator {
 
         self.stars -= 1;
 
-        let distance_to_center = rand.gen_range(0.0..self.radius);
-        let angle = rand.gen_range(0.0..(angular_spread as f32));
+        'distance: loop {
+            let distance_to_center = rand.gen_range(0.05..=1.0_f32).sqrt() * self.radius;
+            let angle = rand.gen_range(0.0..(angular_spread as f32));
+            // * rand.gen_bool(0.5).then_some(1.0).unwrap_or(-1.0);
 
-        let spiral_angle = 0.75;
+            let spiral_angle = 0.75;
 
-        let arm = (rand.gen::<u32>() % self.arms) as f32 * arm_angle;
+            let arm = (rand.gen::<u32>() % self.arms) as f32 * arm_angle;
 
-        let x = distance_to_center
-            * (PI / 180.0 * (arm + distance_to_center * spiral_angle + angle) as f32).cos();
-        let y = distance_to_center
-            * (PI / 180.0 * (arm + distance_to_center * spiral_angle + angle) as f32).sin();
-        Some(Vec2::new(x, y))
+            let x = distance_to_center
+                * (PI / 180.0 * (arm + distance_to_center * spiral_angle + angle) as f32).cos();
+            let y = distance_to_center
+                * (PI / 180.0 * (arm + distance_to_center * spiral_angle + angle) as f32).sin();
+            let new_star = Vec2::new(x, y);
+
+            for other_star in &self.generated {
+                if new_star.distance(*other_star) < self.radius / (7.0 * self.arms as f32) {
+                    continue 'distance;
+                }
+            }
+            self.generated.push(new_star);
+            return Some(new_star);
+        }
     }
 }
 
@@ -61,10 +73,13 @@ fn setup(
 ) {
     info!("Loading screen");
 
+    let nb_arms = 2;
+
     let galaxy = GalaxyCreator {
-        stars: 500,
-        arms: 2,
-        radius: 400.0,
+        stars: 50 * nb_arms,
+        arms: nb_arms,
+        radius: 350.0,
+        generated: Vec::new(),
     };
     let mesh = meshes.add(shape::Circle::new(2.5).into());
     let material = materials.add(ColorMaterial::from(Color::PURPLE));
@@ -74,6 +89,7 @@ fn setup(
         transform: Transform::from_translation(Vec3::ZERO),
         ..default()
     });
+
     for star in galaxy {
         commands.spawn(MaterialMesh2dBundle {
             mesh: mesh.clone_weak().into(),
