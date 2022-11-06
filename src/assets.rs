@@ -65,6 +65,8 @@ struct RawUiAssets {
     font_material: Handle<Font>,
     #[asset(path = "ui/glassPanel_corners.png")]
     panel_texture_handle: Handle<Image>,
+    #[asset(path = "ui/glassPanel_right_corners.png")]
+    left_panel_texture_handle: Handle<Image>,
     #[asset(path = "ui/glassPanel_projection.png")]
     button_texture_handle: Handle<Image>,
 }
@@ -76,7 +78,14 @@ pub(crate) struct UiAssets {
     pub(crate) font_sub: Handle<Font>,
     pub(crate) _font_material: Handle<Font>,
     pub(crate) panel_handle: (Handle<bevy_ninepatch::NinePatchBuilder<()>>, Handle<Image>),
+    pub(crate) left_panel_handle: (Handle<bevy_ninepatch::NinePatchBuilder<()>>, Handle<Image>),
     pub(crate) button_handle: Handle<crate::ui_helper::button::Button>,
+}
+
+#[derive(Resource)]
+pub(crate) struct GalaxyAssets {
+    pub(crate) star_mesh: Handle<Mesh>,
+    pub(crate) star_material: Handle<ColorMaterial>,
 }
 
 fn done(world: &mut World) {
@@ -92,6 +101,11 @@ fn done(world: &mut World) {
                 .unwrap();
             let np = bevy_ninepatch::NinePatchBuilder::by_margins(20, 20, 20, 20);
             let panel_handle = (nine_patches.add(np), raw_ui_assets.panel_texture_handle);
+            let np = bevy_ninepatch::NinePatchBuilder::by_margins(20, 20, 10, 20);
+            let left_panel_handle = (
+                nine_patches.add(np),
+                raw_ui_assets.left_panel_texture_handle,
+            );
             let button = crate::ui_helper::button::Button::setup(
                 &mut nine_patches,
                 raw_ui_assets.button_texture_handle,
@@ -103,7 +117,19 @@ fn done(world: &mut World) {
                 font_sub: raw_ui_assets.font_sub,
                 _font_material: raw_ui_assets.font_material,
                 panel_handle,
+                left_panel_handle,
                 button_handle,
+            });
+        }
+
+        {
+            let mut materials = world
+                .get_resource_unchecked_mut::<Assets<ColorMaterial>>()
+                .unwrap();
+            let mut meshes = world.get_resource_unchecked_mut::<Assets<Mesh>>().unwrap();
+            world.insert_resource(GalaxyAssets {
+                star_mesh: meshes.add(shape::Circle::new(2.5).into()),
+                star_material: materials.add(ColorMaterial::from(Color::PURPLE)),
             });
         }
     }

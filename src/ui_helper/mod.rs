@@ -19,6 +19,6 @@ impl ColorScheme {
     pub(crate) const TEXT_HIGHLIGHT: Color = Color::rgb_linear(
         0x20 as f32 / 255.0,
         0x20 as f32 / 255.0,
-        0x38 as f32 / 255.0,
+        0x48 as f32 / 255.0,
     );
 }

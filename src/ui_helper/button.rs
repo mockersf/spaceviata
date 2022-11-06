@@ -133,18 +133,19 @@ fn button_effect(
     mut image_query: Query<&mut BackgroundColor>,
 ) {
     for (_button, interaction, children) in interaction_query.iter() {
-        let mut material = image_query
-            .get_component_mut::<BackgroundColor>(children[children.len() - 1])
-            .unwrap();
-        match *interaction {
-            Interaction::Clicked => {
-                material.0 = Color::rgba(0., 0.2, 0.2, 0.6);
-            }
-            Interaction::Hovered => {
-                material.0 = Color::rgba(0., 0.2, 0.2, 0.3);
-            }
-            Interaction::None => {
-                material.0 = Color::NONE;
+        if let Ok(mut material) =
+            image_query.get_component_mut::<BackgroundColor>(children[children.len() - 1])
+        {
+            match *interaction {
+                Interaction::Clicked => {
+                    material.0 = Color::rgba(0., 0.2, 0.2, 0.6);
+                }
+                Interaction::Hovered => {
+                    material.0 = Color::rgba(0., 0.2, 0.2, 0.3);
+                }
+                Interaction::None => {
+                    material.0 = Color::NONE;
+                }
             }
         }
     }
