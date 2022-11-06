@@ -45,13 +45,15 @@ impl Iterator for GalaxyCreator {
     type Item = Vec2;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.generated.len() as u32 == self.nb_players * self.size * self.density * 2 {
+        if self.generated.len() as u32 == self.nb_players * self.size * self.density * 3 {
             return None;
         }
 
         let mut rand = rand::thread_rng();
         let arm_angle = ((360 / self.nb_players) % 360) as f32;
         let angular_spread = 180 / (self.nb_players * 2);
+
+        let mut fail = 0;
 
         'distance: loop {
             let distance_to_center =
@@ -72,9 +74,12 @@ impl Iterator for GalaxyCreator {
             for other_star in &self.generated {
                 if new_star.distance(*other_star)
                     // < self.density as f32 / (7.0 * self.nb_players as f32)
-                    < 100.0 / self.density as f32
+                    < 100.0 / (self.density as f32 * 1.0)
                 {
-                    continue 'distance;
+                    fail += 1;
+                    if fail < self.generated.len() {
+                        continue 'distance;
+                    }
                 }
             }
             self.generated.push(new_star);
