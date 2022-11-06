@@ -499,7 +499,8 @@ fn display_galaxy(
                 p.spawn(MaterialMesh2dBundle {
                     mesh: galaxy_assets.star_mesh.clone_weak().into(),
                     material: galaxy_assets.star_material.clone_weak(),
-                    transform: Transform::from_translation(star.extend(0.1)),
+                    transform: Transform::from_translation(star.extend(0.1))
+                        .with_scale(Vec3::splat(1.5)),
                     ..default()
                 });
             }
