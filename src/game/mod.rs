@@ -11,7 +11,7 @@ use bevy::{
     },
     sprite::MaterialMesh2dBundle,
 };
-use rand::Rng;
+use rand::{distributions::WeightedIndex, prelude::Distribution, seq::SliceRandom, Rng};
 
 use crate::{
     assets::{GalaxyAssets, UiAssets},
@@ -51,11 +51,17 @@ struct GalaxyCreator {
     generated: Vec<Vec2>,
 }
 
+struct Star {
+    position: Vec2,
+    size: StarSize,
+    color: StarColor,
+}
+
 impl Iterator for GalaxyCreator {
-    type Item = Vec2;
+    type Item = Star;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.generated.len() as u32 == self.nb_players * self.size * self.density * 3 {
+        if self.generated.len() as u32 == self.nb_players * self.size * self.density * 4 {
             return None;
         }
 
@@ -64,6 +70,10 @@ impl Iterator for GalaxyCreator {
         let angular_spread = 180 / (self.nb_players * 2);
 
         let mut fail = 0;
+
+        let size_choices = [StarSize::Dwarf, StarSize::Subgiant, StarSize::Giant];
+        let size_weights = [30, 30, 1];
+        let size_dist = WeightedIndex::new(&size_weights).unwrap();
 
         'distance: loop {
             let distance_to_center =
@@ -91,7 +101,13 @@ impl Iterator for GalaxyCreator {
                 }
             }
             self.generated.push(new_star);
-            return Some(new_star);
+            return Some(Star {
+                position: new_star,
+                size: size_choices[size_dist.sample(&mut rand)],
+                color: *[StarColor::Blue, StarColor::Orange, StarColor::Yellow]
+                    .choose(&mut rand)
+                    .unwrap(),
+            });
         }
     }
 }
@@ -189,7 +205,7 @@ fn setup(
         SpriteBundle {
             sprite: Sprite {
                 custom_size: Some(Vec2::splat(1024.0)),
-                color: Color::MIDNIGHT_BLUE,
+                color: Color::rgb(0.01, 0.01, 0.15),
                 ..default()
             },
             ..default()
@@ -556,6 +572,30 @@ impl Into<String> for GalaxyControl {
 #[derive(Component)]
 struct Selected;
 
+#[derive(Component, Copy, Clone)]
+enum StarColor {
+    Blue,
+    Yellow,
+    Orange,
+}
+
+#[derive(Component, Copy, Clone)]
+enum StarSize {
+    Dwarf,
+    Subgiant,
+    Giant,
+}
+
+impl From<StarSize> for f32 {
+    fn from(size: StarSize) -> Self {
+        match size {
+            StarSize::Dwarf => 0.75,
+            StarSize::Subgiant => 1.25,
+            StarSize::Giant => 3.0,
+        }
+    }
+}
+
 fn display_galaxy(
     mut commands: Commands,
     mut creator: ResMut<GalaxyCreator>,
@@ -571,9 +611,13 @@ fn display_galaxy(
                 p.spawn((
                     MaterialMesh2dBundle {
                         mesh: galaxy_assets.star_mesh.clone_weak().into(),
-                        material: galaxy_assets.star_material.clone_weak(),
-                        transform: Transform::from_translation(star.extend(0.1))
-                            .with_scale(Vec3::splat(1.5)),
+                        material: match star.color {
+                            StarColor::Blue => galaxy_assets.blue_star.clone_weak(),
+                            StarColor::Yellow => galaxy_assets.yellow_star.clone_weak(),
+                            StarColor::Orange => galaxy_assets.orange_star.clone_weak(),
+                        },
+                        transform: Transform::from_translation(star.position.extend(0.1))
+                            .with_scale(Vec3::splat(star.size.into())),
                         ..default()
                     },
                     RenderLayers::layer(1),

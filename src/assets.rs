@@ -85,7 +85,9 @@ pub(crate) struct UiAssets {
 #[derive(Resource)]
 pub(crate) struct GalaxyAssets {
     pub(crate) star_mesh: Handle<Mesh>,
-    pub(crate) star_material: Handle<ColorMaterial>,
+    pub(crate) blue_star: Handle<ColorMaterial>,
+    pub(crate) yellow_star: Handle<ColorMaterial>,
+    pub(crate) orange_star: Handle<ColorMaterial>,
 }
 
 fn done(world: &mut World) {
@@ -129,7 +131,17 @@ fn done(world: &mut World) {
             let mut meshes = world.get_resource_unchecked_mut::<Assets<Mesh>>().unwrap();
             world.insert_resource(GalaxyAssets {
                 star_mesh: meshes.add(shape::Circle::new(2.5).into()),
-                star_material: materials.add(ColorMaterial::from(Color::PURPLE)),
+                blue_star: materials.add(ColorMaterial::from(Color::rgb(
+                    185.0 / 255.0,
+                    184.0 / 255.0,
+                    1.0,
+                ))),
+                yellow_star: materials.add(ColorMaterial::from(Color::rgb(
+                    1.0,
+                    1.0,
+                    153.0 / 255.0,
+                ))),
+                orange_star: materials.add(ColorMaterial::from(Color::rgb(1.0, 0.5, 0.0))),
             });
         }
     }
