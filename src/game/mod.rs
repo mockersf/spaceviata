@@ -1,5 +1,3 @@
-use std::f32::consts::PI;
-
 use bevy::{
     prelude::*,
     render::{
@@ -11,12 +9,16 @@ use bevy::{
     },
     sprite::MaterialMesh2dBundle,
 };
-use rand::{distributions::WeightedIndex, prelude::Distribution, seq::SliceRandom, Rng};
 
 use crate::{
     assets::{GalaxyAssets, UiAssets},
+    game::galaxy::GalaxyKind,
     ui_helper::{button::ButtonId, ColorScheme},
 };
+
+use self::galaxy::{GalaxyCreator, StarColor};
+
+mod galaxy;
 
 const CURRENT_STATE: crate::GameState = crate::GameState::Playing;
 
@@ -34,81 +36,6 @@ impl bevy::app::Plugin for Plugin {
                     .with_system(setting_button),
             )
             .add_system_set(SystemSet::on_exit(CURRENT_STATE).with_system(tear_down));
-    }
-}
-
-#[derive(Clone, Copy, Debug)]
-enum GalaxyKind {
-    Spiral,
-}
-
-#[derive(Resource)]
-struct GalaxyCreator {
-    nb_players: u32,
-    size: u32,
-    density: u32,
-    _kind: GalaxyKind,
-    generated: Vec<Vec2>,
-}
-
-struct Star {
-    position: Vec2,
-    size: StarSize,
-    color: StarColor,
-}
-
-impl Iterator for GalaxyCreator {
-    type Item = Star;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        if self.generated.len() as u32 == self.nb_players * self.size * self.density * 4 {
-            return None;
-        }
-
-        let mut rand = rand::thread_rng();
-        let arm_angle = ((360 / self.nb_players) % 360) as f32;
-        let angular_spread = 180 / (self.nb_players * 2);
-
-        let mut fail = 0;
-
-        let size_choices = [StarSize::Dwarf, StarSize::Subgiant, StarSize::Giant];
-        let size_weights = [30, 30, 1];
-        let size_dist = WeightedIndex::new(&size_weights).unwrap();
-
-        'distance: loop {
-            let distance_to_center =
-                rand.gen_range(0.03..=1.0_f32).sqrt() * self.size as f32 * 100.0;
-            let angle = rand.gen_range(0.0..(angular_spread as f32));
-
-            let spiral_angle = 0.75;
-
-            let arm = (rand.gen::<u32>() % self.nb_players) as f32 * arm_angle;
-
-            let x = distance_to_center
-                * (PI / 180.0 * (arm + distance_to_center * spiral_angle + angle) as f32).cos();
-            let y = distance_to_center
-                * (PI / 180.0 * (arm + distance_to_center * spiral_angle + angle) as f32).sin();
-            let new_star = Vec2::new(x, y);
-
-            for other_star in &self.generated {
-                let distance = new_star.distance(*other_star);
-                if distance < 100.0 / (self.density as f32) {
-                    fail += 1;
-                    if fail < self.generated.len() || distance < 100.0 / (self.density as f32 * 1.5)
-                    {
-                        continue 'distance;
-                    }
-                }
-            }
-            self.generated.push(new_star);
-            return Some(Star {
-                position: new_star,
-                size: size_choices[size_dist.sample(&mut rand)],
-                color: *[StarColor::Blue, StarColor::Orange, StarColor::Yellow]
-                    .choose(&mut rand)
-                    .unwrap(),
-            });
-        }
     }
 }
 
@@ -571,30 +498,6 @@ impl Into<String> for GalaxyControl {
 
 #[derive(Component)]
 struct Selected;
-
-#[derive(Component, Copy, Clone)]
-enum StarColor {
-    Blue,
-    Yellow,
-    Orange,
-}
-
-#[derive(Component, Copy, Clone)]
-enum StarSize {
-    Dwarf,
-    Subgiant,
-    Giant,
-}
-
-impl From<StarSize> for f32 {
-    fn from(size: StarSize) -> Self {
-        match size {
-            StarSize::Dwarf => 0.75,
-            StarSize::Subgiant => 1.25,
-            StarSize::Giant => 3.0,
-        }
-    }
-}
 
 fn display_galaxy(
     mut commands: Commands,
