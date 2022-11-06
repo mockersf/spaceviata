@@ -1,6 +1,16 @@
 use std::f32::consts::PI;
 
-use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
+use bevy::{
+    prelude::*,
+    render::{
+        camera::RenderTarget,
+        render_resource::{
+            Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
+        },
+        view::RenderLayers,
+    },
+    sprite::MaterialMesh2dBundle,
+};
 use rand::Rng;
 
 use crate::{
@@ -59,7 +69,6 @@ impl Iterator for GalaxyCreator {
             let distance_to_center =
                 rand.gen_range(0.03..=1.0_f32).sqrt() * self.size as f32 * 100.0;
             let angle = rand.gen_range(0.0..(angular_spread as f32));
-            // * rand.gen_bool(0.5).then_some(1.0).unwrap_or(-1.0);
 
             let spiral_angle = 0.75;
 
@@ -95,9 +104,50 @@ fn setup(
     ui_handles: Res<UiAssets>,
     buttons: Res<Assets<crate::ui_helper::button::Button>>,
     windows: Res<Windows>,
+    mut images: ResMut<Assets<Image>>,
 ) {
     info!("Loading screen");
 
+    let size = Extent3d {
+        width: 1024,
+        height: 1024,
+        ..default()
+    };
+
+    let mut image = Image {
+        texture_descriptor: TextureDescriptor {
+            label: None,
+            size,
+            dimension: TextureDimension::D2,
+            format: TextureFormat::Bgra8UnormSrgb,
+            mip_level_count: 1,
+            sample_count: 1,
+            usage: TextureUsages::TEXTURE_BINDING
+                | TextureUsages::COPY_DST
+                | TextureUsages::RENDER_ATTACHMENT,
+        },
+        ..default()
+    };
+    image.resize(size);
+
+    let image_handle = images.add(image);
+
+    commands.spawn((
+        Camera2dBundle {
+            camera: Camera {
+                priority: -1,
+                target: RenderTarget::Image(image_handle.clone()),
+
+                ..default()
+            },
+            ..default()
+        },
+        RenderLayers::layer(1),
+        UiCameraConfig {
+            show_ui: false,
+            ..default()
+        },
+    ));
     let galaxy = GalaxyCreator {
         generated: Vec::new(),
         nb_players: 2,
@@ -138,18 +188,13 @@ fn setup(
     commands.spawn((
         SpriteBundle {
             sprite: Sprite {
-                custom_size: Some(Vec2::splat(1000.0)),
+                custom_size: Some(Vec2::splat(1024.0)),
                 color: Color::MIDNIGHT_BLUE,
                 ..default()
             },
-            transform: Transform::from_translation(Vec3::new(
-                window.width() / 2.0 - 250.0,
-                height / 2.0 - 250.0,
-                0.0,
-            ))
-            .with_scale(Vec3::splat(0.5)),
             ..default()
         },
+        RenderLayers::layer(1),
         GalaxyPreview,
     ));
 
@@ -415,6 +460,22 @@ fn setup(
     commands
         .entity(base)
         .push_children(&[row_type, row_size, row_density, row_players]);
+
+    commands.spawn(ImageBundle {
+        style: Style {
+            position_type: PositionType::Absolute,
+            position: UiRect {
+                right: Val::Px(0.),
+                ..default()
+            },
+            // margin: UiRect::all(Val::Auto),
+            size: Size::new(Val::Percent(50.0), Val::Undefined),
+
+            ..default()
+        },
+        image: UiImage(image_handle),
+        ..default()
+    });
 }
 
 const SELECTED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
@@ -507,13 +568,16 @@ fn display_galaxy(
         commands.entity(entity).despawn_descendants();
         commands.entity(entity).with_children(|p| {
             for star in creator.into_iter() {
-                p.spawn(MaterialMesh2dBundle {
-                    mesh: galaxy_assets.star_mesh.clone_weak().into(),
-                    material: galaxy_assets.star_material.clone_weak(),
-                    transform: Transform::from_translation(star.extend(0.1))
-                        .with_scale(Vec3::splat(1.5)),
-                    ..default()
-                });
+                p.spawn((
+                    MaterialMesh2dBundle {
+                        mesh: galaxy_assets.star_mesh.clone_weak().into(),
+                        material: galaxy_assets.star_material.clone_weak(),
+                        transform: Transform::from_translation(star.extend(0.1))
+                            .with_scale(Vec3::splat(1.5)),
+                        ..default()
+                    },
+                    RenderLayers::layer(1),
+                ));
             }
         });
     }
