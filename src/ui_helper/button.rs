@@ -28,8 +28,8 @@ impl Button {
     pub(crate) fn add<T>(
         &self,
         commands: &mut Commands,
-        width: f32,
-        height: f32,
+        width: Val,
+        height: Val,
         margin: UiRect,
         font: Handle<Font>,
         button: T,
@@ -42,7 +42,7 @@ impl Button {
             .spawn((
                 ButtonBundle {
                     style: Style {
-                        size: Size::new(Val::Px(width), Val::Px(height)),
+                        size: Size::new(width, height),
                         margin,
                         justify_content: JustifyContent::Center,
                         align_items: AlignItems::Center,
@@ -88,7 +88,7 @@ impl Button {
             .spawn(bevy_ninepatch::NinePatchBundle::<()> {
                 style: Style {
                     margin: UiRect::all(Val::Auto),
-                    size: Size::new(Val::Px(width), Val::Px(height)),
+                    size: Size::new(width, height),
                     justify_content: JustifyContent::Center,
                     align_items: AlignItems::Center,
                     ..Default::default()
@@ -109,7 +109,7 @@ impl Button {
                     margin: UiRect::all(Val::Auto),
                     justify_content: JustifyContent::Center,
                     align_items: AlignItems::Center,
-                    size: Size::new(Val::Px(width), Val::Px(height)),
+                    size: Size::new(width, height),
                     ..Default::default()
                 },
                 focus_policy: bevy::ui::FocusPolicy::Pass,

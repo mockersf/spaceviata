@@ -182,6 +182,7 @@ fn setup(
             Val::Px(height / 2.0),
             Val::Px(height / 8.0 * MENU_BUTTONS.len() as f32),
         ),
+        min_size: Size::new(Val::Px(height / 3.0 + 100.0), Val::Undefined),
         align_content: AlignContent::Stretch,
         flex_direction: FlexDirection::Column,
         ..Default::default()
@@ -209,8 +210,8 @@ fn setup(
                 .id();
             let button = button.add(
                 &mut commands,
-                height / 3.0,
-                height / 15.0,
+                Val::Px(height / 3.0),
+                Val::Px(height / 15.0),
                 UiRect::all(Val::Auto),
                 font.clone(),
                 *button_item,

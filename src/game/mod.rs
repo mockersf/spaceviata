@@ -123,9 +123,10 @@ fn setup(
         flex_direction: FlexDirection::Row,
         margin: UiRect::all(Val::Px(10.0)),
         size: Size {
-            width: Val::Px(700.0),
+            width: Val::Percent(100.0),
             height: Val::Undefined,
         },
+        justify_content: JustifyContent::SpaceBetween,
         ..default()
     };
 
@@ -133,6 +134,7 @@ fn setup(
     let button = buttons.get(&button_handle).unwrap();
 
     let window = windows.primary();
+    let height = window.height();
     commands.spawn((
         SpriteBundle {
             sprite: Sprite {
@@ -142,7 +144,7 @@ fn setup(
             },
             transform: Transform::from_translation(Vec3::new(
                 window.width() / 2.0 - 250.0,
-                window.height() / 2.0 - 250.0,
+                height / 2.0 - 250.0,
                 0.0,
             ))
             .with_scale(Vec3::splat(0.5)),
@@ -155,6 +157,11 @@ fn setup(
         .spawn(NodeBundle {
             style: Style {
                 flex_direction: FlexDirection::Column,
+                margin: UiRect::all(Val::Px(10.0)),
+                size: Size {
+                    width: Val::Percent(100.0),
+                    height: Val::Undefined,
+                },
                 ..Default::default()
             },
             ..Default::default()
@@ -172,7 +179,7 @@ fn setup(
         margin: UiRect::all(Val::Px(0.)),
         justify_content: JustifyContent::Center,
         align_items: AlignItems::Center,
-        size: Size::new(Val::Px(750.0), Val::Percent(100.0)),
+        size: Size::new(Val::Percent(50.0), Val::Percent(100.0)),
         align_content: AlignContent::Stretch,
         flex_direction: FlexDirection::Column,
         ..Default::default()
@@ -206,7 +213,7 @@ fn setup(
                     TextStyle {
                         font: ui_handles.font_main.clone_weak(),
                         color: ColorScheme::TEXT,
-                        font_size: 25.0,
+                        font_size: height / 30.0,
                         ..Default::default()
                     },
                 ),
@@ -215,12 +222,12 @@ fn setup(
             .id();
         let spiral = button.add(
             &mut commands,
-            125.0,
-            40.0,
+            Val::Px(height / 6.0),
+            Val::Px(height / 20.0),
             UiRect::all(Val::Auto),
             ui_handles.font_main.clone_weak(),
             GalaxyControl::Kind(GalaxyKind::Spiral),
-            25.0,
+            height / 40.0,
         );
         commands.entity(spiral).insert(Selected);
         commands.entity(row).push_children(&[text, spiral]);
@@ -242,7 +249,7 @@ fn setup(
                     TextStyle {
                         font: ui_handles.font_main.clone_weak(),
                         color: ColorScheme::TEXT,
-                        font_size: 25.0,
+                        font_size: height / 30.0,
                         ..Default::default()
                     },
                 ),
@@ -251,30 +258,30 @@ fn setup(
             .id();
         let small = button.add(
             &mut commands,
-            125.0,
-            40.0,
+            Val::Px(height / 6.0),
+            Val::Px(height / 20.0),
             UiRect::all(Val::Auto),
             ui_handles.font_main.clone_weak(),
             GalaxyControl::Size(2),
-            25.0,
+            height / 40.0,
         );
         let medium = button.add(
             &mut commands,
-            125.0,
-            40.0,
+            Val::Px(height / 6.0),
+            Val::Px(height / 20.0),
             UiRect::all(Val::Auto),
             ui_handles.font_main.clone_weak(),
             GalaxyControl::Size(3),
-            25.0,
+            height / 40.0,
         );
         let large = button.add(
             &mut commands,
-            125.0,
-            40.0,
+            Val::Px(height / 6.0),
+            Val::Px(height / 20.0),
             UiRect::all(Val::Auto),
             ui_handles.font_main.clone_weak(),
             GalaxyControl::Size(5),
-            25.0,
+            height / 40.0,
         );
         commands.entity(medium).insert(Selected);
         commands
@@ -298,7 +305,7 @@ fn setup(
                     TextStyle {
                         font: ui_handles.font_main.clone_weak(),
                         color: ColorScheme::TEXT,
-                        font_size: 25.0,
+                        font_size: height / 30.0,
                         ..Default::default()
                     },
                 ),
@@ -307,30 +314,30 @@ fn setup(
             .id();
         let sparse = button.add(
             &mut commands,
-            125.0,
-            40.0,
+            Val::Px(height / 6.0),
+            Val::Px(height / 20.0),
             UiRect::all(Val::Auto),
             ui_handles.font_main.clone_weak(),
             GalaxyControl::Density(3),
-            25.0,
+            height / 40.0,
         );
         let normal = button.add(
             &mut commands,
-            125.0,
-            40.0,
+            Val::Px(height / 6.0),
+            Val::Px(height / 20.0),
             UiRect::all(Val::Auto),
             ui_handles.font_main.clone_weak(),
             GalaxyControl::Density(5),
-            25.0,
+            height / 40.0,
         );
         let dense = button.add(
             &mut commands,
-            125.0,
-            40.0,
+            Val::Px(height / 6.0),
+            Val::Px(height / 20.0),
             UiRect::all(Val::Auto),
             ui_handles.font_main.clone_weak(),
             GalaxyControl::Density(7),
-            25.0,
+            height / 40.0,
         );
         commands.entity(normal).insert(Selected);
         commands
@@ -354,7 +361,7 @@ fn setup(
                     TextStyle {
                         font: ui_handles.font_main.clone_weak(),
                         color: ColorScheme::TEXT,
-                        font_size: 25.0,
+                        font_size: height / 30.0,
                         ..Default::default()
                     },
                 ),
@@ -363,39 +370,39 @@ fn setup(
             .id();
         let nb_2 = button.add(
             &mut commands,
-            125.0,
-            40.0,
+            Val::Px(height / 10.0),
+            Val::Px(height / 20.0),
             UiRect::all(Val::Auto),
             ui_handles.font_main.clone_weak(),
             GalaxyControl::Players(2),
-            25.0,
+            height / 40.0,
         );
         let nb_3 = button.add(
             &mut commands,
-            125.0,
-            40.0,
+            Val::Px(height / 10.0),
+            Val::Px(height / 20.0),
             UiRect::all(Val::Auto),
             ui_handles.font_main.clone_weak(),
             GalaxyControl::Players(3),
-            25.0,
+            height / 40.0,
         );
         let nb_4 = button.add(
             &mut commands,
-            125.0,
-            40.0,
+            Val::Px(height / 10.0),
+            Val::Px(height / 20.0),
             UiRect::all(Val::Auto),
             ui_handles.font_main.clone_weak(),
             GalaxyControl::Players(4),
-            25.0,
+            height / 40.0,
         );
         let nb_5 = button.add(
             &mut commands,
-            125.0,
-            40.0,
+            Val::Px(height / 10.0),
+            Val::Px(height / 20.0),
             UiRect::all(Val::Auto),
             ui_handles.font_main.clone_weak(),
             GalaxyControl::Players(5),
-            25.0,
+            height / 40.0,
         );
 
         commands.entity(nb_2).insert(Selected);
