@@ -72,12 +72,11 @@ impl Iterator for GalaxyCreator {
             let new_star = Vec2::new(x, y);
 
             for other_star in &self.generated {
-                if new_star.distance(*other_star)
-                    // < self.density as f32 / (7.0 * self.nb_players as f32)
-                    < 100.0 / (self.density as f32 * 1.0)
-                {
+                let distance = new_star.distance(*other_star);
+                if distance < 100.0 / (self.density as f32) {
                     fail += 1;
-                    if fail < self.generated.len() {
+                    if fail < self.generated.len() || distance < 100.0 / (self.density as f32 * 2.0)
+                    {
                         continue 'distance;
                     }
                 }
