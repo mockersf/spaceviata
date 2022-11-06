@@ -37,7 +37,7 @@ struct GalaxyCreator {
     nb_players: u32,
     size: u32,
     density: u32,
-    kind: GalaxyKind,
+    _kind: GalaxyKind,
     generated: Vec<Vec2>,
 }
 
@@ -99,7 +99,7 @@ fn setup(
         nb_players: 2,
         size: 3,
         density: 5,
-        kind: GalaxyKind::Spiral,
+        _kind: GalaxyKind::Spiral,
     };
     commands.insert_resource(galaxy);
 
@@ -176,7 +176,7 @@ fn setup(
 
     commands.spawn((
         bevy_ninepatch::NinePatchBundle {
-            style: panel_style.clone(),
+            style: panel_style,
             nine_patch_data: bevy_ninepatch::NinePatchData::with_single_content(
                 ui_handles.left_panel_handle.1.clone_weak(),
                 ui_handles.left_panel_handle.0.clone_weak(),
@@ -338,13 +338,13 @@ fn setup(
     let row_players = {
         let row = commands
             .spawn(NodeBundle {
-                style: row_style.clone(),
+                style: row_style,
                 ..Default::default()
             })
             .id();
         let text = commands
             .spawn(TextBundle {
-                style: category_style.clone(),
+                style: category_style,
                 text: Text::from_section(
                     "players".to_string(),
                     TextStyle {
@@ -409,6 +409,7 @@ fn setup(
 const SELECTED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
 const SELECTED_HOVERED_BUTTON: Color = Color::rgb(0.45, 0.85, 0.45);
 
+#[allow(clippy::type_complexity)]
 fn ui_button_system(
     mut interaction_query: Query<
         (&Interaction, &mut BackgroundColor, Option<&Selected>),
@@ -426,6 +427,7 @@ fn ui_button_system(
     }
 }
 
+#[allow(clippy::type_complexity)]
 fn setting_button(
     interaction_query: Query<
         (&Interaction, &ButtonId<GalaxyControl>, Entity, &Parent),
@@ -462,6 +464,7 @@ enum GalaxyControl {
     Kind(GalaxyKind),
 }
 
+#[allow(clippy::from_over_into)]
 impl Into<String> for GalaxyControl {
     fn into(self) -> String {
         match self {
