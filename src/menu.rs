@@ -363,7 +363,7 @@ fn gamepad_input_system(
         if gamepad_input.just_pressed(GamepadButton::new(gamepad, GamepadButtonType::South)) {
             match screen.menu_selected {
                 Some(0) => {
-                    let _ = state.set(crate::GameState::Playing);
+                    let _ = state.set(crate::GameState::Setup);
                 }
                 Some(2) => {
                     let _ = state.set(crate::GameState::Exit);
@@ -412,7 +412,7 @@ fn keyboard_input_system(
     {
         match screen.menu_selected {
             Some(0) => {
-                let _ = state.set(crate::GameState::Playing);
+                let _ = state.set(crate::GameState::Setup);
             }
             Some(2) => {
                 let _ = state.set(crate::GameState::Exit);
@@ -442,7 +442,7 @@ fn button_system(
                     let _ = state.set(crate::GameState::Exit);
                 }
                 MenuButton::NewGame => {
-                    let _ = state.set(crate::GameState::Playing);
+                    let _ = state.set(crate::GameState::Setup);
                 }
             },
             Interaction::Hovered => match button_id.0 {
