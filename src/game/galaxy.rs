@@ -84,8 +84,7 @@ impl Iterator for GalaxyCreator {
                 let distance = new_star.distance(*other_star);
                 if distance < 100.0 / (self.density as f32) {
                     fail += 1;
-                    if fail < self.generated.len() || distance < 100.0 / (self.density as f32 * 1.5)
-                    {
+                    if distance < 100.0 / (self.density as f32 * (1.0 + fail as f32 / 1000.0)) {
                         continue 'distance;
                     }
                 }
