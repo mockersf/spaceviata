@@ -3,8 +3,9 @@ use std::f32::consts::PI;
 use bevy::prelude::{Component, Resource, Vec2};
 use rand::{distributions::WeightedIndex, prelude::Distribution, seq::SliceRandom, Rng};
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Default)]
 pub enum GalaxyKind {
+    #[default]
     Spiral,
 }
 

@@ -92,9 +92,9 @@ fn setup(
     let galaxy = GalaxyCreator {
         generated: Vec::new(),
         nb_players: 2,
-        size: 3,
-        density: 5,
-        _kind: GalaxyKind::Spiral,
+        size: SizeControl::default().into(),
+        density: DensityControl::default().into(),
+        _kind: GalaxyKind::default(),
     };
     commands.insert_resource(galaxy);
 
@@ -242,37 +242,23 @@ fn setup(
                 ..Default::default()
             })
             .id();
-        let small = button.add(
-            &mut commands,
-            Val::Px(height / 6.0),
-            Val::Px(height / 20.0),
-            UiRect::all(Val::Auto),
-            ui_handles.font_main.clone_weak(),
-            GalaxyControl::Size(2),
-            height / 40.0,
-        );
-        let medium = button.add(
-            &mut commands,
-            Val::Px(height / 6.0),
-            Val::Px(height / 20.0),
-            UiRect::all(Val::Auto),
-            ui_handles.font_main.clone_weak(),
-            GalaxyControl::Size(3),
-            height / 40.0,
-        );
-        let large = button.add(
-            &mut commands,
-            Val::Px(height / 6.0),
-            Val::Px(height / 20.0),
-            UiRect::all(Val::Auto),
-            ui_handles.font_main.clone_weak(),
-            GalaxyControl::Size(5),
-            height / 40.0,
-        );
-        commands.entity(medium).insert(Selected);
-        commands
-            .entity(row)
-            .push_children(&[text, small, medium, large]);
+        let mut children = vec![text];
+        for size_control in [SizeControl::Small, SizeControl::Medium, SizeControl::Large] {
+            let button_entity = button.add(
+                &mut commands,
+                Val::Px(height / 6.0),
+                Val::Px(height / 20.0),
+                UiRect::all(Val::Auto),
+                ui_handles.font_main.clone_weak(),
+                GalaxyControl::Size(size_control),
+                height / 40.0,
+            );
+            if size_control == SizeControl::default() {
+                commands.entity(button_entity).insert(Selected);
+            }
+            children.push(button_entity);
+        }
+        commands.entity(row).push_children(&children);
         row
     };
 
@@ -298,37 +284,27 @@ fn setup(
                 ..Default::default()
             })
             .id();
-        let sparse = button.add(
-            &mut commands,
-            Val::Px(height / 6.0),
-            Val::Px(height / 20.0),
-            UiRect::all(Val::Auto),
-            ui_handles.font_main.clone_weak(),
-            GalaxyControl::Density(3),
-            height / 40.0,
-        );
-        let normal = button.add(
-            &mut commands,
-            Val::Px(height / 6.0),
-            Val::Px(height / 20.0),
-            UiRect::all(Val::Auto),
-            ui_handles.font_main.clone_weak(),
-            GalaxyControl::Density(5),
-            height / 40.0,
-        );
-        let dense = button.add(
-            &mut commands,
-            Val::Px(height / 6.0),
-            Val::Px(height / 20.0),
-            UiRect::all(Val::Auto),
-            ui_handles.font_main.clone_weak(),
-            GalaxyControl::Density(7),
-            height / 40.0,
-        );
-        commands.entity(normal).insert(Selected);
-        commands
-            .entity(row)
-            .push_children(&[text, sparse, normal, dense]);
+        let mut children = vec![text];
+        for density_control in [
+            DensityControl::Sparse,
+            DensityControl::Normal,
+            DensityControl::Dense,
+        ] {
+            let button_entity = button.add(
+                &mut commands,
+                Val::Px(height / 6.0),
+                Val::Px(height / 20.0),
+                UiRect::all(Val::Auto),
+                ui_handles.font_main.clone_weak(),
+                GalaxyControl::Density(density_control),
+                height / 40.0,
+            );
+            if density_control == DensityControl::default() {
+                commands.entity(button_entity).insert(Selected);
+            }
+            children.push(button_entity);
+        }
+        commands.entity(row).push_children(&children);
         row
     };
 
@@ -460,8 +436,8 @@ fn setting_button(
             commands.entity(previous_button).remove::<Selected>();
             commands.entity(entity).insert(Selected);
             match control.0 {
-                GalaxyControl::Size(size) => creator.size = size,
-                GalaxyControl::Density(density) => creator.density = density,
+                GalaxyControl::Size(size) => creator.size = size.into(),
+                GalaxyControl::Density(density) => creator.density = density.into(),
                 GalaxyControl::Players(nb) => creator.nb_players = nb,
                 GalaxyControl::Kind(_) => (),
             }
@@ -469,10 +445,46 @@ fn setting_button(
     }
 }
 
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+enum DensityControl {
+    Sparse,
+    #[default]
+    Normal,
+    Dense,
+}
+
+impl From<DensityControl> for u32 {
+    fn from(density: DensityControl) -> Self {
+        match density {
+            DensityControl::Sparse => 1,
+            DensityControl::Normal => 3,
+            DensityControl::Dense => 4,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+enum SizeControl {
+    Small,
+    #[default]
+    Medium,
+    Large,
+}
+
+impl From<SizeControl> for u32 {
+    fn from(density: SizeControl) -> Self {
+        match density {
+            SizeControl::Small => 2,
+            SizeControl::Medium => 3,
+            SizeControl::Large => 5,
+        }
+    }
+}
+
 #[derive(Component, Clone, Copy, Debug)]
 enum GalaxyControl {
-    Size(u32),
-    Density(u32),
+    Size(SizeControl),
+    Density(DensityControl),
     Players(u32),
     Kind(GalaxyKind),
 }
@@ -481,15 +493,14 @@ enum GalaxyControl {
 impl Into<String> for GalaxyControl {
     fn into(self) -> String {
         match self {
-            GalaxyControl::Size(2) => "small".to_string(),
-            GalaxyControl::Size(3) => "medium".to_string(),
-            GalaxyControl::Size(5) => "large".to_string(),
-            GalaxyControl::Density(3) => "sparse".to_string(),
-            GalaxyControl::Density(5) => "normal".to_string(),
-            GalaxyControl::Density(7) => "dense".to_string(),
+            GalaxyControl::Size(SizeControl::Small) => "small".to_string(),
+            GalaxyControl::Size(SizeControl::Medium) => "medium".to_string(),
+            GalaxyControl::Size(SizeControl::Large) => "large".to_string(),
+            GalaxyControl::Density(DensityControl::Sparse) => "sparse".to_string(),
+            GalaxyControl::Density(DensityControl::Normal) => "normal".to_string(),
+            GalaxyControl::Density(DensityControl::Dense) => "dense".to_string(),
             GalaxyControl::Players(n) => format!("{}", n),
             GalaxyControl::Kind(GalaxyKind::Spiral) => "spiral".to_string(),
-            _ => unreachable!(),
         }
     }
 }
