@@ -90,6 +90,7 @@ fn setup(
             show_ui: false,
             ..default()
         },
+        ScreenTag,
     ));
     let galaxy = GalaxyCreator {
         generated: Vec::new(),
