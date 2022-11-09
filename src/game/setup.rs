@@ -489,6 +489,7 @@ impl From<Action> for String {
     }
 }
 
+#[allow(clippy::type_complexity)]
 fn action_button(
     interaction_query: Query<
         (&Interaction, &ButtonId<Action>),
