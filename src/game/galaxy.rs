@@ -12,8 +12,8 @@ pub enum GalaxyKind {
 #[derive(Resource)]
 pub struct GalaxyCreator {
     pub nb_players: u32,
-    pub size: u32,
-    pub density: u32,
+    pub size: f32,
+    pub density: f32,
     pub _kind: GalaxyKind,
     pub generated: Vec<Vec2>,
 }
@@ -52,7 +52,7 @@ impl Iterator for GalaxyCreator {
     type Item = Star;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.generated.len() as u32 == self.nb_players * self.size * self.density * 4 {
+        if self.generated.len() as f32 == self.nb_players as f32 * self.size * self.density * 4.0 {
             return None;
         }
 

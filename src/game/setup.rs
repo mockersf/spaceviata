@@ -516,12 +516,12 @@ enum DensityControl {
     Dense,
 }
 
-impl From<DensityControl> for u32 {
+impl From<DensityControl> for f32 {
     fn from(density: DensityControl) -> Self {
         match density {
-            DensityControl::Sparse => 1,
-            DensityControl::Normal => 3,
-            DensityControl::Dense => 4,
+            DensityControl::Sparse => 1.0,
+            DensityControl::Normal => 2.5,
+            DensityControl::Dense => 4.0,
         }
     }
 }
@@ -534,12 +534,12 @@ enum SizeControl {
     Large,
 }
 
-impl From<SizeControl> for u32 {
+impl From<SizeControl> for f32 {
     fn from(density: SizeControl) -> Self {
         match density {
-            SizeControl::Small => 2,
-            SizeControl::Medium => 3,
-            SizeControl::Large => 5,
+            SizeControl::Small => 2.0,
+            SizeControl::Medium => 3.0,
+            SizeControl::Large => 5.0,
         }
     }
 }
