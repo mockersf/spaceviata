@@ -96,7 +96,6 @@ fn setup(
         density: DensityControl::default().into(),
         _kind: GalaxyKind::default(),
     };
-    commands.insert_resource(galaxy);
 
     let category_style = Style {
         size: Size {
@@ -330,47 +329,23 @@ fn setup(
                 ..Default::default()
             })
             .id();
-        let nb_2 = button.add(
-            &mut commands,
-            Val::Px(height / 10.0),
-            Val::Px(height / 20.0),
-            UiRect::all(Val::Auto),
-            ui_handles.font_main.clone_weak(),
-            GalaxyControl::Players(2),
-            height / 40.0,
-        );
-        let nb_3 = button.add(
-            &mut commands,
-            Val::Px(height / 10.0),
-            Val::Px(height / 20.0),
-            UiRect::all(Val::Auto),
-            ui_handles.font_main.clone_weak(),
-            GalaxyControl::Players(3),
-            height / 40.0,
-        );
-        let nb_4 = button.add(
-            &mut commands,
-            Val::Px(height / 10.0),
-            Val::Px(height / 20.0),
-            UiRect::all(Val::Auto),
-            ui_handles.font_main.clone_weak(),
-            GalaxyControl::Players(4),
-            height / 40.0,
-        );
-        let nb_5 = button.add(
-            &mut commands,
-            Val::Px(height / 10.0),
-            Val::Px(height / 20.0),
-            UiRect::all(Val::Auto),
-            ui_handles.font_main.clone_weak(),
-            GalaxyControl::Players(5),
-            height / 40.0,
-        );
-
-        commands.entity(nb_2).insert(Selected);
-        commands
-            .entity(row)
-            .push_children(&[text, nb_2, nb_3, nb_4, nb_5]);
+        let mut children = vec![text];
+        for nb in [2, 3, 4, 5] {
+            let button_entity = button.add(
+                &mut commands,
+                Val::Px(height / 8.0),
+                Val::Px(height / 20.0),
+                UiRect::all(Val::Auto),
+                ui_handles.font_main.clone_weak(),
+                GalaxyControl::Players(nb),
+                height / 40.0,
+            );
+            if nb == galaxy.nb_players {
+                commands.entity(button_entity).insert(Selected);
+            }
+            children.push(button_entity);
+        }
+        commands.entity(row).push_children(&children);
         row
     };
 
@@ -393,6 +368,7 @@ fn setup(
         image: UiImage(image_handle),
         ..default()
     });
+    commands.insert_resource(galaxy);
 }
 
 const SELECTED_BUTTON: Color = Color::rgb(0.35, 0.75, 0.35);
