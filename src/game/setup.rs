@@ -14,6 +14,7 @@ use crate::{
     assets::{GalaxyAssets, UiAssets},
     game::galaxy::GalaxyKind,
     ui_helper::{button::ButtonId, ColorScheme},
+    GameState,
 };
 
 use super::galaxy::{GalaxyCreator, StarColor};
@@ -31,7 +32,8 @@ impl bevy::app::Plugin for Plugin {
                 SystemSet::on_update(CURRENT_STATE)
                     .with_system(display_galaxy)
                     .with_system(ui_button_system)
-                    .with_system(setting_button),
+                    .with_system(setting_button)
+                    .with_system(action_button),
             )
             .add_system_set(SystemSet::on_exit(CURRENT_STATE).with_system(tear_down));
     }
@@ -136,21 +138,25 @@ fn setup(
         },
         RenderLayers::layer(1),
         GalaxyPreview,
+        ScreenTag,
     ));
 
     let base = commands
-        .spawn(NodeBundle {
-            style: Style {
-                flex_direction: FlexDirection::Column,
-                margin: UiRect::all(Val::Px(10.0)),
-                size: Size {
-                    width: Val::Percent(100.0),
-                    height: Val::Undefined,
+        .spawn((
+            NodeBundle {
+                style: Style {
+                    flex_direction: FlexDirection::Column,
+                    margin: UiRect::all(Val::Px(10.0)),
+                    size: Size {
+                        width: Val::Percent(100.0),
+                        height: Val::Undefined,
+                    },
+                    ..Default::default()
                 },
                 ..Default::default()
             },
-            ..Default::default()
-        })
+            ScreenTag,
+        ))
         .id();
 
     let panel_style = Style {
@@ -349,25 +355,72 @@ fn setup(
         row
     };
 
-    commands
-        .entity(base)
-        .push_children(&[row_type, row_size, row_density, row_players]);
+    let action_buttons = {
+        let row = commands
+            .spawn(NodeBundle {
+                style: Style {
+                    flex_direction: FlexDirection::Row,
+                    margin: UiRect {
+                        top: Val::Px(height / 15.0),
+                        ..default()
+                    },
+                    size: Size {
+                        width: Val::Percent(100.0),
+                        height: Val::Undefined,
+                    },
+                    justify_content: JustifyContent::SpaceEvenly,
+                    ..default()
+                },
+                ..Default::default()
+            })
+            .id();
+        let cancel = button.add(
+            &mut commands,
+            Val::Px(height / 5.0),
+            Val::Px(height / 15.0),
+            UiRect::all(Val::Auto),
+            ui_handles.font_main.clone_weak(),
+            Action::Cancel,
+            height / 30.0,
+        );
+        let start = button.add(
+            &mut commands,
+            Val::Px(height / 5.0),
+            Val::Px(height / 15.0),
+            UiRect::all(Val::Auto),
+            ui_handles.font_main.clone_weak(),
+            Action::Start,
+            height / 30.0,
+        );
+        commands.entity(row).push_children(&[cancel, start]);
+        row
+    };
 
-    commands.spawn(ImageBundle {
-        style: Style {
-            position_type: PositionType::Absolute,
-            position: UiRect {
-                right: Val::Px(0.),
+    commands.entity(base).push_children(&[
+        row_type,
+        row_size,
+        row_density,
+        row_players,
+        action_buttons,
+    ]);
+
+    commands.spawn((
+        ImageBundle {
+            style: Style {
+                position_type: PositionType::Absolute,
+                position: UiRect {
+                    right: Val::Px(0.),
+                    ..default()
+                },
+                size: Size::new(Val::Percent(50.0), Val::Undefined),
+
                 ..default()
             },
-            // margin: UiRect::all(Val::Auto),
-            size: Size::new(Val::Percent(50.0), Val::Undefined),
-
+            image: UiImage(image_handle),
             ..default()
         },
-        image: UiImage(image_handle),
-        ..default()
-    });
+        ScreenTag,
+    ));
     commands.insert_resource(galaxy);
 }
 
@@ -416,6 +469,38 @@ fn setting_button(
                 GalaxyControl::Density(density) => creator.density = density.into(),
                 GalaxyControl::Players(nb) => creator.nb_players = nb,
                 GalaxyControl::Kind(_) => (),
+            }
+        }
+    }
+}
+
+#[derive(Clone, Copy)]
+enum Action {
+    Start,
+    Cancel,
+}
+
+impl From<Action> for String {
+    fn from(action: Action) -> Self {
+        match action {
+            Action::Start => String::from("Start"),
+            Action::Cancel => String::from("Cancel"),
+        }
+    }
+}
+
+fn action_button(
+    interaction_query: Query<
+        (&Interaction, &ButtonId<Action>),
+        (Changed<Interaction>, With<Button>),
+    >,
+    mut state: ResMut<State<GameState>>,
+) {
+    for (interaction, control) in &interaction_query {
+        if *interaction == Interaction::Clicked {
+            match control.0 {
+                Action::Cancel => state.set(GameState::Menu).unwrap(),
+                Action::Start => (),
             }
         }
     }
