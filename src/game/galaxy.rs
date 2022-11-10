@@ -15,23 +15,25 @@ pub struct GalaxyCreator {
     pub size: f32,
     pub density: f32,
     pub _kind: GalaxyKind,
-    pub generated: Vec<Vec2>,
+    pub generated: Vec<Star>,
 }
 
+#[derive(Clone, Debug)]
 pub struct Star {
     pub position: Vec2,
     pub size: StarSize,
     pub color: StarColor,
+    pub start: Option<usize>,
 }
 
-#[derive(Component, Copy, Clone)]
+#[derive(Component, Copy, Clone, Debug)]
 pub enum StarColor {
     Blue,
     Yellow,
     Orange,
 }
 
-#[derive(Component, Copy, Clone)]
+#[derive(Component, Copy, Clone, Debug)]
 pub enum StarSize {
     Dwarf,
     Subgiant,
@@ -79,10 +81,10 @@ impl Iterator for GalaxyCreator {
                 * (PI / 180.0 * (arm + distance_to_center * spiral_angle + angle) as f32).cos();
             let y = distance_to_center
                 * (PI / 180.0 * (arm + distance_to_center * spiral_angle + angle) as f32).sin();
-            let new_star = Vec2::new(x, y);
+            let new_star_position = Vec2::new(x, y);
 
             for other_star in &self.generated {
-                let distance = new_star.distance(*other_star);
+                let distance = new_star_position.distance(other_star.position);
                 if distance < 100.0 / (self.density as f32) {
                     fail += 1;
                     if distance < 100.0 / (self.density as f32 * (1.0 + fail as f32 / 1000.0)) {
@@ -90,14 +92,16 @@ impl Iterator for GalaxyCreator {
                     }
                 }
             }
-            self.generated.push(new_star);
-            return Some(Star {
-                position: new_star,
+            let new_star = Star {
+                position: new_star_position,
                 size: size_choices[size_dist.sample(&mut rand)],
                 color: *[StarColor::Blue, StarColor::Orange, StarColor::Yellow]
                     .choose(&mut rand)
                     .unwrap(),
-            });
+                start: None,
+            };
+            self.generated.push(new_star.clone());
+            return Some(new_star);
         }
     }
 }

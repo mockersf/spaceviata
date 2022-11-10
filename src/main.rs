@@ -60,6 +60,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .add_plugin(crate::splash::Plugin)
         .add_plugin(crate::menu::Plugin)
         .add_plugin(crate::game::setup::Plugin)
+        .add_plugin(crate::game::world::Plugin)
         .add_plugin(crate::lost::Plugin);
     #[cfg(feature = "debug-graph")]
     bevy_mod_debugdump::print_schedule(&mut builder);
@@ -75,6 +76,7 @@ pub(crate) enum GameState {
     Splash,
     Menu,
     Setup,
+    Game,
     Lost,
     Exit,
 }

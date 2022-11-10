@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use bevy::{
     prelude::*,
     render::{
@@ -12,7 +14,7 @@ use bevy::{
 
 use crate::{
     assets::{GalaxyAssets, UiAssets},
-    game::galaxy::GalaxyKind,
+    game::{galaxy::GalaxyKind, World},
     ui_helper::{button::ButtonId, ColorScheme},
     GameState,
 };
@@ -502,7 +504,7 @@ fn action_button(
         if *interaction == Interaction::Clicked {
             match control.0 {
                 Action::Cancel => state.set(GameState::Menu).unwrap(),
-                Action::Start => (),
+                Action::Start => state.set(GameState::Game).unwrap(),
             }
         }
     }
@@ -602,10 +604,38 @@ fn display_galaxy(
     }
 }
 
-fn tear_down(mut commands: Commands, query: Query<Entity, With<ScreenTag>>) {
+fn tear_down(
+    mut commands: Commands,
+    query: Query<Entity, With<ScreenTag>>,
+    creator: Res<GalaxyCreator>,
+) {
     info!("tear down");
 
     for entity in query.iter() {
         commands.entity(entity).despawn_recursive();
     }
+
+    let galaxy = creator.generated.clone();
+
+    let start = (0..creator.nb_players)
+        .into_iter()
+        .map(|player| {
+            let mut angle = PI * 2.0 / creator.nb_players as f32 * player as f32;
+            if creator.nb_players % 2 == 0 {
+                angle += PI / (creator.nb_players as f32 * 1.5);
+            }
+            let position = Vec2::new(angle.cos(), angle.sin()) * creator.size * 100.0;
+            let mut closest_i = usize::MAX;
+            let mut closest_distance = f32::MAX;
+            for (i, star) in galaxy.iter().enumerate() {
+                if star.position.distance_squared(position) < closest_distance {
+                    closest_i = i;
+                    closest_distance = star.position.distance_squared(position);
+                }
+            }
+            closest_i
+        })
+        .collect();
+
+    commands.insert_resource(World { galaxy, start })
 }
