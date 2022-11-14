@@ -2,6 +2,8 @@
 #![windows_subsystem = "windows"]
 #![allow(clippy::needless_update, clippy::too_many_arguments)]
 
+#[cfg(not(target_arch = "wasm32"))]
+use bevy::core_pipeline::bloom::BloomSettings;
 use bevy::{app::AppExit, prelude::*};
 
 mod assets;
@@ -82,7 +84,18 @@ pub(crate) enum GameState {
 }
 
 fn general_setup(mut commands: Commands) {
-    commands.spawn(Camera2dBundle { ..default() });
+    commands.spawn((
+        Camera2dBundle {
+            #[cfg(not(target_arch = "wasm32"))]
+            camera: Camera {
+                hdr: true,
+                ..default()
+            },
+            ..default()
+        },
+        #[cfg(not(target_arch = "wasm32"))]
+        BloomSettings { ..default() },
+    ));
 }
 
 fn exit(mut app_exit_events: EventWriter<AppExit>) {

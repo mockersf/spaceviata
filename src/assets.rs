@@ -129,19 +129,23 @@ fn done(world: &mut World) {
                 .get_resource_unchecked_mut::<Assets<ColorMaterial>>()
                 .unwrap();
             let mut meshes = world.get_resource_unchecked_mut::<Assets<Mesh>>().unwrap();
+            #[cfg(not(target_arch = "wasm32"))]
+            let over = 1.35;
+            #[cfg(target_arch = "wasm32")]
+            let over = 1.0;
             world.insert_resource(GalaxyAssets {
                 star_mesh: meshes.add(shape::Circle::new(2.5).into()),
                 blue_star: materials.add(ColorMaterial::from(Color::rgb(
                     185.0 / 255.0,
                     184.0 / 255.0,
-                    1.0,
+                    over,
                 ))),
                 yellow_star: materials.add(ColorMaterial::from(Color::rgb(
-                    1.0,
-                    1.0,
+                    over,
+                    over,
                     153.0 / 255.0,
                 ))),
-                orange_star: materials.add(ColorMaterial::from(Color::rgb(1.0, 0.5, 0.0))),
+                orange_star: materials.add(ColorMaterial::from(Color::rgb(over, 0.5, 0.0))),
             });
         }
     }
