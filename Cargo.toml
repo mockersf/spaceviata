@@ -6,7 +6,7 @@ license = "MIT OR Apache-2.0"
 publish = false
 
 [dependencies]
-bevy = { version = "0.9.0-dev", default-features = false, features = [
+bevy = { version = "0.9", default-features = false, features = [
   "bevy_asset",
   "bevy_core_pipeline",
   "bevy_sprite",
@@ -19,10 +19,10 @@ bevy = { version = "0.9.0-dev", default-features = false, features = [
   "bevy_gilrs",
 ] }
 
-bevy_embedded_assets = { version = "0.5.0-dev", optional = true }
+bevy_embedded_assets = { version = "0.6", optional = true }
 bevy_asset_loader = { version = "0.12", default-features = false }
 bevy_easings = { version = "0.9.0", default-features = false, features = [ "ui", "render" ] }
-bevy_ninepatch = { version = "0.8.0", default-features = false }
+bevy_ninepatch = { version = "0.9", default-features = false }
 
 # Needed to control log level by feature for release
 tracing = { version = "0.1", optional = true }
@@ -30,7 +30,7 @@ tracing = { version = "0.1", optional = true }
 rand = "0.8"
 
 [target.'cfg(target_os = "linux")'.dependencies]
-bevy = { version = "0.9.0-dev", features = [
+bevy = { version = "0.9", features = [
   "x11",
 ] }
 
@@ -44,11 +44,11 @@ tracy = [ "bevy/trace", "bevy/trace_tracy" ]
 # debug-graph = [ "bevy_mod_debugdump" ]
 
 
-[profile.dev.package."*"]
-opt-level = 3
+# [profile.dev.package."*"]
+# opt-level = 3
 
-[profile.dev.package.spaceviata]
-opt-level = 3
+# [profile.dev.package.spaceviata]
+# opt-level = 3
 
 [profile.wasm-release]
 inherits = "release"
@@ -57,11 +57,7 @@ lto = "fat"
 codegen-units = 1
 
 [patch.crates-io]
-bevy = { git = "https://github.com/bevyengine/bevy" }
-bevy_embedded_assets = { git = "https://github.com/vleue/bevy_embedded_assets" }
-bevy_easings = { git = "https://github.com/vleue/bevy_easings" }
-bevy_ninepatch = { git = "https://github.com/vleue/bevy_ninepatch" }
-bevy_asset_loader = { git = "https://github.com/rparrett/bevy_asset_loader", branch = "bevy-9"}
+bevy_asset_loader = { git = "https://github.com/mockersf/bevy_asset_loader", branch = "new" }
 
 
 [package.metadata.release]
