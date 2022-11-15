@@ -24,7 +24,6 @@ struct Player {
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
 enum StarState {
     Owned(usize),
-    Free,
     Unknown,
 }
 
