@@ -14,7 +14,7 @@ use bevy::{
 
 use crate::{
     assets::{GalaxyAssets, UiAssets},
-    game::{galaxy::GalaxyKind, World},
+    game::{galaxy::GalaxyKind, Player, StarState, World},
     ui_helper::{button::ButtonId, ColorScheme},
     GameState,
 };
@@ -617,7 +617,7 @@ fn tear_down(
 
     let galaxy = creator.generated.clone();
 
-    let start = (0..creator.nb_players)
+    let players = (0..(creator.nb_players as usize))
         .into_iter()
         .map(|player| {
             let mut angle = PI * 2.0 / creator.nb_players as f32 * player as f32;
@@ -633,9 +633,18 @@ fn tear_down(
                     closest_distance = star.position.distance_squared(position);
                 }
             }
-            closest_i
+            let mut vision = vec![StarState::Unknown; galaxy.len()];
+            vision[closest_i] = StarState::Owned(player);
+            Player {
+                start: closest_i,
+                vision,
+            }
         })
         .collect();
 
-    commands.insert_resource(World { galaxy, start })
+    commands.insert_resource(World {
+        star_entities: Vec::with_capacity(galaxy.len()),
+        galaxy,
+        players,
+    })
 }

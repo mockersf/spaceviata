@@ -88,6 +88,7 @@ pub(crate) struct GalaxyAssets {
     pub(crate) blue_star: Handle<ColorMaterial>,
     pub(crate) yellow_star: Handle<ColorMaterial>,
     pub(crate) orange_star: Handle<ColorMaterial>,
+    pub(crate) unknown: Handle<ColorMaterial>,
 }
 
 fn done(world: &mut World) {
@@ -146,6 +147,7 @@ fn done(world: &mut World) {
                     153.0 / 255.0,
                 ))),
                 orange_star: materials.add(ColorMaterial::from(Color::rgb(over, 0.5, 0.0))),
+                unknown: materials.add(ColorMaterial::from(Color::rgb(0.3, 0.3, 0.3))),
             });
         }
     }

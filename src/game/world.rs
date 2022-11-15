@@ -6,9 +6,16 @@ use bevy::{
     sprite::MaterialMesh2dBundle,
 };
 
-use crate::{assets::GalaxyAssets, game::World, GameState};
+use crate::{
+    assets::GalaxyAssets,
+    game::{CurrentGame, World},
+    GameState,
+};
 
-use super::galaxy::{Star, StarColor};
+use super::{
+    galaxy::{Star, StarColor},
+    StarState,
+};
 
 const CURRENT_STATE: GameState = GameState::Game;
 
@@ -25,7 +32,8 @@ impl bevy::app::Plugin for Plugin {
                     .with_system(update_camera_controller)
                     .with_system(camera_keyboard_controls)
                     .with_system(camera_mouse_controls)
-                    .with_system(camera_touch_controls),
+                    .with_system(camera_touch_controls)
+                    .with_system(hide_stars),
             )
             .add_system_set(SystemSet::on_exit(CURRENT_STATE).with_system(tear_down));
     }
@@ -51,30 +59,38 @@ struct System {
 fn setup(
     mut commands: Commands,
     galaxy_assets: Res<GalaxyAssets>,
-    game: Res<World>,
+    mut world: ResMut<World>,
     mut camera: Query<&mut Transform, With<Camera2d>>,
+    time: Res<Time>,
 ) {
     info!("Loading screen");
 
-    for star in &game.galaxy {
-        commands.spawn((
-            (
-                MaterialMesh2dBundle {
-                    mesh: galaxy_assets.star_mesh.clone_weak().into(),
-                    material: match star.color {
-                        StarColor::Blue => galaxy_assets.blue_star.clone_weak(),
-                        StarColor::Yellow => galaxy_assets.yellow_star.clone_weak(),
-                        StarColor::Orange => galaxy_assets.orange_star.clone_weak(),
-                    },
-                    transform: Transform::from_translation(star.position.extend(0.1))
-                        .with_scale(Vec3::splat(star.size.into())),
-                    ..default()
-                },
-                ScreenTag,
-            ),
-            System { star: star.clone() },
-        ));
-    }
+    // for star in &game.galaxy {
+    world.star_entities = world
+        .galaxy
+        .iter()
+        .map(|star| {
+            commands
+                .spawn((
+                    (
+                        MaterialMesh2dBundle {
+                            mesh: galaxy_assets.star_mesh.clone_weak().into(),
+                            material: match star.color {
+                                StarColor::Blue => galaxy_assets.blue_star.clone_weak(),
+                                StarColor::Yellow => galaxy_assets.yellow_star.clone_weak(),
+                                StarColor::Orange => galaxy_assets.orange_star.clone_weak(),
+                            },
+                            transform: Transform::from_translation(star.position.extend(0.1))
+                                .with_scale(Vec3::splat(star.size.into())),
+                            ..default()
+                        },
+                        ScreenTag,
+                    ),
+                    System { star: star.clone() },
+                ))
+                .id()
+        })
+        .collect();
 
     commands.insert_resource(CameraController {
         zoom_level: 1.0,
@@ -82,9 +98,14 @@ fn setup(
     });
     commands.insert_resource(CameraControllerTarget {
         zoom_level: 8.0,
-        position: game.galaxy[game.start[0]].position,
+        position: world.galaxy[world.players[0].start].position,
     });
     *camera.single_mut() = Camera2dBundle::default().transform;
+
+    commands.insert_resource(CurrentGame {
+        start: time.last_update().unwrap(),
+        init: false,
+    });
 }
 
 fn tear_down(mut commands: Commands, query: Query<Entity, With<ScreenTag>>) {
@@ -250,5 +271,26 @@ fn camera_touch_controls(
             }
         }
         *last_position = Some(touch.position);
+    }
+}
+
+fn hide_stars(
+    mut stars: Query<&mut Handle<ColorMaterial>>,
+    galaxy_assets: Res<GalaxyAssets>,
+    world: Res<World>,
+    time: Res<Time>,
+    mut current: ResMut<CurrentGame>,
+) {
+    if (time.last_update().unwrap() - current.start).as_secs_f32() > 0.5 && !current.init {
+        for (entity, visible) in world
+            .star_entities
+            .iter()
+            .zip(world.players[0].vision.iter())
+        {
+            if *visible == StarState::Unknown {
+                *stars.get_mut(*entity).unwrap() = galaxy_assets.unknown.clone_weak();
+            }
+        }
+        current.init = true;
     }
 }
