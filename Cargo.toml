@@ -58,6 +58,8 @@ codegen-units = 1
 
 [patch.crates-io]
 bevy_asset_loader = { git = "https://github.com/mockersf/bevy_asset_loader", branch = "new" }
+bevy = { git = "https://github.com/mockersf/bevy", branch = "fix-y-touch-wasm" }
+winit = { git = "https://github.com/ryo33/winit", branch = "web-touch-event" }
 
 
 [package.metadata.release]

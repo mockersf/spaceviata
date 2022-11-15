@@ -1,7 +1,10 @@
 use std::time::Duration;
 
 use bevy::{
-    input::mouse::{MouseMotion, MouseWheel},
+    input::{
+        mouse::{MouseMotion, MouseWheel},
+        touch::TouchPhase,
+    },
     prelude::*,
     sprite::MaterialMesh2dBundle,
 };
@@ -24,7 +27,8 @@ impl bevy::app::Plugin for Plugin {
                     .with_system(update_camera)
                     .with_system(update_camera_controller)
                     .with_system(camera_keyboard_controls)
-                    .with_system(camera_mouse_controls),
+                    .with_system(camera_mouse_controls)
+                    .with_system(camera_touch_controls),
             )
             .add_system_set(SystemSet::on_exit(CURRENT_STATE).with_system(tear_down));
     }
@@ -184,5 +188,32 @@ fn camera_mouse_controls(
     mouse_motion.clear();
     for wheel in mouse_wheel.iter() {
         target.zoom_level = (controller.zoom_level - wheel.y).clamp(1.0, 10.0);
+    }
+}
+
+fn camera_touch_controls(
+    controller: Res<CameraController>,
+    mut target: ResMut<CameraControllerTarget>,
+    mut touches: EventReader<TouchInput>,
+    mut last_position: Local<Option<Vec2>>,
+    mut pressed_at: Local<Option<Duration>>,
+    time: Res<Time>,
+) {
+    for touch in touches.iter() {
+        if touch.phase == TouchPhase::Started {
+            *pressed_at = Some(time.raw_elapsed());
+            *last_position = None;
+        }
+        if let Some(last_position) = *last_position {
+            if let Some(when) = *pressed_at {
+                if (time.raw_elapsed() - when).as_secs_f32() > 0.2 {
+                    target.position = controller.position
+                        + (touch.position - last_position)
+                            * Vec2::new(-1.0, 1.0)
+                            * (40.0 / controller.zoom_level);
+                }
+            }
+        }
+        *last_position = Some(touch.position);
     }
 }
