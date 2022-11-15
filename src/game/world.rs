@@ -1,10 +1,7 @@
 use std::time::Duration;
 
 use bevy::{
-    input::{
-        mouse::{MouseMotion, MouseWheel},
-        touch::TouchPhase,
-    },
+    input::{mouse::MouseWheel, touch::TouchPhase},
     prelude::*,
     sprite::MaterialMesh2dBundle,
 };
@@ -162,11 +159,12 @@ fn camera_keyboard_controls(
     }
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 fn camera_mouse_controls(
     controller: Res<CameraController>,
     mut target: ResMut<CameraControllerTarget>,
     mouse_input: Res<Input<MouseButton>>,
-    mut mouse_motion: EventReader<MouseMotion>,
+    mut mouse_motion: EventReader<bevy::input::mouse::MouseMotion>,
     mut mouse_wheel: EventReader<MouseWheel>,
     mut pressed_at: Local<Option<Duration>>,
     time: Res<Time>,
@@ -186,6 +184,43 @@ fn camera_mouse_controls(
         }
     }
     mouse_motion.clear();
+    for wheel in mouse_wheel.iter() {
+        target.zoom_level = (controller.zoom_level - wheel.y).clamp(1.0, 10.0);
+    }
+}
+
+#[cfg(target_arch = "wasm32")]
+fn camera_mouse_controls(
+    controller: Res<CameraController>,
+    mut target: ResMut<CameraControllerTarget>,
+    mouse_input: Res<Input<MouseButton>>,
+    mut cursor_moved: EventReader<CursorMoved>,
+    mut mouse_wheel: EventReader<MouseWheel>,
+    mut pressed_at: Local<Option<Duration>>,
+    mut last_position: Local<Option<Vec2>>,
+    time: Res<Time>,
+) {
+    if mouse_input.just_pressed(MouseButton::Left) {
+        *pressed_at = Some(time.raw_elapsed());
+        *last_position = None;
+    }
+    if mouse_input.just_released(MouseButton::Left) {
+        *pressed_at = None;
+    }
+    if let Some(when) = *pressed_at {
+        if (time.raw_elapsed() - when).as_secs_f32() > 0.2 {
+            for cursor in cursor_moved.iter() {
+                if let Some(last_position) = *last_position {
+                    target.position = controller.position
+                        + (cursor.position - last_position)
+                            * Vec2::new(-1.0, -1.0)
+                            * (40.0 / controller.zoom_level);
+                }
+                *last_position = Some(cursor.position);
+            }
+        }
+    }
+    cursor_moved.clear();
     for wheel in mouse_wheel.iter() {
         target.zoom_level = (controller.zoom_level - wheel.y).clamp(1.0, 10.0);
     }
