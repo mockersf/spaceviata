@@ -72,20 +72,18 @@ fn setup(
         .map(|star| {
             commands
                 .spawn((
-                    (
-                        MaterialMesh2dBundle {
-                            mesh: galaxy_assets.star_mesh.clone_weak().into(),
-                            material: match star.color {
-                                StarColor::Blue => galaxy_assets.blue_star.clone_weak(),
-                                StarColor::Yellow => galaxy_assets.yellow_star.clone_weak(),
-                                StarColor::Orange => galaxy_assets.orange_star.clone_weak(),
-                            },
-                            transform: Transform::from_translation(star.position.extend(0.1))
-                                .with_scale(Vec3::splat(star.size.into())),
-                            ..default()
+                    MaterialMesh2dBundle {
+                        mesh: galaxy_assets.star_mesh.clone_weak().into(),
+                        material: match star.color {
+                            StarColor::Blue => galaxy_assets.blue_star.clone_weak(),
+                            StarColor::Yellow => galaxy_assets.yellow_star.clone_weak(),
+                            StarColor::Orange => galaxy_assets.orange_star.clone_weak(),
                         },
-                        ScreenTag,
-                    ),
+                        transform: Transform::from_translation(star.position.extend(0.1))
+                            .with_scale(Vec3::splat(star.size.into())),
+                        ..default()
+                    },
+                    ScreenTag,
                     System { star: star.clone() },
                 ))
                 .id()
