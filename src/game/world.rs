@@ -8,7 +8,7 @@ use bevy::{
 
 use crate::{
     assets::GalaxyAssets,
-    game::{CurrentGame, World},
+    game::{z_levels, CurrentGame, World},
     GameState,
 };
 
@@ -40,9 +40,9 @@ impl bevy::app::Plugin for Plugin {
 }
 
 #[derive(Resource)]
-struct CameraController {
-    zoom_level: f32,
-    position: Vec2,
+pub struct CameraController {
+    pub zoom_level: f32,
+    pub position: Vec2,
 }
 
 #[derive(Resource)]
@@ -79,8 +79,10 @@ fn setup(
                             StarColor::Yellow => galaxy_assets.yellow_star.clone_weak(),
                             StarColor::Orange => galaxy_assets.orange_star.clone_weak(),
                         },
-                        transform: Transform::from_translation(star.position.extend(0.1))
-                            .with_scale(Vec3::splat(star.size.into())),
+                        transform: Transform::from_translation(
+                            star.position.extend(z_levels::STARS),
+                        )
+                        .with_scale(Vec3::splat(star.size.into())),
                         ..default()
                     },
                     ScreenTag,
@@ -127,7 +129,7 @@ fn update_camera(
         for (mut transform, system) in &mut systems {
             transform.scale = Vec3::splat(system.star.size.into()) * controller.zoom_level;
             transform.translation =
-                (system.star.position * controller.zoom_level / 2.0).extend(0.1);
+                (system.star.position * controller.zoom_level / 2.0).extend(z_levels::STARS);
         }
     }
 }
