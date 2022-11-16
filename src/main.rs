@@ -34,6 +34,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 bevy_embedded_assets::EmbeddedAssetPlugin,
             );
         }
+        #[cfg(feature = "hot")]
+        {
+            builder = builder.set(AssetPlugin {
+                // Tell the asset server to watch for asset changes on disk:
+                watch_for_changes: true,
+                ..default()
+            });
+        }
         builder.set(ImagePlugin::default_nearest())
     });
 
