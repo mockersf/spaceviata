@@ -31,9 +31,9 @@ struct ScreenTag;
 #[uuid = "D80C1B8C-4023-47E4-BFB6-29616A0DBF70"]
 pub struct StarfieldMaterial {
     #[uniform(0)]
-    position: Vec2,
+    position: Vec4,
     #[uniform(1)]
-    seed: f32,
+    seeds: Vec4,
 }
 
 impl Material2d for StarfieldMaterial {
@@ -55,8 +55,13 @@ fn setup(
         MaterialMesh2dBundle {
             mesh: meshes.add(Mesh::from(shape::Quad::default())).into(),
             material: materials.add(StarfieldMaterial {
-                position: Vec2::ZERO,
-                seed: rand::thread_rng().gen_range(0.0..1000.0),
+                position: Vec4::ZERO,
+                seeds: Vec4::new(
+                    rand::thread_rng().gen_range(0.0..1000.0),
+                    rand::thread_rng().gen_range(0.0..1000.0),
+                    0.0,
+                    0.0,
+                ),
             }),
             transform: Transform::from_translation(Vec2::ZERO.extend(z_levels::STARFIELD))
                 .with_scale(Vec2::splat(window.width().max(window.height())).extend(1.0)),
@@ -78,7 +83,7 @@ fn update_starfield(
         starfield_transform.translation.y = controller.position.y * controller.zoom_level / 2.0;
 
         for (_, material) in materials.iter_mut() {
-            material.position = controller.position;
+            material.position = controller.position.extend(0.0).extend(0.0);
         }
     }
     if let Some(resized) = resized.iter().last() {

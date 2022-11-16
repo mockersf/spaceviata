@@ -59,7 +59,7 @@ codegen-units = 1
 [patch.crates-io]
 bevy_asset_loader = { git = "https://github.com/mockersf/bevy_asset_loader", branch = "new" }
 winit = { git = "https://github.com/mockersf/winit", branch = "web-touch-event" }
-
+bevy = { git = "https://github.com/mockersf/bevy", branch = "shader-globals-wasm-padding-2d-0.9" }
 
 [package.metadata.release]
 release = true
