@@ -43,8 +43,8 @@ pub enum StarSize {
 impl From<StarSize> for f32 {
     fn from(size: StarSize) -> Self {
         match size {
-            StarSize::Dwarf => 0.75,
-            StarSize::Subgiant => 1.25,
+            StarSize::Dwarf => 1.0,
+            StarSize::Subgiant => 1.4,
             StarSize::Giant => 3.0,
         }
     }

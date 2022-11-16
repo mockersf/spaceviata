@@ -8,14 +8,16 @@ use bevy::{
 
 use crate::{
     assets::GalaxyAssets,
-    game::{z_levels, CurrentGame, World},
+    game::{galaxy::StarSize, z_levels, CurrentGame, World},
     GameState,
 };
 
 use super::{
-    galaxy::{Star, StarColor},
+    galaxy::{GalaxyCreator, Star, StarColor},
     StarState,
 };
+
+pub const RATIO_ZOOM_DISTANCE: f32 = 2.0;
 
 const CURRENT_STATE: GameState = GameState::Game;
 
@@ -123,13 +125,18 @@ fn update_camera(
 ) {
     if controller.is_changed() {
         let mut camera_transform = camera.single_mut();
-        camera_transform.translation.x = controller.position.x * controller.zoom_level / 2.0;
-        camera_transform.translation.y = controller.position.y * controller.zoom_level / 2.0;
+        camera_transform.translation.x =
+            controller.position.x * controller.zoom_level / RATIO_ZOOM_DISTANCE;
+        camera_transform.translation.y =
+            controller.position.y * controller.zoom_level / RATIO_ZOOM_DISTANCE;
 
         for (mut transform, system) in &mut systems {
-            transform.scale = Vec3::splat(system.star.size.into()) * controller.zoom_level;
-            transform.translation =
-                (system.star.position * controller.zoom_level / 2.0).extend(z_levels::STARS);
+            transform.scale = Vec3::splat(
+                <StarSize as Into<f32>>::into(system.star.size) * controller.zoom_level.powf(0.7),
+            );
+            transform.translation = (system.star.position * controller.zoom_level
+                / RATIO_ZOOM_DISTANCE)
+                .extend(z_levels::STARS);
         }
     }
 }
@@ -150,10 +157,16 @@ fn update_camera_controller(
     }
 }
 
+#[inline]
+fn limit_camera_controller(new_position: Vec2, size: f32) -> bool {
+    new_position.distance(Vec2::ZERO) < size * 100.0
+}
+
 fn camera_keyboard_controls(
     controller: Res<CameraController>,
     mut target: ResMut<CameraControllerTarget>,
     keyboard_input: Res<Input<KeyCode>>,
+    galaxy_settings: Res<GalaxyCreator>,
 ) {
     let mut order = Vec2::ZERO;
     if keyboard_input.any_pressed([KeyCode::Right, KeyCode::D]) {
@@ -170,7 +183,10 @@ fn camera_keyboard_controls(
     }
     if order != Vec2::ZERO {
         let order = order.normalize();
-        target.position = controller.position + order * (controller.zoom_level / 4.0 + 10.0);
+        let new_position = controller.position + order * (controller.zoom_level / 4.0 + 10.0);
+        if limit_camera_controller(new_position, galaxy_settings.size) {
+            target.position = new_position;
+        }
     }
     if keyboard_input.just_pressed(KeyCode::PageUp) {
         target.zoom_level = (controller.zoom_level + 1.0).min(10.0);
@@ -189,6 +205,7 @@ fn camera_mouse_controls(
     mut mouse_wheel: EventReader<MouseWheel>,
     mut pressed_at: Local<Option<Duration>>,
     time: Res<Time>,
+    galaxy_settings: Res<GalaxyCreator>,
 ) {
     if mouse_input.just_pressed(MouseButton::Left) {
         *pressed_at = Some(time.raw_elapsed())
@@ -199,8 +216,12 @@ fn camera_mouse_controls(
     if let Some(when) = *pressed_at {
         if (time.raw_elapsed() - when).as_secs_f32() > 0.2 {
             for motion in mouse_motion.iter() {
-                target.position = controller.position
-                    + (motion.delta * Vec2::new(-1.0, 1.0)) * (40.0 / controller.zoom_level);
+                let new_position = controller.position
+                    + (motion.delta * Vec2::new(-1.0, 1.0))
+                        * (RATIO_ZOOM_DISTANCE * 20.0 / controller.zoom_level);
+                if limit_camera_controller(new_position, galaxy_settings.size) {
+                    target.position = new_position;
+                }
             }
         }
     }
@@ -220,6 +241,7 @@ fn camera_mouse_controls(
     mut pressed_at: Local<Option<Duration>>,
     mut last_position: Local<Option<Vec2>>,
     time: Res<Time>,
+    galaxy_settings: Res<GalaxyCreator>,
 ) {
     if mouse_input.just_pressed(MouseButton::Left) {
         *pressed_at = Some(time.raw_elapsed());
@@ -232,10 +254,13 @@ fn camera_mouse_controls(
         if (time.raw_elapsed() - when).as_secs_f32() > 0.2 {
             for cursor in cursor_moved.iter() {
                 if let Some(last_position) = *last_position {
-                    target.position = controller.position
+                    let new_position = controller.position
                         + (cursor.position - last_position)
                             * Vec2::new(-1.0, -1.0)
                             * (40.0 / controller.zoom_level);
+                    if limit_camera_controller(new_position, galaxy_settings.size) {
+                        target.position = new_position;
+                    }
                 }
                 *last_position = Some(cursor.position);
             }

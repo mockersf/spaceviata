@@ -9,7 +9,7 @@ use rand::Rng;
 
 use crate::{game::z_levels, GameState};
 
-use super::world::CameraController;
+use super::world::{CameraController, RATIO_ZOOM_DISTANCE};
 
 const CURRENT_STATE: GameState = GameState::Game;
 
@@ -79,8 +79,10 @@ fn update_starfield(
 ) {
     if controller.is_changed() {
         let mut starfield_transform = starfield.single_mut();
-        starfield_transform.translation.x = controller.position.x * controller.zoom_level / 2.0;
-        starfield_transform.translation.y = controller.position.y * controller.zoom_level / 2.0;
+        starfield_transform.translation.x =
+            controller.position.x * controller.zoom_level / RATIO_ZOOM_DISTANCE;
+        starfield_transform.translation.y =
+            controller.position.y * controller.zoom_level / RATIO_ZOOM_DISTANCE;
 
         for (_, material) in materials.iter_mut() {
             material.position = controller.position.extend(0.0).extend(0.0);
