@@ -14,7 +14,10 @@ use bevy::{
 
 use crate::{
     assets::{names::Names, GalaxyAssets, UiAssets},
-    game::{galaxy::GalaxyKind, Player, StarState, World},
+    game::{
+        galaxy::{GalaxyKind, StarSize},
+        Player, StarState, World,
+    },
     ui_helper::{button::ButtonId, ColorScheme},
     GameState,
 };
@@ -635,7 +638,9 @@ fn tear_down(
             let mut closest_i = usize::MAX;
             let mut closest_distance = f32::MAX;
             for (i, star) in galaxy.iter().enumerate() {
-                if star.position.distance_squared(position) < closest_distance {
+                if star.size != StarSize::Giant
+                    && star.position.distance_squared(position) < closest_distance
+                {
                     closest_i = i;
                     closest_distance = star.position.distance_squared(position);
                 }
