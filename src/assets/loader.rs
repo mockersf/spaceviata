@@ -89,6 +89,8 @@ pub(crate) struct UiAssets {
 struct RawGalaxyAssets {
     #[asset(path = "star.names")]
     star_names: Handle<Names>,
+    #[asset(path = "top-hat.png")]
+    hat: Handle<Image>,
 }
 
 #[derive(Resource)]
@@ -99,6 +101,7 @@ pub(crate) struct GalaxyAssets {
     pub(crate) orange_star: Handle<ColorMaterial>,
     pub(crate) unknown: Handle<ColorMaterial>,
     pub(crate) star_names: Handle<Names>,
+    pub(crate) hat: Handle<Image>,
 }
 
 fn done(world: &mut World) {
@@ -161,6 +164,7 @@ fn done(world: &mut World) {
                 orange_star: materials.add(ColorMaterial::from(Color::rgb(over, 0.5, 0.0))),
                 unknown: materials.add(ColorMaterial::from(Color::rgb(0.3, 0.3, 0.3))),
                 star_names: raw.star_names,
+                hat: raw.hat,
             });
         }
     }

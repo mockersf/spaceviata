@@ -33,7 +33,8 @@ pub struct CurrentGame {
 }
 
 mod z_levels {
-    pub const STARS: f32 = 0.5;
-    pub const STAR_NAMES: f32 = 0.6;
+    pub const STAR: f32 = 0.5;
+    pub const STAR_NAME: f32 = 0.7;
+    pub const STAR_DECORATION: f32 = 0.6;
     pub const STARFIELD: f32 = 0.0;
 }

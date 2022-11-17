@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{f32::consts::FRAC_PI_8, time::Duration};
 
 use bevy::{
     input::{mouse::MouseWheel, touch::TouchPhase},
@@ -61,6 +61,8 @@ struct System {
 
 #[derive(Component)]
 struct StarName;
+#[derive(Component)]
+struct StarHat;
 
 #[derive(Resource)]
 struct TempMaterials {
@@ -116,7 +118,7 @@ fn setup(
                             (StarColor::Yellow, _) => galaxy_assets.orange_star.clone_weak(),
                         },
                         transform: Transform::from_translation(
-                            star.position.extend(z_levels::STARS),
+                            star.position.extend(z_levels::STAR),
                         )
                         .with_scale(Vec3::splat(star.size.into())),
                         ..default()
@@ -139,13 +141,28 @@ fn setup(
                                 0.1 / <StarSize as Into<f32>>::into(star.size),
                             ))
                             .with_translation(Vec3::new(
-                                -(star.name.len() as f32) / 2.0,
+                                -(star.name.len() as f32)
+                                    * <StarSize as Into<f32>>::into(star.size)
+                                    / (2.0 * 1.0),
                                 -2.2,
-                                z_levels::STAR_NAMES,
+                                z_levels::STAR_NAME,
                             )),
                             ..default()
                         },
                         StarName,
+                    ));
+                    parent.spawn((
+                        SpriteBundle {
+                            texture: galaxy_assets.hat.clone_weak(),
+                            transform: Transform::from_scale(Vec3::splat(0.0075))
+                                .with_translation(Vec3::new(0.75, 2.2, z_levels::STAR_DECORATION))
+                                .with_rotation(Quat::from_rotation_z(-FRAC_PI_8)),
+                            visibility: Visibility {
+                                is_visible: *visibility != StarState::Unknown,
+                            },
+                            ..default()
+                        },
+                        StarHat,
                     ));
                 })
                 .id()
@@ -196,7 +213,7 @@ fn update_camera(
             );
             transform.translation = (system.star.position * controller.zoom_level
                 / RATIO_ZOOM_DISTANCE)
-                .extend(z_levels::STARS);
+                .extend(z_levels::STAR);
         }
         if controller.zoom_level < 4.0 {
             for mut visibility in &mut star_names {
