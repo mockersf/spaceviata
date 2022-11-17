@@ -1,7 +1,7 @@
 use bevy::{
     prelude::*,
     reflect::TypeUuid,
-    render::render_resource::{AsBindGroup, ShaderRef},
+    render::render_resource::{AsBindGroup, ShaderRef, ShaderType},
     sprite::{Material2d, Material2dPlugin, MaterialMesh2dBundle},
     window::WindowResized,
 };
@@ -27,13 +27,21 @@ impl bevy::app::Plugin for Plugin {
 struct ScreenTag;
 
 // This is the struct that will be passed to your shader
-#[derive(AsBindGroup, TypeUuid, Debug, Clone)]
+#[derive(AsBindGroup, TypeUuid, Debug, Clone, ShaderType)]
 #[uuid = "D80C1B8C-4023-47E4-BFB6-29616A0DBF70"]
+#[uniform(0, StarfieldMaterial)]
 pub struct StarfieldMaterial {
-    #[uniform(0)]
-    position: Vec4,
-    #[uniform(1)]
-    seeds: Vec4,
+    position: Vec2,
+    seeds: Vec2,
+}
+
+impl<'a> From<&'a StarfieldMaterial> for StarfieldMaterial {
+    fn from(material: &'a StarfieldMaterial) -> Self {
+        Self {
+            position: material.position,
+            seeds: material.seeds,
+        }
+    }
 }
 
 impl Material2d for StarfieldMaterial {
@@ -55,12 +63,10 @@ fn setup(
         MaterialMesh2dBundle {
             mesh: meshes.add(Mesh::from(shape::Quad::default())).into(),
             material: materials.add(StarfieldMaterial {
-                position: Vec4::ZERO,
-                seeds: Vec4::new(
+                position: Vec2::ZERO,
+                seeds: Vec2::new(
                     rand::thread_rng().gen_range(0.0..1000.0),
                     rand::thread_rng().gen_range(0.0..1000.0),
-                    0.0,
-                    0.0,
                 ),
             }),
             transform: Transform::from_translation(Vec2::ZERO.extend(z_levels::STARFIELD))
@@ -85,7 +91,7 @@ fn update_starfield(
             controller.position.y * controller.zoom_level / RATIO_ZOOM_DISTANCE;
 
         for (_, material) in materials.iter_mut() {
-            material.position = controller.position.extend(0.0).extend(0.0);
+            material.position = controller.position;
         }
     }
     if let Some(resized) = resized.iter().last() {

@@ -140,10 +140,13 @@ fn fractal_nebula(coord: vec2<f32>, color: vec3<f32>, transparency: f32) -> vec3
     return n * color * transparency;
 }
 
+struct Material {
+    coords: vec2<f32>,
+    seeds: vec2<f32>,
+}
+
 @group(1) @binding(0)
-var<uniform> coords: vec4<f32>;
-@group(1) @binding(1)
-var<uniform> seeds: vec4<f32>;
+var<uniform> material: Material;
 
 struct FragmentInput {
     #import bevy_sprite::mesh2d_vertex_output
@@ -152,23 +155,23 @@ struct FragmentInput {
 @fragment
 fn fragment(in: FragmentInput) -> @location(0) vec4<f32> {
     var result = vec3<f32>(0.0, 0.0, 0.0);
-    let coords = vec2<f32>(-coords.x, coords.y);
+    let coords = vec2<f32>(-material.coords.x, material.coords.y);
     let move_factor = 10000.0;
     let time_factor = 0.05;
-    
-    let nebula_color_1 = hsv2rgb(vec3<f32>(0.5 + 0.5 * sin(seeds.x + globals.time * time_factor), 0.5, 0.25));
-	let nebula_color_2 = hsv2rgb(vec3<f32>(0.5 + 0.5 * sin(seeds.x + globals.time * time_factor * 1.5), 1.0, 0.25));
-	let nebula_color_3 = hsv2rgb(vec3<f32>(0.5 + 0.5 * sin(seeds.y + globals.time * time_factor * 2.0), 1.0, 0.25));
-    
-    result = result + fractal_nebula((in.uv / 3.0 - coords / move_factor) * 10.0 + vec2<f32>(0.025 + seeds.x, 0.0), nebula_color_1, 0.8);
-    result = result + fractal_nebula((in.uv / 3.0 - coords / move_factor) * 10.0 + vec2<f32>(seeds.x, 0.025), nebula_color_2, 0.4);
-    result = result + fractal_nebula((in.uv / 3.0 - coords / move_factor) * 10.0 + vec2<f32>(-0.025 + seeds.y, -0.025), nebula_color_2, 0.4);
+
+    let nebula_color_1 = hsv2rgb(vec3<f32>(0.5 + 0.5 * sin(material.seeds.x + globals.time * time_factor), 0.5, 0.25));
+    let nebula_color_2 = hsv2rgb(vec3<f32>(0.5 + 0.5 * sin(material.seeds.x + globals.time * time_factor * 1.5), 1.0, 0.25));
+    let nebula_color_3 = hsv2rgb(vec3<f32>(0.5 + 0.5 * sin(material.seeds.y + globals.time * time_factor * 2.0), 1.0, 0.25));
+
+    result = result + fractal_nebula((in.uv / 3.0 - coords / move_factor) * 10.0 + vec2<f32>(0.025 + material.seeds.x, 0.0), nebula_color_1, 0.8);
+    result = result + fractal_nebula((in.uv / 3.0 - coords / move_factor) * 10.0 + vec2<f32>(material.seeds.x, 0.025), nebula_color_2, 0.4);
+    result = result + fractal_nebula((in.uv / 3.0 - coords / move_factor) * 10.0 + vec2<f32>(-0.025 + material.seeds.y, -0.025), nebula_color_2, 0.4);
 
     let intensity = clamp(rand(in.uv * globals.time), 0.4, 1.0) ;
 
-    result = result + stars(in.uv + vec2<f32>(seeds.x, 0.0) - coords / (move_factor * 1.2), 5.0, 0.02, 2.0) * vec3<f32>(3.6, 3.6, 3.6) * intensity;
-    result = result + stars(in.uv + vec2<f32>(seeds.y, 0.0) - coords / (move_factor * 1.4), 15.0, 0.012, 1.0) * vec3<f32>(6.7, 6.7, 6.7) * intensity;
-    result = result + stars(in.uv + vec2<f32>(seeds.x, seeds.y) - coords / (move_factor * 2.0), 50.0, 0.007, 0.5) * vec3<f32>(.75, .75, .75) * intensity;
+    result = result + stars(in.uv + vec2<f32>(material.seeds.x, 0.0) - coords / (move_factor * 1.2), 5.0, 0.02, 2.0) * vec3<f32>(3.6, 3.6, 3.6) * intensity;
+    result = result + stars(in.uv + vec2<f32>(material.seeds.y, 0.0) - coords / (move_factor * 1.4), 15.0, 0.012, 1.0) * vec3<f32>(6.7, 6.7, 6.7) * intensity;
+    result = result + stars(in.uv + vec2<f32>(material.seeds.x, material.seeds.y) - coords / (move_factor * 2.0), 50.0, 0.007, 0.5) * vec3<f32>(.75, .75, .75) * intensity;
 
     return vec4<f32>(result, 1.0);
 }
