@@ -400,7 +400,7 @@ fn hide_stars(
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     if let Some(temp_materials) = temp_materials {
-        let duration = 5.0;
+        let duration = 10.0;
         let spent = (time.last_update().unwrap() - current.start).as_secs_f32();
         let unknown = materials.get(&galaxy_assets.unknown).unwrap().color;
 
