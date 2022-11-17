@@ -7,7 +7,7 @@ use bevy::{
 };
 
 use crate::{
-    assets::GalaxyAssets,
+    assets::{GalaxyAssets, UiAssets},
     game::{galaxy::StarSize, z_levels, CurrentGame, World},
     GameState,
 };
@@ -58,41 +58,65 @@ struct System {
     star: Star,
 }
 
+#[derive(Component)]
+struct StarName;
+
 fn setup(
     mut commands: Commands,
     galaxy_assets: Res<GalaxyAssets>,
+    ui_assets: Res<UiAssets>,
     mut world: ResMut<World>,
     mut camera: Query<&mut Transform, With<Camera2d>>,
     time: Res<Time>,
 ) {
     info!("Loading screen");
 
-    // for star in &game.galaxy {
-    world.star_entities = world
-        .galaxy
-        .iter()
-        .map(|star| {
-            commands
-                .spawn((
-                    MaterialMesh2dBundle {
-                        mesh: galaxy_assets.star_mesh.clone_weak().into(),
-                        material: match star.color {
-                            StarColor::Blue => galaxy_assets.blue_star.clone_weak(),
-                            StarColor::Yellow => galaxy_assets.yellow_star.clone_weak(),
-                            StarColor::Orange => galaxy_assets.orange_star.clone_weak(),
+    world.star_entities =
+        world
+            .galaxy
+            .iter()
+            .map(|star| {
+                commands
+                    .spawn((
+                        MaterialMesh2dBundle {
+                            mesh: galaxy_assets.star_mesh.clone_weak().into(),
+                            material: match star.color {
+                                StarColor::Blue => galaxy_assets.blue_star.clone_weak(),
+                                StarColor::Yellow => galaxy_assets.yellow_star.clone_weak(),
+                                StarColor::Orange => galaxy_assets.orange_star.clone_weak(),
+                            },
+                            transform: Transform::from_translation(
+                                star.position.extend(z_levels::STARS),
+                            )
+                            .with_scale(Vec3::splat(star.size.into())),
+                            ..default()
                         },
-                        transform: Transform::from_translation(
-                            star.position.extend(z_levels::STARS),
-                        )
-                        .with_scale(Vec3::splat(star.size.into())),
-                        ..default()
-                    },
-                    ScreenTag,
-                    System { star: star.clone() },
-                ))
-                .id()
-        })
-        .collect();
+                        ScreenTag,
+                        System { star: star.clone() },
+                    ))
+                    .with_children(|parent| {
+                        parent.spawn((
+                            Text2dBundle {
+                                text: Text::from_section(
+                                    &star.name,
+                                    TextStyle {
+                                        font: ui_assets.font_main.clone_weak(),
+                                        font_size: 40.0,
+                                        color: Color::WHITE,
+                                    },
+                                ),
+                                transform: Transform::from_scale(Vec3::splat(
+                                    0.1 / <StarSize as Into<f32>>::into(star.size),
+                                ))
+                                .with_translation(Vec3::new(2.2, 0.0, z_levels::STAR_NAMES)),
+                                ..default()
+                            },
+                            StarName,
+                        ));
+                    })
+                    .id()
+            })
+            .collect();
 
     commands.insert_resource(CameraController {
         zoom_level: 1.0,
@@ -122,6 +146,7 @@ fn update_camera(
     controller: Res<CameraController>,
     mut camera: Query<&mut Transform, With<Camera2d>>,
     mut systems: Query<(&mut Transform, &System), Without<Camera2d>>,
+    mut star_names: Query<&mut Visibility, With<StarName>>,
 ) {
     if controller.is_changed() {
         let mut camera_transform = camera.single_mut();
@@ -137,6 +162,19 @@ fn update_camera(
             transform.translation = (system.star.position * controller.zoom_level
                 / RATIO_ZOOM_DISTANCE)
                 .extend(z_levels::STARS);
+        }
+        if controller.zoom_level < 4.0 {
+            for mut visibility in &mut star_names {
+                if visibility.is_visible {
+                    visibility.is_visible = false;
+                }
+            }
+        } else {
+            for mut visibility in &mut star_names {
+                if !visibility.is_visible {
+                    visibility.is_visible = true;
+                }
+            }
         }
     }
 }

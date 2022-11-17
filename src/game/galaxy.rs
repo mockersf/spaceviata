@@ -1,6 +1,6 @@
 use std::f32::consts::PI;
 
-use bevy::prelude::{Component, Resource, Vec2};
+use bevy::prelude::*;
 use rand::{distributions::WeightedIndex, prelude::Distribution, seq::SliceRandom, Rng};
 
 #[derive(Clone, Copy, Debug, Default)]
@@ -16,6 +16,7 @@ pub struct GalaxyCreator {
     pub density: f32,
     pub _kind: GalaxyKind,
     pub generated: Vec<Star>,
+    pub names: Vec<String>,
 }
 
 #[derive(Clone, Debug)]
@@ -24,6 +25,7 @@ pub struct Star {
     pub size: StarSize,
     pub color: StarColor,
     pub start: Option<usize>,
+    pub name: String,
 }
 
 #[derive(Component, Copy, Clone, Debug)]
@@ -92,6 +94,11 @@ impl Iterator for GalaxyCreator {
                     }
                 }
             }
+
+            let name_to_take = rand.gen_range(0..self.names.len());
+            let name = self.names.remove(name_to_take);
+            info!("{:?}", name);
+
             let new_star = Star {
                 position: new_star_position,
                 size: size_choices[size_dist.sample(&mut rand)],
@@ -99,6 +106,7 @@ impl Iterator for GalaxyCreator {
                     .choose(&mut rand)
                     .unwrap(),
                 start: None,
+                name,
             };
             self.generated.push(new_star.clone());
             return Some(new_star);

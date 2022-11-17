@@ -2774,6 +2774,7 @@ dependencies = [
 name = "spaceviata"
 version = "0.1.10"
 dependencies = [
+ "anyhow",
  "bevy",
  "bevy_asset_loader",
  "bevy_easings",

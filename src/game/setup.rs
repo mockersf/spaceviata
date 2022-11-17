@@ -13,7 +13,7 @@ use bevy::{
 };
 
 use crate::{
-    assets::{GalaxyAssets, UiAssets},
+    assets::{names::Names, GalaxyAssets, UiAssets},
     game::{galaxy::GalaxyKind, Player, StarState, World},
     ui_helper::{button::ButtonId, ColorScheme},
     GameState,
@@ -50,6 +50,8 @@ fn setup(
     buttons: Res<Assets<crate::ui_helper::button::Button>>,
     windows: Res<Windows>,
     mut images: ResMut<Assets<Image>>,
+    names: Res<Assets<Names>>,
+    galaxy_handles: Res<GalaxyAssets>,
 ) {
     info!("Loading screen");
 
@@ -100,6 +102,7 @@ fn setup(
         size: SizeControl::default().into(),
         density: DensityControl::default().into(),
         _kind: GalaxyKind::default(),
+        names: names.get(&galaxy_handles.star_names).unwrap().names.clone(),
     };
 
     let category_style = Style {
@@ -578,9 +581,13 @@ fn display_galaxy(
     mut creator: ResMut<GalaxyCreator>,
     galaxy_assets: Res<GalaxyAssets>,
     preview: Query<Entity, With<GalaxyPreview>>,
+    names: Res<Assets<Names>>,
+    galaxy_handles: Res<GalaxyAssets>,
 ) {
     if creator.is_changed() {
         creator.generated = Vec::new();
+        creator.names = names.get(&galaxy_handles.star_names).unwrap().names.clone();
+
         let entity = preview.single();
         commands.entity(entity).despawn_descendants();
         commands.entity(entity).with_children(|p| {

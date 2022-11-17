@@ -1,6 +1,8 @@
 use bevy::{asset::Asset, ecs::all_tuples, prelude::*};
 use bevy_asset_loader::prelude::{AssetCollection, LoadingState, LoadingStateAppExt};
 
+use super::names::Names;
+
 pub(crate) trait CloneWeak {
     fn clone_weak(&self) -> Self;
 }
@@ -47,7 +49,8 @@ impl Plugin for AssetPlugin {
             .add_loading_state(
                 LoadingState::new(AllTheLoading::Assets)
                     .continue_to_state(AllTheLoading::Ready)
-                    .with_collection::<RawUiAssets>(),
+                    .with_collection::<RawUiAssets>()
+                    .with_collection::<RawGalaxyAssets>(),
             )
             .add_system_set(SystemSet::on_enter(AllTheLoading::Ready).with_system(done));
     }
@@ -82,6 +85,12 @@ pub(crate) struct UiAssets {
     pub(crate) button_handle: Handle<crate::ui_helper::button::Button>,
 }
 
+#[derive(AssetCollection)]
+struct RawGalaxyAssets {
+    #[asset(path = "star.names")]
+    star_names: Handle<Names>,
+}
+
 #[derive(Resource)]
 pub(crate) struct GalaxyAssets {
     pub(crate) star_mesh: Handle<Mesh>,
@@ -89,6 +98,7 @@ pub(crate) struct GalaxyAssets {
     pub(crate) yellow_star: Handle<ColorMaterial>,
     pub(crate) orange_star: Handle<ColorMaterial>,
     pub(crate) unknown: Handle<ColorMaterial>,
+    pub(crate) star_names: Handle<Names>,
 }
 
 fn done(world: &mut World) {
@@ -126,6 +136,8 @@ fn done(world: &mut World) {
         }
 
         {
+            let raw = world.remove_resource::<RawGalaxyAssets>().unwrap();
+
             let mut materials = world
                 .get_resource_unchecked_mut::<Assets<ColorMaterial>>()
                 .unwrap();
@@ -148,6 +160,7 @@ fn done(world: &mut World) {
                 ))),
                 orange_star: materials.add(ColorMaterial::from(Color::rgb(over, 0.5, 0.0))),
                 unknown: materials.add(ColorMaterial::from(Color::rgb(0.3, 0.3, 0.3))),
+                star_names: raw.star_names,
             });
         }
     }

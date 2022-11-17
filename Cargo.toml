@@ -27,6 +27,8 @@ bevy_ninepatch = { version = "0.9", default-features = false }
 # Needed to control log level by feature for release
 tracing = { version = "0.1", optional = true }
 
+anyhow = "*"
+
 rand = "0.8"
 
 [target.'cfg(target_os = "linux")'.dependencies]

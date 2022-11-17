@@ -2,6 +2,7 @@
 #![windows_subsystem = "windows"]
 #![allow(clippy::needless_update, clippy::too_many_arguments)]
 
+use assets::names::{Names, NamesLoader};
 #[cfg(not(target_arch = "wasm32"))]
 use bevy::core_pipeline::bloom::BloomSettings;
 use bevy::{app::AppExit, prelude::*};
@@ -56,6 +57,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 bevy::diagnostic::FrameTimeDiagnosticsPlugin::FPS,
             ]));
     }
+
+    builder.add_asset::<Names>().add_asset_loader(NamesLoader);
 
     builder
         // game management
