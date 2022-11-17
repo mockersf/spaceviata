@@ -71,52 +71,55 @@ fn setup(
 ) {
     info!("Loading screen");
 
-    world.star_entities =
-        world
-            .galaxy
-            .iter()
-            .map(|star| {
-                commands
-                    .spawn((
-                        MaterialMesh2dBundle {
-                            mesh: galaxy_assets.star_mesh.clone_weak().into(),
-                            material: match star.color {
-                                StarColor::Blue => galaxy_assets.blue_star.clone_weak(),
-                                StarColor::Yellow => galaxy_assets.yellow_star.clone_weak(),
-                                StarColor::Orange => galaxy_assets.orange_star.clone_weak(),
-                            },
-                            transform: Transform::from_translation(
-                                star.position.extend(z_levels::STARS),
-                            )
-                            .with_scale(Vec3::splat(star.size.into())),
+    world.star_entities = world
+        .galaxy
+        .iter()
+        .map(|star| {
+            commands
+                .spawn((
+                    MaterialMesh2dBundle {
+                        mesh: galaxy_assets.star_mesh.clone_weak().into(),
+                        material: match star.color {
+                            StarColor::Blue => galaxy_assets.blue_star.clone_weak(),
+                            StarColor::Yellow => galaxy_assets.yellow_star.clone_weak(),
+                            StarColor::Orange => galaxy_assets.orange_star.clone_weak(),
+                        },
+                        transform: Transform::from_translation(
+                            star.position.extend(z_levels::STARS),
+                        )
+                        .with_scale(Vec3::splat(star.size.into())),
+                        ..default()
+                    },
+                    ScreenTag,
+                    System { star: star.clone() },
+                ))
+                .with_children(|parent| {
+                    parent.spawn((
+                        Text2dBundle {
+                            text: Text::from_section(
+                                &star.name,
+                                TextStyle {
+                                    font: ui_assets.font_main.clone_weak(),
+                                    font_size: 40.0,
+                                    color: Color::WHITE,
+                                },
+                            ),
+                            transform: Transform::from_scale(Vec3::splat(
+                                0.1 / <StarSize as Into<f32>>::into(star.size),
+                            ))
+                            .with_translation(Vec3::new(
+                                -(star.name.len() as f32) / 2.0,
+                                -2.2,
+                                z_levels::STAR_NAMES,
+                            )),
                             ..default()
                         },
-                        ScreenTag,
-                        System { star: star.clone() },
-                    ))
-                    .with_children(|parent| {
-                        parent.spawn((
-                            Text2dBundle {
-                                text: Text::from_section(
-                                    &star.name,
-                                    TextStyle {
-                                        font: ui_assets.font_main.clone_weak(),
-                                        font_size: 40.0,
-                                        color: Color::WHITE,
-                                    },
-                                ),
-                                transform: Transform::from_scale(Vec3::splat(
-                                    0.1 / <StarSize as Into<f32>>::into(star.size),
-                                ))
-                                .with_translation(Vec3::new(2.2, 0.0, z_levels::STAR_NAMES)),
-                                ..default()
-                            },
-                            StarName,
-                        ));
-                    })
-                    .id()
-            })
-            .collect();
+                        StarName,
+                    ));
+                })
+                .id()
+        })
+        .collect();
 
     commands.insert_resource(CameraController {
         zoom_level: 1.0,
