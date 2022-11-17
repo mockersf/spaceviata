@@ -385,7 +385,7 @@ fn hide_stars(
     if let Some(temp_materials) = temp_materials {
         let duration = 5.0;
         let spent = (time.last_update().unwrap() - current.start).as_secs_f32();
-        let unknown = materials.get(&galaxy_assets.unknown).unwrap().color.clone();
+        let unknown = materials.get(&galaxy_assets.unknown).unwrap().color;
 
         let mut blue = materials.get_mut(&temp_materials.blue_star).unwrap();
         blue.color = EaseValue(blue.color)
