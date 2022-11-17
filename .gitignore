@@ -4,3 +4,9 @@
 !/wasm/live.js
 /wasm/*.wasm
 TODO.md
+
+# iOS setup
+/Assets.xcassets
+/ios-src
+/spaceviata.xcodeproj
+/build_rust_deps.sh

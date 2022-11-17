@@ -5,6 +5,10 @@ edition = "2021"
 license = "MIT OR Apache-2.0"
 publish = false
 
+[lib]
+name = "spaceviata"
+crate-type = ["staticlib", "lib"]
+
 [dependencies]
 bevy = { version = "0.9", default-features = false, features = [
   "bevy_asset",
@@ -27,7 +31,7 @@ bevy_ninepatch = { version = "0.9", default-features = false }
 # Needed to control log level by feature for release
 tracing = { version = "0.1", optional = true }
 
-anyhow = "*"
+anyhow = "1.0"
 
 rand = "0.8"
 
@@ -61,7 +65,7 @@ codegen-units = 1
 [patch.crates-io]
 bevy_asset_loader = { git = "https://github.com/mockersf/bevy_asset_loader", branch = "new" }
 winit = { git = "https://github.com/mockersf/winit", branch = "web-touch-event" }
-bevy = { git = "https://github.com/mockersf/bevy", branch = "shader-globals-wasm-padding-2d-0.9" }
+bevy = { git = "https://github.com/mockersf/bevy", branch = "spaceviata-branch" }
 
 [package.metadata.release]
 release = true

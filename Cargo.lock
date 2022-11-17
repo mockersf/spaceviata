@@ -185,7 +185,7 @@ checksum = "9e1b586273c5702936fe7b7d6896644d8be71e6314cfe09d3167c95f712589e8"
 [[package]]
 name = "bevy"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "bevy_internal",
 ]
@@ -193,7 +193,7 @@ dependencies = [
 [[package]]
 name = "bevy_animation"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "bevy_app",
  "bevy_asset",
@@ -210,7 +210,7 @@ dependencies = [
 [[package]]
 name = "bevy_app"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "bevy_derive",
  "bevy_ecs",
@@ -224,7 +224,7 @@ dependencies = [
 [[package]]
 name = "bevy_asset"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "anyhow",
  "bevy_app",
@@ -272,7 +272,7 @@ dependencies = [
 [[package]]
 name = "bevy_audio"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "anyhow",
  "bevy_app",
@@ -287,7 +287,7 @@ dependencies = [
 [[package]]
 name = "bevy_core"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "bevy_app",
  "bevy_ecs",
@@ -301,7 +301,7 @@ dependencies = [
 [[package]]
 name = "bevy_core_pipeline"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "bevy_app",
  "bevy_asset",
@@ -320,7 +320,7 @@ dependencies = [
 [[package]]
 name = "bevy_derive"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "bevy_macro_utils",
  "quote",
@@ -330,7 +330,7 @@ dependencies = [
 [[package]]
 name = "bevy_diagnostic"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "bevy_app",
  "bevy_core",
@@ -353,7 +353,7 @@ dependencies = [
 [[package]]
 name = "bevy_ecs"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "async-channel",
  "bevy_ecs_macros",
@@ -372,7 +372,7 @@ dependencies = [
 [[package]]
 name = "bevy_ecs_macros"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "bevy_macro_utils",
  "proc-macro2",
@@ -393,7 +393,7 @@ dependencies = [
 [[package]]
 name = "bevy_encase_derive"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "bevy_macro_utils",
  "encase_derive_impl",
@@ -402,7 +402,7 @@ dependencies = [
 [[package]]
 name = "bevy_gilrs"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "bevy_app",
  "bevy_ecs",
@@ -414,7 +414,7 @@ dependencies = [
 [[package]]
 name = "bevy_gltf"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "anyhow",
  "base64",
@@ -442,7 +442,7 @@ dependencies = [
 [[package]]
 name = "bevy_hierarchy"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "bevy_app",
  "bevy_core",
@@ -456,7 +456,7 @@ dependencies = [
 [[package]]
 name = "bevy_input"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "bevy_app",
  "bevy_ecs",
@@ -469,7 +469,7 @@ dependencies = [
 [[package]]
 name = "bevy_internal"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "bevy_animation",
  "bevy_app",
@@ -506,7 +506,7 @@ dependencies = [
 [[package]]
 name = "bevy_log"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "android_log-sys",
  "bevy_app",
@@ -523,7 +523,7 @@ dependencies = [
 [[package]]
 name = "bevy_macro_utils"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "quote",
  "syn",
@@ -533,7 +533,7 @@ dependencies = [
 [[package]]
 name = "bevy_math"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "glam",
  "serde",
@@ -542,7 +542,7 @@ dependencies = [
 [[package]]
 name = "bevy_mikktspace"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "glam",
 ]
@@ -559,7 +559,7 @@ dependencies = [
 [[package]]
 name = "bevy_pbr"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "bevy_app",
  "bevy_asset",
@@ -580,12 +580,12 @@ dependencies = [
 [[package]]
 name = "bevy_ptr"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 
 [[package]]
 name = "bevy_reflect"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "bevy_math",
  "bevy_ptr",
@@ -604,7 +604,7 @@ dependencies = [
 [[package]]
 name = "bevy_reflect_derive"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "bevy_macro_utils",
  "bit-set",
@@ -617,7 +617,7 @@ dependencies = [
 [[package]]
 name = "bevy_render"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "anyhow",
  "bevy_app",
@@ -659,7 +659,7 @@ dependencies = [
 [[package]]
 name = "bevy_render_macros"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "bevy_macro_utils",
  "proc-macro2",
@@ -670,7 +670,7 @@ dependencies = [
 [[package]]
 name = "bevy_scene"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "anyhow",
  "bevy_app",
@@ -691,7 +691,7 @@ dependencies = [
 [[package]]
 name = "bevy_sprite"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "bevy_app",
  "bevy_asset",
@@ -715,7 +715,7 @@ dependencies = [
 [[package]]
 name = "bevy_tasks"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "async-channel",
  "async-executor",
@@ -729,7 +729,7 @@ dependencies = [
 [[package]]
 name = "bevy_text"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "ab_glyph",
  "anyhow",
@@ -751,7 +751,7 @@ dependencies = [
 [[package]]
 name = "bevy_time"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "bevy_app",
  "bevy_ecs",
@@ -763,7 +763,7 @@ dependencies = [
 [[package]]
 name = "bevy_transform"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "bevy_app",
  "bevy_ecs",
@@ -775,7 +775,7 @@ dependencies = [
 [[package]]
 name = "bevy_ui"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "bevy_app",
  "bevy_asset",
@@ -803,7 +803,7 @@ dependencies = [
 [[package]]
 name = "bevy_utils"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "ahash",
  "getrandom",
@@ -816,7 +816,7 @@ dependencies = [
 [[package]]
 name = "bevy_window"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "bevy_app",
  "bevy_ecs",
@@ -830,7 +830,7 @@ dependencies = [
 [[package]]
 name = "bevy_winit"
 version = "0.9.0"
-source = "git+https://github.com/mockersf/bevy?branch=shader-globals-wasm-padding-2d-0.9#a6da51d56013df8bf2ee73f960d5e93e7dfa80b9"
+source = "git+https://github.com/mockersf/bevy?branch=spaceviata-branch#9c4b07e1a7f15e83f8e0b9a0a59dda614809f22d"
 dependencies = [
  "approx",
  "bevy_app",
