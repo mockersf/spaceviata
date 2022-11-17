@@ -97,7 +97,6 @@ impl Iterator for GalaxyCreator {
 
             let name_to_take = rand.gen_range(0..self.names.len());
             let name = self.names.remove(name_to_take);
-            info!("{:?}", name);
 
             let new_star = Star {
                 position: new_star_position,
