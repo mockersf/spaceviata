@@ -5,6 +5,7 @@ use bevy::{
     prelude::*,
     sprite::MaterialMesh2dBundle,
 };
+use bevy_easings::{EaseValue, Lerp};
 
 use crate::{
     assets::{GalaxyAssets, UiAssets},
@@ -61,6 +62,13 @@ struct System {
 #[derive(Component)]
 struct StarName;
 
+#[derive(Resource)]
+struct TempMaterials {
+    blue_star: Handle<ColorMaterial>,
+    yellow_star: Handle<ColorMaterial>,
+    orange_star: Handle<ColorMaterial>,
+}
+
 fn setup(
     mut commands: Commands,
     galaxy_assets: Res<GalaxyAssets>,
@@ -68,21 +76,44 @@ fn setup(
     mut world: ResMut<World>,
     mut camera: Query<&mut Transform, With<Camera2d>>,
     time: Res<Time>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     info!("Loading screen");
+
+    let blue = materials.get(&galaxy_assets.blue_star).unwrap().clone();
+    let blue_star = materials.add(blue);
+    let yellow = materials.get(&galaxy_assets.yellow_star).unwrap().clone();
+    let yellow_star = materials.add(yellow);
+    let orange = materials.get(&galaxy_assets.orange_star).unwrap().clone();
+    let orange_star = materials.add(orange);
+    let temp_materials = TempMaterials {
+        blue_star,
+        yellow_star,
+        orange_star,
+    };
 
     world.star_entities = world
         .galaxy
         .iter()
-        .map(|star| {
+        .zip(world.players[0].vision.iter())
+        .map(|(star, visibility)| {
             commands
                 .spawn((
                     MaterialMesh2dBundle {
                         mesh: galaxy_assets.star_mesh.clone_weak().into(),
-                        material: match star.color {
-                            StarColor::Blue => galaxy_assets.blue_star.clone_weak(),
-                            StarColor::Yellow => galaxy_assets.yellow_star.clone_weak(),
-                            StarColor::Orange => galaxy_assets.orange_star.clone_weak(),
+                        material: match (star.color, visibility) {
+                            (StarColor::Blue, StarState::Unknown) => {
+                                temp_materials.blue_star.clone_weak()
+                            }
+                            (StarColor::Orange, StarState::Unknown) => {
+                                temp_materials.yellow_star.clone_weak()
+                            }
+                            (StarColor::Yellow, StarState::Unknown) => {
+                                temp_materials.orange_star.clone_weak()
+                            }
+                            (StarColor::Blue, _) => galaxy_assets.yellow_star.clone_weak(),
+                            (StarColor::Orange, _) => galaxy_assets.yellow_star.clone_weak(),
+                            (StarColor::Yellow, _) => galaxy_assets.orange_star.clone_weak(),
                         },
                         transform: Transform::from_translation(
                             star.position.extend(z_levels::STARS),
@@ -133,8 +164,9 @@ fn setup(
 
     commands.insert_resource(CurrentGame {
         start: time.last_update().unwrap(),
-        init: false,
     });
+
+    commands.insert_resource(temp_materials);
 }
 
 fn tear_down(mut commands: Commands, query: Query<Entity, With<ScreenTag>>) {
@@ -341,22 +373,43 @@ fn camera_touch_controls(
 }
 
 fn hide_stars(
+    mut commands: Commands,
     mut stars: Query<&mut Handle<ColorMaterial>>,
     galaxy_assets: Res<GalaxyAssets>,
     world: Res<World>,
     time: Res<Time>,
-    mut current: ResMut<CurrentGame>,
+    current: ResMut<CurrentGame>,
+    temp_materials: Option<Res<TempMaterials>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
-    if (time.last_update().unwrap() - current.start).as_secs_f32() > 0.5 && !current.init {
-        for (entity, visible) in world
-            .star_entities
-            .iter()
-            .zip(world.players[0].vision.iter())
-        {
-            if *visible == StarState::Unknown {
-                *stars.get_mut(*entity).unwrap() = galaxy_assets.unknown.clone_weak();
+    if let Some(temp_materials) = temp_materials {
+        let duration = 5.0;
+        let spent = (time.last_update().unwrap() - current.start).as_secs_f32();
+        let unknown = materials.get(&galaxy_assets.unknown).unwrap().color.clone();
+
+        let mut blue = materials.get_mut(&temp_materials.blue_star).unwrap();
+        blue.color = EaseValue(blue.color)
+            .lerp(&EaseValue(unknown), &(spent / duration))
+            .0;
+        let mut yellow = materials.get_mut(&temp_materials.yellow_star).unwrap();
+        yellow.color = EaseValue(yellow.color)
+            .lerp(&EaseValue(unknown), &(spent / duration))
+            .0;
+        let mut orange = materials.get_mut(&temp_materials.orange_star).unwrap();
+        orange.color = EaseValue(orange.color)
+            .lerp(&EaseValue(unknown), &(spent / duration))
+            .0;
+        if spent > duration {
+            commands.remove_resource::<TempMaterials>();
+            for (entity, visible) in world
+                .star_entities
+                .iter()
+                .zip(world.players[0].vision.iter())
+            {
+                if *visible == StarState::Unknown {
+                    *stars.get_mut(*entity).unwrap() = galaxy_assets.unknown.clone_weak();
+                }
             }
         }
-        current.init = true;
     }
 }

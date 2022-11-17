@@ -30,7 +30,6 @@ enum StarState {
 #[derive(Resource)]
 pub struct CurrentGame {
     start: Instant,
-    init: bool,
 }
 
 mod z_levels {
