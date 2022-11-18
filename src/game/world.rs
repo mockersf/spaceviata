@@ -151,12 +151,16 @@ fn setup(
                         },
                         StarName,
                     ));
+                    let hat_angle = -FRAC_PI_8;
                     parent.spawn((
                         SpriteBundle {
                             texture: galaxy_assets.hat.clone_weak(),
                             transform: Transform::from_scale(Vec3::splat(0.0075))
-                                .with_translation(Vec3::new(0.75, 2.2, z_levels::STAR_DECORATION))
-                                .with_rotation(Quat::from_rotation_z(-FRAC_PI_8)),
+                                .with_translation(
+                                    (Vec2::new(-hat_angle.sin(), hat_angle.cos()) * 2.5)
+                                        .extend(z_levels::STAR_DECORATION),
+                                )
+                                .with_rotation(Quat::from_rotation_z(hat_angle)),
                             visibility: Visibility {
                                 is_visible: *visibility != StarState::Unknown,
                             },
