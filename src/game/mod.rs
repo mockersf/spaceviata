@@ -8,6 +8,7 @@ use self::galaxy::Star;
 mod galaxy;
 pub mod setup;
 pub mod starfield;
+pub mod ui;
 pub mod world;
 #[derive(Resource)]
 struct World {

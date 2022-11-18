@@ -49,9 +49,10 @@ pub struct CameraController {
 }
 
 #[derive(Resource)]
-struct CameraControllerTarget {
-    zoom_level: f32,
-    position: Vec2,
+pub struct CameraControllerTarget {
+    pub zoom_level: f32,
+    pub position: Vec2,
+    pub ignore: bool,
 }
 
 #[derive(Component)]
@@ -178,6 +179,7 @@ fn setup(
     commands.insert_resource(CameraControllerTarget {
         zoom_level: 8.0,
         position: world.galaxy[world.players[0].start].position,
+        ignore: false,
     });
     *camera.single_mut() = Camera2dBundle::default().transform;
 
@@ -299,6 +301,11 @@ fn camera_mouse_controls(
     time: Res<Time>,
     galaxy_settings: Res<GalaxyCreator>,
 ) {
+    if target.ignore {
+        *pressed_at = None;
+        return;
+    }
+
     if mouse_input.just_pressed(MouseButton::Left) {
         *pressed_at = Some(time.raw_elapsed())
     }
@@ -335,6 +342,11 @@ fn camera_mouse_controls(
     time: Res<Time>,
     galaxy_settings: Res<GalaxyCreator>,
 ) {
+    if target.ignore {
+        *pressed_at = None;
+        return;
+    }
+
     if mouse_input.just_pressed(MouseButton::Left) {
         *pressed_at = Some(time.raw_elapsed());
         *last_position = None;
@@ -372,6 +384,11 @@ fn camera_touch_controls(
     mut pressed_at: Local<Option<Duration>>,
     time: Res<Time>,
 ) {
+    if target.ignore {
+        *pressed_at = None;
+        return;
+    }
+
     for touch in touches.iter() {
         if touch.phase == TouchPhase::Started {
             *pressed_at = Some(time.raw_elapsed());
