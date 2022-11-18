@@ -141,9 +141,7 @@ fn setup(
                                 0.1 / <StarSize as Into<f32>>::into(star.size),
                             ))
                             .with_translation(Vec3::new(
-                                -(star.name.len() as f32)
-                                    * <StarSize as Into<f32>>::into(star.size)
-                                    / (2.0 * 1.0),
+                                -(star.name.len() as f32) / 2.0,
                                 -2.2,
                                 z_levels::STAR_NAME,
                             )),
