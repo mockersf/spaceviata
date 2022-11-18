@@ -155,7 +155,7 @@ fn setup(
                             texture: galaxy_assets.hat.clone_weak(),
                             transform: Transform::from_scale(Vec3::splat(0.0075))
                                 .with_translation(
-                                    (Vec2::new(-hat_angle.sin(), hat_angle.cos()) * 2.5)
+                                    (Vec2::new(-hat_angle.sin(), hat_angle.cos()) * 2.75)
                                         .extend(z_levels::STAR_DECORATION),
                                 )
                                 .with_rotation(Quat::from_rotation_z(hat_angle)),
