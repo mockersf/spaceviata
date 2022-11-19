@@ -141,7 +141,7 @@ fn setup(
         SpriteBundle {
             sprite: Sprite {
                 custom_size: Some(Vec2::splat(1024.0)),
-                color: Color::rgb(0.01, 0.01, 0.15),
+                color: Color::NONE,
                 ..default()
             },
             ..default()

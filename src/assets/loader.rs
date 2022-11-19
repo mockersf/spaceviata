@@ -68,7 +68,7 @@ struct RawUiAssets {
     font_material: Handle<Font>,
     #[asset(path = "ui/glassPanel_corners.png")]
     panel_texture_handle: Handle<Image>,
-    #[asset(path = "ui/glassPanel_right_corners.png")]
+    #[asset(path = "ui/glassPanel_cornerBR.png")]
     left_panel_texture_handle: Handle<Image>,
     #[asset(path = "ui/glassPanel_projection.png")]
     button_texture_handle: Handle<Image>,

@@ -88,6 +88,7 @@ fn setup(
         },
         ..WinitSettings::desktop_app()
     });
+    commands.insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.075)));
 
     mouse_button_input.clear();
     keyboard_input.clear();
