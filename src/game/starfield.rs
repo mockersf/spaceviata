@@ -19,7 +19,16 @@ impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_plugin(Material2dPlugin::<StarfieldMaterial>::default())
             .add_system_set(SystemSet::on_enter(CURRENT_STATE).with_system(setup))
-            .add_system_set(SystemSet::on_update(CURRENT_STATE).with_system(update_starfield));
+            .add_system_set(SystemSet::on_update(CURRENT_STATE).with_system(update_starfield))
+            .add_system_set(SystemSet::on_exit(CURRENT_STATE).with_system(tear_down));
+    }
+}
+
+fn tear_down(mut commands: Commands, query: Query<Entity, With<ScreenTag>>) {
+    info!("tear down");
+
+    for entity in query.iter() {
+        commands.entity(entity).despawn_recursive();
     }
 }
 

@@ -216,6 +216,7 @@ fn setup(
                 font.clone(),
                 *button_item,
                 height / 30.0,
+                crate::ui_helper::ColorScheme::TEXT_HIGHLIGHT,
             );
             let indicator = commands
                 .spawn((

@@ -34,6 +34,7 @@ impl Button {
         font: Handle<Font>,
         button: T,
         font_size: f32,
+        font_color: Color,
     ) -> Entity
     where
         T: Into<String> + Send + Sync + Copy + 'static,
@@ -73,7 +74,7 @@ impl Button {
                         TextStyle {
                             font,
                             font_size,
-                            color: crate::ui_helper::ColorScheme::TEXT_HIGHLIGHT,
+                            color: font_color,
                             ..Default::default()
                         },
                     ),

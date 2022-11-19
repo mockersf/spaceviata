@@ -9,7 +9,16 @@ pub(crate) struct Plugin;
 impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_system_set(SystemSet::on_enter(GameState::Game).with_system(setup))
-            .add_system_set(SystemSet::on_update(GameState::Game).with_system(button_system));
+            .add_system_set(SystemSet::on_update(GameState::Game).with_system(button_system))
+            .add_system_set(SystemSet::on_exit(GameState::Game).with_system(tear_down));
+    }
+}
+
+fn tear_down(mut commands: Commands, query: Query<Entity, With<ScreenTag>>) {
+    info!("tear down");
+
+    for entity in query.iter() {
+        commands.entity(entity).despawn_recursive();
     }
 }
 
@@ -17,7 +26,12 @@ impl bevy::app::Plugin for Plugin {
 enum UiButtons {
     ZoomIn,
     ZoomOut,
+    GameMenu,
+    BackToMenu,
 }
+
+#[derive(Component)]
+struct ScreenTag;
 
 impl From<UiButtons> for String {
     fn from(button: UiButtons) -> Self {
@@ -28,6 +42,10 @@ impl From<UiButtons> for String {
             UiButtons::ZoomOut => {
                 material_icons::icon_to_char(material_icons::Icon::ZoomOut).to_string()
             }
+            UiButtons::GameMenu => {
+                material_icons::icon_to_char(material_icons::Icon::Settings).to_string()
+            }
+            UiButtons::BackToMenu => "Menu".to_string(),
         }
     }
 }
@@ -56,26 +74,51 @@ fn setup(
         UiRect::all(Val::Auto),
         material.clone(),
         UiButtons::ZoomIn,
-        30.,
+        25.,
+        crate::ui_helper::ColorScheme::TEXT,
     );
     let zoom_out_button = button.add(
         &mut commands,
         Val::Px(40.),
         Val::Px(40.),
         UiRect::all(Val::Auto),
-        material,
+        material.clone(),
         UiButtons::ZoomOut,
-        30.,
+        25.,
+        crate::ui_helper::ColorScheme::TEXT,
+    );
+    let game_menu_button = button.add(
+        &mut commands,
+        Val::Px(40.),
+        Val::Px(40.),
+        UiRect::all(Val::Auto),
+        material,
+        UiButtons::GameMenu,
+        25.,
+        crate::ui_helper::ColorScheme::TEXT,
+    );
+    let back_to_menu_button = button.add(
+        &mut commands,
+        Val::Px(100.),
+        Val::Px(40.),
+        UiRect::all(Val::Auto),
+        ui_handles.font_sub.clone_weak(),
+        UiButtons::BackToMenu,
+        25.,
+        crate::ui_helper::ColorScheme::TEXT,
     );
 
     commands
-        .spawn(NodeBundle {
-            style: Style {
-                size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+        .spawn((
+            NodeBundle {
+                style: Style {
+                    size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+                    ..default()
+                },
                 ..default()
             },
-            ..default()
-        })
+            ScreenTag,
+        ))
         .with_children(|commands| {
             commands
                 .spawn(NodeBundle {
@@ -87,7 +130,7 @@ fn setup(
                         },
                         size: Size {
                             width: Val::Px(100.0),
-                            height: Val::Px(40.0),
+                            height: Val::Px(150.0),
                         },
                         flex_direction: FlexDirection::Column,
                         justify_content: JustifyContent::SpaceAround,
@@ -107,14 +150,36 @@ fn setup(
                             ..default()
                         })
                         .push_children(&[zoom_in_button, zoom_out_button]);
+                })
+                .push_children(&[game_menu_button, back_to_menu_button])
+                .with_children(|builder| {
+                    builder
+                        .spawn((
+                            NodeBundle {
+                                style: Style {
+                                    flex_direction: FlexDirection::Column,
+                                    justify_content: JustifyContent::SpaceAround,
+                                    ..default()
+                                },
+                                visibility: Visibility::INVISIBLE,
+                                ..default()
+                            },
+                            MenuContainer,
+                        ))
+                        .push_children(&[back_to_menu_button]);
                 });
         });
 }
+
+#[derive(Component)]
+struct MenuContainer;
 
 fn button_system(
     interaction_query: Query<(&Interaction, &ButtonId<UiButtons>, Changed<Interaction>)>,
     controller: Res<CameraController>,
     mut target: ResMut<CameraControllerTarget>,
+    mut state: ResMut<State<GameState>>,
+    mut menu_container: Query<&mut Visibility, With<MenuContainer>>,
 ) {
     for (interaction, button_id, changed) in interaction_query.iter() {
         if *interaction == Interaction::Clicked {
@@ -127,6 +192,11 @@ fn button_system(
                     target.zoom_level = (controller.zoom_level - 1.0).max(1.0);
                     target.ignore = true;
                 }
+                (UiButtons::GameMenu, true) => {
+                    menu_container.single_mut().toggle();
+                }
+                (UiButtons::BackToMenu, true) => state.set(GameState::Menu).unwrap(),
+                _ => (),
             }
         }
         if *interaction == Interaction::None && changed {

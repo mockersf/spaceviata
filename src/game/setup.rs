@@ -228,6 +228,7 @@ fn setup(
             ui_handles.font_main.clone_weak(),
             GalaxyControl::Kind(GalaxyKind::Spiral),
             height / 40.0,
+            crate::ui_helper::ColorScheme::TEXT_HIGHLIGHT,
         );
         commands.entity(spiral).insert(Selected);
         commands.entity(row).push_children(&[text, spiral]);
@@ -266,6 +267,7 @@ fn setup(
                 ui_handles.font_main.clone_weak(),
                 GalaxyControl::Size(size_control),
                 height / 40.0,
+                crate::ui_helper::ColorScheme::TEXT_HIGHLIGHT,
             );
             if size_control == SizeControl::default() {
                 commands.entity(button_entity).insert(Selected);
@@ -312,6 +314,7 @@ fn setup(
                 ui_handles.font_main.clone_weak(),
                 GalaxyControl::Density(density_control),
                 height / 40.0,
+                crate::ui_helper::ColorScheme::TEXT_HIGHLIGHT,
             );
             if density_control == DensityControl::default() {
                 commands.entity(button_entity).insert(Selected);
@@ -354,6 +357,7 @@ fn setup(
                 ui_handles.font_main.clone_weak(),
                 GalaxyControl::Players(nb),
                 height / 40.0,
+                crate::ui_helper::ColorScheme::TEXT_HIGHLIGHT,
             );
             if nb == galaxy.nb_players {
                 commands.entity(button_entity).insert(Selected);
@@ -391,6 +395,7 @@ fn setup(
             ui_handles.font_main.clone_weak(),
             Action::Cancel,
             height / 30.0,
+            crate::ui_helper::ColorScheme::TEXT_HIGHLIGHT,
         );
         let start = button.add(
             &mut commands,
@@ -400,6 +405,7 @@ fn setup(
             ui_handles.font_main.clone_weak(),
             Action::Start,
             height / 30.0,
+            crate::ui_helper::ColorScheme::TEXT_HIGHLIGHT,
         );
         commands.entity(row).push_children(&[cancel, start]);
         row
