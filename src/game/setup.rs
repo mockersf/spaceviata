@@ -11,6 +11,7 @@ use bevy::{
     },
     sprite::MaterialMesh2dBundle,
 };
+use rand::Rng;
 
 use crate::{
     assets::{names::Names, GalaxyAssets, UiAssets},
@@ -633,10 +634,11 @@ fn tear_down(
 
     let galaxy = creator.generated.clone();
 
+    let seed = rand::thread_rng().gen_range(0..creator.nb_players) as usize;
     let players = (0..(creator.nb_players as usize))
         .into_iter()
         .map(|player| {
-            let mut angle = PI * 2.0 / creator.nb_players as f32 * player as f32;
+            let mut angle = PI * 2.0 / creator.nb_players as f32 * (player + seed) as f32;
             if creator.nb_players % 2 == 0 {
                 angle += PI / (creator.nb_players as f32 * 1.5);
             }
