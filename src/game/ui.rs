@@ -186,11 +186,11 @@ fn button_system(
             match (button_id.0, changed) {
                 (UiButtons::ZoomIn, _) => {
                     target.zoom_level = (controller.zoom_level + 1.0).min(10.0);
-                    target.ignore = true;
+                    target.ignore_movement = true;
                 }
                 (UiButtons::ZoomOut, _) => {
                     target.zoom_level = (controller.zoom_level - 1.0).max(1.0);
-                    target.ignore = true;
+                    target.ignore_movement = true;
                 }
                 (UiButtons::GameMenu, true) => {
                     menu_container.single_mut().toggle();
@@ -200,7 +200,7 @@ fn button_system(
             }
         }
         if *interaction == Interaction::None && changed {
-            target.ignore = false;
+            target.ignore_movement = false;
         }
     }
 }

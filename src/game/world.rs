@@ -9,7 +9,7 @@ use bevy_easings::{EaseValue, Lerp};
 
 use crate::{
     assets::{GalaxyAssets, UiAssets},
-    game::{galaxy::StarSize, z_levels, CurrentGame, World},
+    game::{galaxy::StarSize, z_levels, CurrentGame, Universe},
     GameState,
 };
 
@@ -52,7 +52,7 @@ pub struct CameraController {
 pub struct CameraControllerTarget {
     pub zoom_level: f32,
     pub position: Vec2,
-    pub ignore: bool,
+    pub ignore_movement: bool,
 }
 
 #[derive(Component)]
@@ -76,7 +76,7 @@ fn setup(
     mut commands: Commands,
     galaxy_assets: Res<GalaxyAssets>,
     ui_assets: Res<UiAssets>,
-    mut world: ResMut<World>,
+    mut universe: ResMut<Universe>,
     mut camera: Query<&mut Transform, With<Camera2d>>,
     time: Res<Time>,
     mut materials: ResMut<Assets<ColorMaterial>>,
@@ -95,10 +95,10 @@ fn setup(
         orange_star,
     };
 
-    world.star_entities = world
+    universe.star_entities = universe
         .galaxy
         .iter()
-        .zip(world.players[0].vision.iter())
+        .zip(universe.players[0].vision.iter())
         .map(|(star, visibility)| {
             commands
                 .spawn((
@@ -178,8 +178,8 @@ fn setup(
     });
     commands.insert_resource(CameraControllerTarget {
         zoom_level: 8.0,
-        position: world.galaxy[world.players[0].start].position,
-        ignore: false,
+        position: universe.galaxy[universe.players[0].start].position,
+        ignore_movement: false,
     });
     *camera.single_mut() = Camera2dBundle::default().transform;
 
@@ -301,7 +301,7 @@ fn camera_mouse_controls(
     time: Res<Time>,
     galaxy_settings: Res<GalaxyCreator>,
 ) {
-    if target.ignore {
+    if target.ignore_movement {
         *pressed_at = None;
         return;
     }
@@ -342,7 +342,7 @@ fn camera_mouse_controls(
     time: Res<Time>,
     galaxy_settings: Res<GalaxyCreator>,
 ) {
-    if target.ignore {
+    if target.ignore_movement {
         *pressed_at = None;
         return;
     }
@@ -384,7 +384,7 @@ fn camera_touch_controls(
     mut pressed_at: Local<Option<Duration>>,
     time: Res<Time>,
 ) {
-    if target.ignore {
+    if target.ignore_movement {
         *pressed_at = None;
         return;
     }
@@ -412,7 +412,7 @@ fn hide_stars(
     mut commands: Commands,
     mut stars: Query<&mut Handle<ColorMaterial>>,
     galaxy_assets: Res<GalaxyAssets>,
-    world: Res<World>,
+    universe: Res<Universe>,
     time: Res<Time>,
     current: ResMut<CurrentGame>,
     temp_materials: Option<Res<TempMaterials>>,
@@ -437,10 +437,10 @@ fn hide_stars(
             .0;
         if spent > duration {
             commands.remove_resource::<TempMaterials>();
-            for (entity, visible) in world
+            for (entity, visible) in universe
                 .star_entities
                 .iter()
-                .zip(world.players[0].vision.iter())
+                .zip(universe.players[0].vision.iter())
             {
                 if *visible == StarState::Unknown {
                     *stars.get_mut(*entity).unwrap() = galaxy_assets.unknown.clone_weak();

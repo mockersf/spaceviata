@@ -11,7 +11,7 @@ pub mod starfield;
 pub mod ui;
 pub mod world;
 #[derive(Resource)]
-struct World {
+struct Universe {
     galaxy: Vec<Star>,
     players: Vec<Player>,
     star_entities: Vec<Entity>,

@@ -17,7 +17,7 @@ use crate::{
     assets::{names::Names, GalaxyAssets, UiAssets},
     game::{
         galaxy::{GalaxyKind, StarSize},
-        Player, StarState, World,
+        Player, StarState, Universe,
     },
     ui_helper::{button::ButtonId, ColorScheme},
     GameState,
@@ -662,7 +662,7 @@ fn tear_down(
         })
         .collect();
 
-    commands.insert_resource(World {
+    commands.insert_resource(Universe {
         star_entities: Vec::with_capacity(galaxy.len()),
         galaxy,
         players,
