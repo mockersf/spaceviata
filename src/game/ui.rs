@@ -1,15 +1,23 @@
-use bevy::prelude::*;
+use bevy::{math::Vec3Swizzles, prelude::*};
 
 use crate::{assets::UiAssets, ui_helper::button::ButtonId, GameState};
 
-use super::world::{CameraController, CameraControllerTarget};
+use super::{
+    galaxy::StarSize,
+    world::{CameraController, CameraControllerTarget, RATIO_ZOOM_DISTANCE},
+    Universe,
+};
 
 pub(crate) struct Plugin;
 
 impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.add_system_set(SystemSet::on_enter(GameState::Game).with_system(setup))
-            .add_system_set(SystemSet::on_update(GameState::Game).with_system(button_system))
+            .add_system_set(
+                SystemSet::on_update(GameState::Game)
+                    .with_system(button_system)
+                    .with_system(select_star),
+            )
             .add_system_set(SystemSet::on_exit(GameState::Game).with_system(tear_down));
     }
 }
@@ -201,6 +209,29 @@ fn button_system(
         }
         if *interaction == Interaction::None && changed {
             target.ignore_movement = false;
+        }
+    }
+}
+
+fn select_star(
+    mouse_input: Res<Input<MouseButton>>,
+    windows: Res<Windows>,
+    camera: Query<(&Camera, &GlobalTransform)>,
+    universe: Res<Universe>,
+    controller: Res<CameraController>,
+) {
+    if mouse_input.just_pressed(MouseButton::Left) {
+        let (camera, transform) = camera.single();
+        let clicked = camera
+            .viewport_to_world(transform, windows.primary().cursor_position().unwrap())
+            .unwrap()
+            .origin
+            .xy();
+        if let Some(clicked) = universe.galaxy.iter().find(|star| {
+            (star.position * controller.zoom_level / RATIO_ZOOM_DISTANCE).distance(clicked)
+                < <StarSize as Into<f32>>::into(star.size) * controller.zoom_level.powf(0.7) * 2.5
+        }) {
+            info!("{:?}", clicked);
         }
     }
 }
