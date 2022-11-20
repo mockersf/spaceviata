@@ -3,13 +3,17 @@ use bevy::{
     math::Vec3Swizzles,
     prelude::*,
 };
+use bevy_prototype_lyon::{
+    prelude::{DrawMode, GeometryBuilder, StrokeMode},
+    shapes,
+};
 
 use crate::{assets::UiAssets, ui_helper::button::ButtonId, GameState};
 
 use super::{
     galaxy::StarSize,
     world::{CameraController, CameraControllerTarget, RATIO_ZOOM_DISTANCE},
-    StarState, Universe,
+    z_levels, StarState, Universe,
 };
 
 pub const LEFT_PANEL_WIDTH: f32 = 200.0;
@@ -18,13 +22,16 @@ pub(crate) struct Plugin;
 
 impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut bevy::prelude::App) {
-        app.add_system_set(SystemSet::on_enter(GameState::Game).with_system(setup))
+        app.init_resource::<SelectedStar>()
+            .add_system_set(SystemSet::on_enter(GameState::Game).with_system(setup))
             .add_system_set(
                 SystemSet::on_update(GameState::Game)
                     .with_system(button_system)
                     .with_system(select_star)
                     .with_system(display_star_list)
-                    .with_system(star_list_scroll),
+                    .with_system(star_list_scroll)
+                    .with_system(display_star_selected)
+                    .with_system(rotate_mark),
             )
             .add_system_set(SystemSet::on_exit(GameState::Game).with_system(tear_down));
     }
@@ -255,6 +262,9 @@ struct StarList {
     position: f32,
 }
 
+#[derive(Resource, Default)]
+struct SelectedStar(Option<usize>);
+
 #[derive(Component)]
 struct MenuContainer;
 
@@ -295,8 +305,11 @@ fn select_star(
     camera: Query<(&Camera, &GlobalTransform)>,
     universe: Res<Universe>,
     controller: Res<CameraController>,
+    mut selected_star: ResMut<SelectedStar>,
 ) {
-    if windows.primary().cursor_position().unwrap().x < LEFT_PANEL_WIDTH {
+    if windows.primary().cursor_position().is_none()
+        || windows.primary().cursor_position().unwrap().x < LEFT_PANEL_WIDTH
+    {
         return;
     }
 
@@ -307,11 +320,13 @@ fn select_star(
             .unwrap()
             .origin
             .xy();
-        if let Some(clicked) = universe.galaxy.iter().find(|star| {
+        if let Some((index, _)) = universe.galaxy.iter().enumerate().find(|(_, star)| {
             (star.position * controller.zoom_level / RATIO_ZOOM_DISTANCE).distance(clicked)
                 < <StarSize as Into<f32>>::into(star.size) * controller.zoom_level.powf(0.7) * 2.5
         }) {
-            info!("{:?}", clicked);
+            selected_star.0 = Some(index);
+        } else {
+            selected_star.0 = None;
         }
     }
 }
@@ -365,7 +380,9 @@ fn star_list_scroll(
     query_item: Query<&Node>,
     windows: Res<Windows>,
 ) {
-    if windows.primary().cursor_position().unwrap().x > LEFT_PANEL_WIDTH {
+    if windows.primary().cursor_position().is_none()
+        || windows.primary().cursor_position().unwrap().x > LEFT_PANEL_WIDTH
+    {
         return;
     }
     for mouse_wheel_event in mouse_wheel_events.iter() {
@@ -384,5 +401,55 @@ fn star_list_scroll(
             scrolling_list.position = scrolling_list.position.clamp(-max_scroll, 0.);
             style.position.top = Val::Px(scrolling_list.position);
         }
+    }
+}
+
+#[derive(Component)]
+struct MarkedStar;
+
+fn display_star_selected(
+    mut commands: Commands,
+    selected_star: Res<SelectedStar>,
+    marked: Query<Entity, With<MarkedStar>>,
+    universe: Res<Universe>,
+) {
+    if selected_star.is_changed() {
+        if let Ok(entity) = marked.get_single() {
+            commands.entity(entity).despawn_recursive()
+        };
+        if let Some(index) = selected_star.0 {
+            commands
+                .entity(universe.star_entities[index])
+                .with_children(|parent| {
+                    let shape = shapes::RegularPolygon {
+                        sides: 5,
+                        feature: shapes::RegularPolygonFeature::Radius(4.0),
+                        ..shapes::RegularPolygon::default()
+                    };
+                    parent.spawn((
+                        GeometryBuilder::build_as(
+                            &shape,
+                            DrawMode::Stroke(StrokeMode::new(
+                                Color::rgb(0.5, 1.15, 0.5),
+                                0.5 / <StarSize as Into<f32>>::into(universe.galaxy[index].size),
+                            )),
+                            Transform::from_translation(Vec3::new(
+                                0.0,
+                                0.0,
+                                z_levels::STAR_SELECTION,
+                            )),
+                        ),
+                        MarkedStar,
+                    ));
+                });
+        }
+    }
+}
+
+fn rotate_mark(mut query: Query<&mut Transform, With<MarkedStar>>, time: Res<Time>) {
+    let delta = time.delta_seconds();
+
+    for mut transform in query.iter_mut() {
+        transform.rotate(Quat::from_rotation_z(-0.15 * delta));
     }
 }

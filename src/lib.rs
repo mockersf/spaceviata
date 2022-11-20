@@ -4,6 +4,7 @@ use assets::names::{Names, NamesLoader};
 #[cfg(not(target_arch = "wasm32"))]
 use bevy::core_pipeline::bloom::BloomSettings;
 use bevy::{app::AppExit, prelude::*};
+use bevy_prototype_lyon::prelude::ShapePlugin;
 
 mod assets;
 mod game;
@@ -62,6 +63,8 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     builder.add_asset::<Names>().add_asset_loader(NamesLoader);
+
+    builder.add_plugin(ShapePlugin);
 
     builder
         // game management

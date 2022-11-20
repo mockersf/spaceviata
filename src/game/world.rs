@@ -308,7 +308,9 @@ fn camera_mouse_controls(
         *pressed_at = None;
         return;
     }
-    if windows.primary().cursor_position().unwrap().x < LEFT_PANEL_WIDTH {
+    if windows.primary().cursor_position().is_none()
+        || windows.primary().cursor_position().unwrap().x < LEFT_PANEL_WIDTH
+    {
         *pressed_at = None;
         return;
     }
