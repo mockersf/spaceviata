@@ -300,8 +300,15 @@ fn camera_mouse_controls(
     mut pressed_at: Local<Option<Duration>>,
     time: Res<Time>,
     galaxy_settings: Res<GalaxyCreator>,
+    windows: Res<Windows>,
 ) {
+    use super::ui::LEFT_PANEL_WIDTH;
+
     if target.ignore_movement {
+        *pressed_at = None;
+        return;
+    }
+    if windows.primary().cursor_position().unwrap().x < LEFT_PANEL_WIDTH {
         *pressed_at = None;
         return;
     }
