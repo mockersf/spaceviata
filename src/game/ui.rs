@@ -430,7 +430,7 @@ fn display_star_selected(
                         GeometryBuilder::build_as(
                             &shape,
                             DrawMode::Stroke(StrokeMode::new(
-                                Color::rgb(0.5, 1.15, 0.5),
+                                Color::rgb(0.5, 1.25, 0.5),
                                 0.5 / <StarSize as Into<f32>>::into(universe.galaxy[index].size),
                             )),
                             Transform::from_translation(Vec3::new(
