@@ -301,22 +301,30 @@ fn button_system(
 
 fn select_star(
     mouse_input: Res<Input<MouseButton>>,
+    touches: Res<Touches>,
     windows: Res<Windows>,
     camera: Query<(&Camera, &GlobalTransform)>,
     universe: Res<Universe>,
     controller: Res<CameraController>,
     mut selected_star: ResMut<SelectedStar>,
 ) {
-    if windows.primary().cursor_position().is_none()
-        || windows.primary().cursor_position().unwrap().x < LEFT_PANEL_WIDTH
+    if let Some(position) = mouse_input
+        .just_pressed(MouseButton::Left)
+        .then(|| windows.primary().cursor_position())
+        .flatten()
+        .or_else(|| {
+            touches.first_pressed_position().map(|mut pos| {
+                pos.y = windows.primary().height() - pos.y;
+                pos
+            })
+        })
     {
-        return;
-    }
-
-    if mouse_input.just_pressed(MouseButton::Left) {
+        if position.x < LEFT_PANEL_WIDTH {
+            return;
+        }
         let (camera, transform) = camera.single();
         let clicked = camera
-            .viewport_to_world(transform, windows.primary().cursor_position().unwrap())
+            .viewport_to_world(transform, position)
             .unwrap()
             .origin
             .xy();
