@@ -3,7 +3,7 @@
 use assets::names::{Names, NamesLoader};
 #[cfg(not(target_arch = "wasm32"))]
 use bevy::core_pipeline::bloom::BloomSettings;
-use bevy::{app::AppExit, prelude::*};
+use bevy::{app::AppExit, log::LogPlugin, prelude::*};
 use bevy_prototype_lyon::prelude::ShapePlugin;
 
 mod assets;
@@ -21,18 +21,23 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     builder.add_plugins({
         let mut builder = DefaultPlugins.build();
-        builder = builder.set(WindowPlugin {
-            window: WindowDescriptor {
-                title: "Spaceviata".to_string(),
-                fit_canvas_to_parent: true,
-                #[cfg(target_os = "ios")]
-                resizable: false,
-                #[cfg(target_os = "ios")]
-                mode: WindowMode::BorderlessFullscreen,
+        builder = builder
+            .set(WindowPlugin {
+                window: WindowDescriptor {
+                    title: "Spaceviata".to_string(),
+                    fit_canvas_to_parent: true,
+                    #[cfg(target_os = "ios")]
+                    resizable: false,
+                    #[cfg(target_os = "ios")]
+                    mode: WindowMode::BorderlessFullscreen,
+                    ..default()
+                },
                 ..default()
-            },
-            ..default()
-        });
+            })
+            .set(LogPlugin {
+                filter: format!("winit=error,{}", LogPlugin::default().filter),
+                ..default()
+            });
         #[cfg(feature = "bundled")]
         {
             builder = builder.add_before::<bevy::asset::AssetPlugin, _>(
