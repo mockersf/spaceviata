@@ -269,7 +269,64 @@ fn setup(
             ScreenTag,
         ));
     }
+
+    // star panel
+    {
+        let base = commands
+            .spawn((
+                NodeBundle {
+                    style: Style {
+                        flex_direction: FlexDirection::Column,
+                        margin: UiRect::all(Val::Px(10.0)),
+                        size: Size {
+                            width: Val::Percent(100.0),
+                            height: Val::Percent(100.0),
+                        },
+                        overflow: Overflow::Hidden,
+                        ..Default::default()
+                    },
+                    ..Default::default()
+                },
+                ScreenTag,
+            ))
+            .id();
+
+        let panel_style = Style {
+            display: Display::None,
+            position_type: PositionType::Absolute,
+            position: UiRect {
+                left: Val::Undefined,
+                right: Val::Undefined,
+                bottom: Val::Undefined,
+                top: Val::Undefined,
+            },
+            margin: UiRect::all(Val::Px(0.)),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            size: Size::new(Val::Px(200.0), Val::Px(150.0)),
+            align_content: AlignContent::Stretch,
+            flex_direction: FlexDirection::Column,
+            ..Default::default()
+        };
+
+        commands.spawn((
+            bevy_ninepatch::NinePatchBundle {
+                style: panel_style,
+                nine_patch_data: bevy_ninepatch::NinePatchData::with_single_content(
+                    ui_handles.left_panel_handle.1.clone_weak(),
+                    ui_handles.left_panel_handle.0.clone_weak(),
+                    base,
+                ),
+                ..default()
+            },
+            StarDetails,
+            ScreenTag,
+        ));
+    }
 }
+
+#[derive(Component)]
+struct StarDetails;
 
 #[derive(Component, Default)]
 struct StarList {
@@ -434,10 +491,14 @@ fn display_star_selected(
     selected_star: Res<SelectedStar>,
     marked: Query<Entity, With<MarkedStar>>,
     universe: Res<Universe>,
+    mut panel: Query<&mut Style, With<StarDetails>>,
+    transform: Query<&GlobalTransform>,
+    camera: Query<(&GlobalTransform, &Camera)>,
 ) {
     if selected_star.is_changed() {
         if let Ok(entity) = marked.get_single() {
-            commands.entity(entity).despawn_recursive()
+            commands.entity(entity).despawn_recursive();
+            panel.single_mut().display = Display::None;
         };
         if let Some(index) = selected_star.0 {
             commands
@@ -464,6 +525,21 @@ fn display_star_selected(
                         MarkedStar,
                     ));
                 });
+
+            let transform = transform.get(universe.star_entities[index]).unwrap();
+            let (camera_transform, camera) = camera.single();
+            let pos = camera
+                .world_to_viewport(camera_transform, transform.translation())
+                .unwrap();
+            let mut style = panel.single_mut();
+            style.display = Display::Flex;
+            style.position.left = Val::Px(
+                pos.x + (<StarSize as Into<f32>>::into(universe.galaxy[index].size) * 15.0),
+            );
+            let Val::Px(height) = style.size.height else{
+                return;
+            };
+            style.position.bottom = Val::Px(pos.y - height / 2.0);
         }
     }
 }
