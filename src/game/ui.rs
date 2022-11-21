@@ -244,6 +244,14 @@ fn setup(
     };
 
     commands.spawn((
+        NodeBundle {
+            style: panel_style.clone(),
+            background_color: BackgroundColor(Color::rgba(0.5, 0.5, 0.5, 0.75)),
+            ..default()
+        },
+        ScreenTag,
+    ));
+    commands.spawn((
         bevy_ninepatch::NinePatchBundle {
             style: panel_style,
             nine_patch_data: bevy_ninepatch::NinePatchData::with_single_content(
@@ -251,7 +259,7 @@ fn setup(
                 ui_handles.left_panel_handle.0.clone_weak(),
                 base,
             ),
-            ..Default::default()
+            ..default()
         },
         ScreenTag,
     ));
