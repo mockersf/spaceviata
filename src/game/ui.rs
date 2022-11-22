@@ -282,12 +282,12 @@ fn setup(
                             width: Val::Percent(100.0),
                             height: Val::Percent(100.0),
                         },
-                        overflow: Overflow::Hidden,
                         ..Default::default()
                     },
                     ..Default::default()
                 },
                 ScreenTag,
+                StarDetails,
             ))
             .id();
 
@@ -301,10 +301,10 @@ fn setup(
                 top: Val::Undefined,
             },
             margin: UiRect::all(Val::Px(0.)),
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-            size: Size::new(Val::Px(200.0), Val::Px(150.0)),
-            align_content: AlignContent::Stretch,
+            // justify_content: JustifyContent::Center,
+            // align_items: AlignItems::Center,
+            size: Size::new(Val::Px(200.0), Val::Px(120.0)),
+            // align_content: AlignContent::Stretch,
             flex_direction: FlexDirection::Column,
             ..Default::default()
         };
@@ -319,12 +319,14 @@ fn setup(
                 ),
                 ..default()
             },
-            StarDetails,
+            StarPanel,
             ScreenTag,
         ));
     }
 }
 
+#[derive(Component)]
+struct StarPanel;
 #[derive(Component)]
 struct StarDetails;
 
@@ -497,9 +499,11 @@ fn display_star_selected(
     selected_star: Res<SelectedStar>,
     marked: Query<Entity, With<MarkedStar>>,
     universe: Res<Universe>,
-    mut panel: Query<&mut Style, With<StarDetails>>,
+    mut panel: Query<&mut Style, With<StarPanel>>,
+    details: Query<Entity, With<StarDetails>>,
     transform: Query<&GlobalTransform>,
     camera: Query<(&GlobalTransform, &Camera, Changed<GlobalTransform>)>,
+    ui_assets: Res<UiAssets>,
     camera_controller: Res<CameraController>,
 ) {
     if selected_star.is_changed() {
@@ -536,6 +540,119 @@ fn display_star_selected(
                         MarkedStar,
                     ));
                 });
+            let details_entity = details.single();
+            commands.entity(details_entity).despawn_descendants();
+            commands.entity(details_entity).with_children(|parent| {
+                parent.spawn(TextBundle {
+                    text: Text::from_section(
+                        star.name.clone(),
+                        TextStyle {
+                            font: ui_assets.font_main.clone_weak(),
+                            font_size: 20.0,
+                            color: Color::WHITE,
+                        },
+                    ),
+                    style: Style {
+                        size: Size {
+                            width: Val::Undefined,
+                            height: Val::Px(25.0),
+                        },
+                        margin: UiRect::top(Val::Px(-20.0)),
+                        ..default()
+                    },
+                    ..default()
+                });
+                match universe.players[0].vision[index] {
+                    StarState::Owned(0) => {
+                        parent.spawn(TextBundle {
+                            text: Text::from_sections([
+                                TextSection {
+                                    value: "Owned by you\n".to_string(),
+                                    style: TextStyle {
+                                        font: ui_assets.font_sub.clone_weak(),
+                                        font_size: 20.0,
+                                        color: Color::WHITE,
+                                    },
+                                },
+                                TextSection {
+                                    value: format!("Population {}\n", 0),
+                                    style: TextStyle {
+                                        font: ui_assets.font_sub.clone_weak(),
+                                        font_size: 20.0,
+                                        color: Color::WHITE,
+                                    },
+                                },
+                                TextSection {
+                                    value: format!("Revenue    {}\n", 0),
+                                    style: TextStyle {
+                                        font: ui_assets.font_sub.clone_weak(),
+                                        font_size: 20.0,
+                                        color: Color::WHITE,
+                                    },
+                                },
+                                TextSection {
+                                    value: format!("Resources  {}\n", 0),
+                                    style: TextStyle {
+                                        font: ui_assets.font_sub.clone_weak(),
+                                        font_size: 20.0,
+                                        color: Color::WHITE,
+                                    },
+                                },
+                            ]),
+                            style: Style {
+                                size: Size {
+                                    width: Val::Undefined,
+                                    height: Val::Px(80.0),
+                                },
+                                ..default()
+                            },
+                            ..default()
+                        });
+                    }
+                    StarState::Owned(i) => {
+                        parent.spawn(TextBundle {
+                            text: Text::from_section(
+                                format!("Last seen: Player {}", i),
+                                TextStyle {
+                                    font: ui_assets.font_sub.clone_weak(),
+                                    font_size: 20.0,
+                                    color: Color::WHITE,
+                                },
+                            ),
+                            style: Style {
+                                size: Size {
+                                    width: Val::Undefined,
+                                    height: Val::Px(20.0),
+                                },
+                                flex_shrink: 0.,
+                                ..default()
+                            },
+                            ..default()
+                        });
+                    }
+                    StarState::Unknown => {
+                        parent.spawn(TextBundle {
+                            text: Text::from_section(
+                                "Unknown",
+                                TextStyle {
+                                    font: ui_assets.font_sub.clone_weak(),
+                                    font_size: 20.0,
+                                    color: Color::WHITE,
+                                },
+                            ),
+                            style: Style {
+                                size: Size {
+                                    width: Val::Undefined,
+                                    height: Val::Px(20.0),
+                                },
+                                flex_shrink: 0.,
+                                ..default()
+                            },
+                            ..default()
+                        });
+                    }
+                }
+            });
         }
 
         let (camera_transform, camera, changed_transform) = camera.single();
