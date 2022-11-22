@@ -475,6 +475,7 @@ fn display_star_list(
     }
 }
 
+#[allow(clippy::type_complexity)]
 fn star_list_click(
     interaction_query: Query<(&Interaction, &StarListIndex), (Changed<Interaction>, With<Button>)>,
     mut selected_star: ResMut<SelectedStar>,
