@@ -18,6 +18,8 @@ use super::{
 
 pub const LEFT_PANEL_WIDTH: f32 = 200.0;
 
+const DAMPENER: Color = Color::rgba(0.25, 0.25, 0.25, 0.75);
+
 pub(crate) struct Plugin;
 
 impl bevy::app::Plugin for Plugin {
@@ -252,7 +254,7 @@ fn setup(
         commands.spawn((
             NodeBundle {
                 style: panel_style.clone(),
-                background_color: BackgroundColor(Color::rgba(0.5, 0.5, 0.5, 0.75)),
+                background_color: BackgroundColor(DAMPENER),
                 ..default()
             },
             ScreenTag,
@@ -532,7 +534,7 @@ fn display_star_selected(
     selected_star: Res<SelectedStar>,
     marked: Query<Entity, With<MarkedStar>>,
     universe: Res<Universe>,
-    mut panel: Query<&mut Style, With<StarPanel>>,
+    mut panel: Query<(&mut Style, &mut BackgroundColor), With<StarPanel>>,
     details: Query<Entity, With<StarDetails>>,
     transform: Query<&GlobalTransform>,
     camera: Query<(&GlobalTransform, &Camera, Changed<GlobalTransform>)>,
@@ -542,7 +544,7 @@ fn display_star_selected(
     if selected_star.is_changed() {
         if let Ok(entity) = marked.get_single() {
             commands.entity(entity).despawn_recursive();
-            panel.single_mut().display = Display::None;
+            panel.single_mut().0.display = Display::None;
         };
     }
 
@@ -694,7 +696,8 @@ fn display_star_selected(
             let pos = camera
                 .world_to_viewport(camera_transform, transform.translation())
                 .unwrap();
-            let mut style = panel.single_mut();
+            let (mut style, mut background_color) = panel.single_mut();
+            background_color.0 = DAMPENER;
             style.display = Display::Flex;
             style.position.left = Val::Px(
                 pos.x
