@@ -261,8 +261,8 @@ fn setup(
             bevy_ninepatch::NinePatchBundle {
                 style: panel_style,
                 nine_patch_data: bevy_ninepatch::NinePatchData::with_single_content(
-                    ui_handles.left_panel_handle.1.clone_weak(),
-                    ui_handles.left_panel_handle.0.clone_weak(),
+                    ui_handles.br_panel_handle.1.clone_weak(),
+                    ui_handles.br_panel_handle.0.clone_weak(),
                     base,
                 ),
                 ..default()
@@ -314,8 +314,8 @@ fn setup(
             bevy_ninepatch::NinePatchBundle {
                 style: panel_style,
                 nine_patch_data: bevy_ninepatch::NinePatchData::with_single_content(
-                    ui_handles.left_panel_handle.1.clone_weak(),
-                    ui_handles.left_panel_handle.0.clone_weak(),
+                    ui_handles.br_panel_handle.1.clone_weak(),
+                    ui_handles.br_panel_handle.0.clone_weak(),
                     base,
                 ),
                 ..default()
