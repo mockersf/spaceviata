@@ -515,13 +515,15 @@ fn star_list_scroll(
                 .sum();
             let panel_height = uinode.size().y;
             let max_scroll = items_height - panel_height.max(0.);
-            let dy = match mouse_wheel_event.unit {
-                MouseScrollUnit::Line => mouse_wheel_event.y * 20.,
-                MouseScrollUnit::Pixel => mouse_wheel_event.y,
-            };
-            scrolling_list.position += dy;
-            scrolling_list.position = scrolling_list.position.clamp(-max_scroll, 0.);
-            style.position.top = Val::Px(scrolling_list.position);
+            if max_scroll > 0.0 {
+                let dy = match mouse_wheel_event.unit {
+                    MouseScrollUnit::Line => mouse_wheel_event.y * 20.,
+                    MouseScrollUnit::Pixel => mouse_wheel_event.y,
+                };
+                scrolling_list.position += dy;
+                scrolling_list.position = scrolling_list.position.clamp(-max_scroll, 0.);
+                style.position.top = Val::Px(scrolling_list.position);
+            }
         }
     }
 }
