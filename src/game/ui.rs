@@ -29,6 +29,7 @@ impl bevy::app::Plugin for Plugin {
                     .with_system(button_system)
                     .with_system(select_star)
                     .with_system(display_star_list)
+                    .with_system(star_list_click)
                     .with_system(star_list_scroll)
                     .with_system(display_star_selected)
                     .with_system(rotate_mark),
@@ -418,6 +419,9 @@ fn select_star(
     }
 }
 
+#[derive(Component)]
+struct StarListIndex(usize);
+
 fn display_star_list(
     mut commands: Commands,
     universe: Res<Universe>,
@@ -437,27 +441,55 @@ fn display_star_list(
                 .enumerate()
                 .filter(|(_, state)| **state == StarState::Owned(0))
             {
-                parent.spawn(TextBundle {
-                    text: Text::from_section(
-                        universe.galaxy[star].name.clone(),
-                        TextStyle {
-                            font: ui_assets.font_sub.clone_weak(),
-                            font_size: 20.0,
-                            color: Color::WHITE,
+                parent
+                    .spawn((
+                        ButtonBundle {
+                            background_color: BackgroundColor(Color::NONE),
+                            style: Style {
+                                size: Size {
+                                    width: Val::Undefined,
+                                    height: Val::Px(20.0),
+                                },
+                                flex_shrink: 0.,
+                                ..default()
+                            },
+                            ..default()
                         },
-                    ),
-                    style: Style {
-                        size: Size {
-                            width: Val::Undefined,
-                            height: Val::Px(20.0),
-                        },
-                        flex_shrink: 0.,
-                        ..default()
-                    },
-                    ..default()
-                });
+                        StarListIndex(star),
+                    ))
+                    .with_children(|parent| {
+                        parent.spawn(TextBundle {
+                            text: Text::from_section(
+                                universe.galaxy[star].name.clone(),
+                                TextStyle {
+                                    font: ui_assets.font_sub.clone_weak(),
+                                    font_size: 20.0,
+                                    color: Color::WHITE,
+                                },
+                            ),
+                            ..default()
+                        });
+                    });
             }
         });
+    }
+}
+
+fn star_list_click(
+    interaction_query: Query<(&Interaction, &StarListIndex), (Changed<Interaction>, With<Button>)>,
+    mut selected_star: ResMut<SelectedStar>,
+    universe: Res<Universe>,
+    mut controller_target: ResMut<CameraControllerTarget>,
+) {
+    for (interaction, star_index) in &interaction_query {
+        if *interaction == Interaction::Clicked {
+            if selected_star.0 == Some(star_index.0) {
+                controller_target.zoom_level = 8.0;
+                controller_target.position = universe.galaxy[star_index.0].position;
+            } else {
+                selected_star.0 = Some(star_index.0);
+            }
+        }
     }
 }
 
