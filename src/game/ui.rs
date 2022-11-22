@@ -378,9 +378,15 @@ fn select_star(
     universe: Res<Universe>,
     controller: Res<CameraController>,
     mut selected_star: ResMut<SelectedStar>,
+    mut last_pressed: Local<f32>,
+    time: Res<Time>,
 ) {
+    if mouse_input.just_pressed(MouseButton::Left) {
+        *last_pressed = time.elapsed_seconds()
+    }
+
     if let Some(position) = mouse_input
-        .just_pressed(MouseButton::Left)
+        .just_released(MouseButton::Left)
         .then(|| windows.primary().cursor_position())
         .flatten()
         .or_else(|| {
@@ -390,7 +396,7 @@ fn select_star(
             })
         })
     {
-        if position.x < LEFT_PANEL_WIDTH {
+        if position.x < LEFT_PANEL_WIDTH || time.elapsed_seconds() - *last_pressed > 0.5 {
             return;
         }
         let (camera, transform) = camera.single();
@@ -493,14 +499,17 @@ fn display_star_selected(
     universe: Res<Universe>,
     mut panel: Query<&mut Style, With<StarDetails>>,
     transform: Query<&GlobalTransform>,
-    camera: Query<(&GlobalTransform, &Camera)>,
+    camera: Query<(&GlobalTransform, &Camera, Changed<GlobalTransform>)>,
 ) {
     if selected_star.is_changed() {
         if let Ok(entity) = marked.get_single() {
             commands.entity(entity).despawn_recursive();
             panel.single_mut().display = Display::None;
         };
-        if let Some(index) = selected_star.0 {
+    }
+
+    if let Some(index) = selected_star.0 {
+        if selected_star.is_changed() {
             commands
                 .entity(universe.star_entities[index])
                 .with_children(|parent| {
@@ -525,9 +534,11 @@ fn display_star_selected(
                         MarkedStar,
                     ));
                 });
+        }
 
+        let (camera_transform, camera, changed_transform) = camera.single();
+        if selected_star.is_changed() || changed_transform {
             let transform = transform.get(universe.star_entities[index]).unwrap();
-            let (camera_transform, camera) = camera.single();
             let pos = camera
                 .world_to_viewport(camera_transform, transform.translation())
                 .unwrap();
