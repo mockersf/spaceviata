@@ -70,6 +70,8 @@ struct RawUiAssets {
     panel_texture_handle: Handle<Image>,
     #[asset(path = "ui/glassPanel_cornerBR.png")]
     br_panel_texture_handle: Handle<Image>,
+    #[asset(path = "ui/glassPanel_cornerTR.png")]
+    tr_panel_texture_handle: Handle<Image>,
     #[asset(path = "ui/glassPanel_projection.png")]
     button_texture_handle: Handle<Image>,
 }
@@ -82,6 +84,7 @@ pub(crate) struct UiAssets {
     pub(crate) font_material: Handle<Font>,
     pub(crate) panel_handle: (Handle<bevy_ninepatch::NinePatchBuilder<()>>, Handle<Image>),
     pub(crate) br_panel_handle: (Handle<bevy_ninepatch::NinePatchBuilder<()>>, Handle<Image>),
+    pub(crate) tr_panel_handle: (Handle<bevy_ninepatch::NinePatchBuilder<()>>, Handle<Image>),
     pub(crate) button_handle: Handle<crate::ui_helper::button::Button>,
 }
 
@@ -119,6 +122,8 @@ fn done(world: &mut World) {
             let panel_handle = (nine_patches.add(np), raw_ui_assets.panel_texture_handle);
             let np = bevy_ninepatch::NinePatchBuilder::by_margins(20, 20, 10, 20);
             let br_panel_handle = (nine_patches.add(np), raw_ui_assets.br_panel_texture_handle);
+            let np = bevy_ninepatch::NinePatchBuilder::by_margins(20, 20, 10, 20);
+            let tr_panel_handle = (nine_patches.add(np), raw_ui_assets.tr_panel_texture_handle);
             let button = crate::ui_helper::button::Button::setup(
                 &mut nine_patches,
                 raw_ui_assets.button_texture_handle,
@@ -131,6 +136,7 @@ fn done(world: &mut World) {
                 font_material: raw_ui_assets.font_material,
                 panel_handle,
                 br_panel_handle,
+                tr_panel_handle,
                 button_handle,
             });
         }

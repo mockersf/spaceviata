@@ -2,6 +2,7 @@ use bevy::{
     input::mouse::{MouseScrollUnit, MouseWheel},
     math::Vec3Swizzles,
     prelude::*,
+    ui::FocusPolicy,
 };
 use bevy_prototype_lyon::{
     prelude::{DrawMode, GeometryBuilder, StrokeMode},
@@ -140,84 +141,111 @@ fn setup(
             .spawn((
                 NodeBundle {
                     style: Style {
-                        size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+                        position: UiRect {
+                            right: Val::Px(20.0),
+                            top: Val::Px(20.0),
+                            ..default()
+                        },
+                        size: Size {
+                            width: Val::Px(100.0),
+                            height: Val::Px(150.0),
+                        },
+                        flex_direction: FlexDirection::Column,
+                        justify_content: JustifyContent::SpaceAround,
+                        position_type: PositionType::Absolute,
                         ..default()
                     },
                     ..default()
                 },
                 ScreenTag,
             ))
-            .with_children(|commands| {
-                commands
+            .with_children(|builder| {
+                builder
                     .spawn(NodeBundle {
                         style: Style {
-                            position: UiRect {
-                                right: Val::Px(20.0),
-                                top: Val::Px(20.0),
-                                ..default()
-                            },
-                            size: Size {
-                                width: Val::Px(100.0),
-                                height: Val::Px(150.0),
-                            },
-                            flex_direction: FlexDirection::Column,
+                            flex_direction: FlexDirection::Row,
                             justify_content: JustifyContent::SpaceAround,
-                            position_type: PositionType::Absolute,
                             ..default()
                         },
                         ..default()
                     })
-                    .with_children(|builder| {
-                        builder
-                            .spawn(NodeBundle {
-                                style: Style {
-                                    flex_direction: FlexDirection::Row,
-                                    justify_content: JustifyContent::SpaceAround,
-                                    ..default()
-                                },
+                    .push_children(&[zoom_in_button, zoom_out_button]);
+            })
+            .push_children(&[game_menu_button, back_to_menu_button])
+            .with_children(|builder| {
+                builder
+                    .spawn((
+                        NodeBundle {
+                            style: Style {
+                                flex_direction: FlexDirection::Column,
+                                justify_content: JustifyContent::SpaceAround,
                                 ..default()
-                            })
-                            .push_children(&[zoom_in_button, zoom_out_button]);
-                    })
-                    .push_children(&[game_menu_button, back_to_menu_button])
-                    .with_children(|builder| {
-                        builder
-                            .spawn((
-                                NodeBundle {
-                                    style: Style {
-                                        flex_direction: FlexDirection::Column,
-                                        justify_content: JustifyContent::SpaceAround,
-                                        ..default()
-                                    },
-                                    visibility: Visibility::INVISIBLE,
-                                    ..default()
-                                },
-                                MenuContainer,
-                            ))
-                            .push_children(&[back_to_menu_button]);
-                    });
+                            },
+                            visibility: Visibility::INVISIBLE,
+                            ..default()
+                        },
+                        MenuContainer,
+                    ))
+                    .push_children(&[back_to_menu_button]);
             });
     }
 
-    // left panel
-    {
+    let left_panel_top = {
         let base = commands
-            .spawn((
-                NodeBundle {
-                    style: Style {
-                        flex_direction: FlexDirection::Column,
-                        margin: UiRect::all(Val::Px(10.0)),
-                        size: Size {
-                            width: Val::Percent(100.0),
-                            height: Val::Percent(100.0),
-                        },
-                        overflow: Overflow::Hidden,
-                        ..Default::default()
+            .spawn(NodeBundle {
+                style: Style {
+                    flex_direction: FlexDirection::Column,
+                    margin: UiRect::all(Val::Px(10.0)),
+                    size: Size {
+                        width: Val::Percent(100.0),
+                        height: Val::Percent(100.0),
                     },
+                    overflow: Overflow::Hidden,
                     ..Default::default()
                 },
-                ScreenTag,
-            ))
+                ..Default::default()
+            })
+            .id();
+
+        let panel_style = Style {
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            size: Size::new(Val::Percent(100.0), Val::Px(200.0)),
+            align_content: AlignContent::Stretch,
+            flex_direction: FlexDirection::Column,
+            flex_grow: 0.0,
+            ..Default::default()
+        };
+
+        commands
+            .spawn(bevy_ninepatch::NinePatchBundle {
+                style: panel_style,
+                nine_patch_data: bevy_ninepatch::NinePatchData::with_single_content(
+                    ui_handles.tr_panel_handle.1.clone_weak(),
+                    ui_handles.tr_panel_handle.0.clone_weak(),
+                    base,
+                ),
+                ..default()
+            })
+            .id()
+    };
+
+    let left_panel_bottom = {
+        let base = commands
+            .spawn(NodeBundle {
+                style: Style {
+                    flex_direction: FlexDirection::Column,
+                    margin: UiRect::all(Val::Px(10.0)),
+                    size: Size {
+                        width: Val::Percent(100.0),
+                        height: Val::Percent(100.0),
+                    },
+                    overflow: Overflow::Hidden,
+                    ..Default::default()
+                },
+                focus_policy: FocusPolicy::Pass,
+                ..Default::default()
+            })
             .with_children(|parent| {
                 parent.spawn((
                     NodeBundle {
@@ -227,6 +255,7 @@ fn setup(
                             max_size: Size::UNDEFINED,
                             ..default()
                         },
+                        focus_policy: FocusPolicy::Pass,
                         ..default()
                     },
                     StarList::default(),
@@ -235,12 +264,37 @@ fn setup(
             .id();
 
         let panel_style = Style {
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
+            align_content: AlignContent::Stretch,
+            flex_direction: FlexDirection::Column,
+            flex_grow: 2.0,
+            ..Default::default()
+        };
+
+        commands
+            .spawn(bevy_ninepatch::NinePatchBundle {
+                style: panel_style,
+                nine_patch_data: bevy_ninepatch::NinePatchData::with_single_content(
+                    ui_handles.br_panel_handle.1.clone_weak(),
+                    ui_handles.br_panel_handle.0.clone_weak(),
+                    base,
+                ),
+                ..default()
+            })
+            .id()
+    };
+
+    // left panel
+    {
+        let panel_style = Style {
             position_type: PositionType::Absolute,
             position: UiRect {
-                left: Val::Px(0.),
+                left: Val::Px(0.0),
                 right: Val::Undefined,
+                top: Val::Px(0.0),
                 bottom: Val::Undefined,
-                top: Val::Undefined,
             },
             margin: UiRect::all(Val::Px(0.)),
             justify_content: JustifyContent::Center,
@@ -251,26 +305,17 @@ fn setup(
             ..Default::default()
         };
 
-        commands.spawn((
-            NodeBundle {
-                style: panel_style.clone(),
-                background_color: BackgroundColor(DAMPENER),
-                ..default()
-            },
-            ScreenTag,
-        ));
-        commands.spawn((
-            bevy_ninepatch::NinePatchBundle {
-                style: panel_style,
-                nine_patch_data: bevy_ninepatch::NinePatchData::with_single_content(
-                    ui_handles.br_panel_handle.1.clone_weak(),
-                    ui_handles.br_panel_handle.0.clone_weak(),
-                    base,
-                ),
-                ..default()
-            },
-            ScreenTag,
-        ));
+        commands
+            .spawn((
+                NodeBundle {
+                    style: panel_style,
+                    background_color: BackgroundColor(DAMPENER),
+                    focus_policy: FocusPolicy::Pass,
+                    ..default()
+                },
+                ScreenTag,
+            ))
+            .push_children(&[left_panel_top, left_panel_bottom]);
     }
 
     // star panel
@@ -289,7 +334,6 @@ fn setup(
                     },
                     ..Default::default()
                 },
-                ScreenTag,
                 StarDetails,
             ))
             .id();
@@ -306,7 +350,7 @@ fn setup(
             margin: UiRect::all(Val::Px(0.)),
             // justify_content: JustifyContent::Center,
             // align_items: AlignItems::Center,
-            size: Size::new(Val::Px(200.0), Val::Px(120.0)),
+            size: Size::new(Val::Px(0.0), Val::Px(0.0)),
             // align_content: AlignContent::Stretch,
             flex_direction: FlexDirection::Column,
             ..Default::default()
@@ -546,7 +590,9 @@ fn display_star_selected(
     if selected_star.is_changed() {
         if let Ok(entity) = marked.get_single() {
             commands.entity(entity).despawn_recursive();
-            panel.single_mut().0.display = Display::None;
+            let mut style = panel.single_mut().0;
+            style.display = Display::None;
+            style.size = Size::new(Val::Px(0.0), Val::Px(0.0));
         };
     }
 
@@ -701,6 +747,7 @@ fn display_star_selected(
             let (mut style, mut background_color) = panel.single_mut();
             background_color.0 = DAMPENER;
             style.display = Display::Flex;
+            style.size = Size::new(Val::Px(200.0), Val::Px(120.0));
             style.position.left = Val::Px(
                 pos.x
                     + (<StarSize as Into<f32>>::into(star.size)
