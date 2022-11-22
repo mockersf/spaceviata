@@ -290,6 +290,20 @@ fn camera_keyboard_controls(
     }
 }
 
+enum DragState {
+    NotPressed,
+    WaitForFirstDistance(Vec2),
+    Dragging,
+}
+
+impl Default for DragState {
+    fn default() -> Self {
+        DragState::NotPressed
+    }
+}
+
+const DRAG_DISTANCE: f32 = 10f32;
+
 #[cfg(not(target_arch = "wasm32"))]
 fn camera_mouse_controls(
     controller: Res<CameraController>,
@@ -297,32 +311,40 @@ fn camera_mouse_controls(
     mouse_input: Res<Input<MouseButton>>,
     mut mouse_motion: EventReader<bevy::input::mouse::MouseMotion>,
     mut mouse_wheel: EventReader<MouseWheel>,
-    mut pressed_at: Local<Option<Duration>>,
-    time: Res<Time>,
+    mut drag_state: Local<DragState>,
     galaxy_settings: Res<GalaxyCreator>,
     windows: Res<Windows>,
 ) {
     use super::ui::LEFT_PANEL_WIDTH;
 
     if target.ignore_movement {
-        *pressed_at = None;
+        *drag_state = DragState::NotPressed;
         return;
     }
     if windows.primary().cursor_position().is_none()
         || windows.primary().cursor_position().unwrap().x < LEFT_PANEL_WIDTH
     {
-        *pressed_at = None;
+        *drag_state = DragState::NotPressed;
         return;
     }
-
     if mouse_input.just_pressed(MouseButton::Left) {
-        *pressed_at = Some(time.raw_elapsed())
+        *drag_state = DragState::WaitForFirstDistance(Vec2::ZERO);
     }
     if mouse_input.just_released(MouseButton::Left) {
-        *pressed_at = None;
+        *drag_state = DragState::NotPressed;
     }
-    if let Some(when) = *pressed_at {
-        if (time.raw_elapsed() - when).as_secs_f32() > 0.2 {
+
+    match &mut *drag_state {
+        DragState::NotPressed => {}
+        DragState::WaitForFirstDistance(distance) => {
+            for motion in mouse_motion.iter() {
+                *distance += motion.delta;
+            }
+            if DRAG_DISTANCE < distance.length() {
+                *drag_state = DragState::Dragging;
+            }
+        }
+        DragState::Dragging => {
             for motion in mouse_motion.iter() {
                 let new_position = controller.position
                     + (motion.delta * Vec2::new(-1.0, 1.0))
@@ -346,25 +368,36 @@ fn camera_mouse_controls(
     mouse_input: Res<Input<MouseButton>>,
     mut cursor_moved: EventReader<CursorMoved>,
     mut mouse_wheel: EventReader<MouseWheel>,
-    mut pressed_at: Local<Option<Duration>>,
+    mut drag_state: Local<DragState>,
     mut last_position: Local<Option<Vec2>>,
-    time: Res<Time>,
     galaxy_settings: Res<GalaxyCreator>,
 ) {
     if target.ignore_movement {
-        *pressed_at = None;
+        *drag_state = DragState::NotPressed;
         return;
     }
-
     if mouse_input.just_pressed(MouseButton::Left) {
-        *pressed_at = Some(time.raw_elapsed());
+        *drag_state = DragState::WaitForFirstDistance(Vec2::ZERO);
         *last_position = None;
     }
     if mouse_input.just_released(MouseButton::Left) {
-        *pressed_at = None;
+        *drag_state = DragState::NotPressed;
     }
-    if let Some(when) = *pressed_at {
-        if (time.raw_elapsed() - when).as_secs_f32() > 0.2 {
+
+    match &mut *drag_state {
+        DragState::NotPressed => {}
+        DragState::WaitForFirstDistance(distance) => {
+            for motion in cursor_moved.iter() {
+                if last_position.is_none() {
+                    *last_position = Some(motion.position);
+                }
+                *distance = motion.position - last_position.unwrap();
+            }
+            if DRAG_DISTANCE < distance.length() {
+                *drag_state = DragState::Dragging;
+            }
+        }
+        DragState::Dragging => {
             for cursor in cursor_moved.iter() {
                 if let Some(last_position) = *last_position {
                     let new_position = controller.position
