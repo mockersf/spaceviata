@@ -500,6 +500,7 @@ fn display_star_selected(
     mut panel: Query<&mut Style, With<StarDetails>>,
     transform: Query<&GlobalTransform>,
     camera: Query<(&GlobalTransform, &Camera, Changed<GlobalTransform>)>,
+    camera_controller: Res<CameraController>,
 ) {
     if selected_star.is_changed() {
         if let Ok(entity) = marked.get_single() {
@@ -509,6 +510,7 @@ fn display_star_selected(
     }
 
     if let Some(index) = selected_star.0 {
+        let star = &universe.galaxy[index];
         if selected_star.is_changed() {
             commands
                 .entity(universe.star_entities[index])
@@ -523,7 +525,7 @@ fn display_star_selected(
                             &shape,
                             DrawMode::Stroke(StrokeMode::new(
                                 Color::rgb(0.5, 1.25, 0.5),
-                                0.5 / <StarSize as Into<f32>>::into(universe.galaxy[index].size),
+                                0.5 / <StarSize as Into<f32>>::into(star.size),
                             )),
                             Transform::from_translation(Vec3::new(
                                 0.0,
@@ -545,7 +547,10 @@ fn display_star_selected(
             let mut style = panel.single_mut();
             style.display = Display::Flex;
             style.position.left = Val::Px(
-                pos.x + (<StarSize as Into<f32>>::into(universe.galaxy[index].size) * 15.0),
+                pos.x
+                    + (<StarSize as Into<f32>>::into(star.size)
+                        * 2.5
+                        * camera_controller.zoom_level.powf(0.7)),
             );
             let Val::Px(height) = style.size.height else{
                 return;
