@@ -83,6 +83,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         .add_plugin(crate::assets::AssetPlugin)
         .add_plugin(crate::splash::Plugin)
         .add_plugin(crate::menu::Plugin)
+        .add_plugin(crate::game::toast::Plugin)
         .add_plugin(crate::game::setup::Plugin)
         .add_plugin(crate::game::world::Plugin)
         .add_plugin(crate::game::starfield::Plugin)
