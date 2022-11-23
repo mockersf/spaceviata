@@ -642,7 +642,7 @@ fn display_star_selected(
                             width: Val::Undefined,
                             height: Val::Px(25.0),
                         },
-                        margin: UiRect::top(Val::Px(-20.0)),
+                        margin: UiRect::top(Val::Px(-10.0)),
                         ..default()
                     },
                     ..default()

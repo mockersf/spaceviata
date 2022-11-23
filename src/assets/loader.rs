@@ -120,9 +120,9 @@ fn done(world: &mut World) {
                 .unwrap();
             let np = bevy_ninepatch::NinePatchBuilder::by_margins(20, 20, 20, 20);
             let panel_handle = (nine_patches.add(np), raw_ui_assets.panel_texture_handle);
-            let np = bevy_ninepatch::NinePatchBuilder::by_margins(20, 20, 10, 20);
+            let np = bevy_ninepatch::NinePatchBuilder::by_margins(10, 20, 10, 20);
             let br_panel_handle = (nine_patches.add(np), raw_ui_assets.br_panel_texture_handle);
-            let np = bevy_ninepatch::NinePatchBuilder::by_margins(20, 20, 10, 20);
+            let np = bevy_ninepatch::NinePatchBuilder::by_margins(10, 10, 10, 20);
             let tr_panel_handle = (nine_patches.add(np), raw_ui_assets.tr_panel_texture_handle);
             let button = crate::ui_helper::button::Button::setup(
                 &mut nine_patches,
