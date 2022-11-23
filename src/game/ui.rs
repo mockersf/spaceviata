@@ -35,7 +35,8 @@ impl bevy::app::Plugin for Plugin {
                     .with_system(star_list_click)
                     .with_system(star_list_scroll)
                     .with_system(display_star_selected)
-                    .with_system(rotate_mark),
+                    .with_system(rotate_mark)
+                    .with_system(update_player_stats),
             )
             .add_system_set(SystemSet::on_exit(GameState::Game).with_system(tear_down));
     }
@@ -78,10 +79,7 @@ impl From<UiButtons> for String {
 }
 
 #[derive(Component)]
-struct LiveMarker;
-
-#[derive(Component)]
-struct CreditsMarker;
+struct PlayerStatsMarker;
 
 fn setup(
     mut commands: Commands,
@@ -206,82 +204,85 @@ fn setup(
                 ..Default::default()
             })
             .with_children(|parent| {
-                parent.spawn(TextBundle {
-                    text: Text::from_sections([
-                        TextSection {
-                            value: "Population ".to_string(),
-                            style: TextStyle {
-                                font: ui_handles.font_sub.clone_weak(),
-                                font_size: 20.0,
-                                color: Color::WHITE,
+                parent.spawn((
+                    TextBundle {
+                        text: Text::from_sections([
+                            TextSection {
+                                value: "Population ".to_string(),
+                                style: TextStyle {
+                                    font: ui_handles.font_sub.clone_weak(),
+                                    font_size: 20.0,
+                                    color: Color::WHITE,
+                                },
                             },
-                        },
-                        TextSection {
-                            value: format!("{}\n", 0),
-                            style: TextStyle {
-                                font: ui_handles.font_sub.clone_weak(),
-                                font_size: 20.0,
-                                color: Color::WHITE,
+                            TextSection {
+                                value: format!("{}\n", 0),
+                                style: TextStyle {
+                                    font: ui_handles.font_sub.clone_weak(),
+                                    font_size: 20.0,
+                                    color: Color::WHITE,
+                                },
                             },
-                        },
-                        TextSection {
-                            value: "Savings    ".to_string(),
-                            style: TextStyle {
-                                font: ui_handles.font_sub.clone_weak(),
-                                font_size: 20.0,
-                                color: Color::WHITE,
+                            TextSection {
+                                value: "Revenue    ".to_string(),
+                                style: TextStyle {
+                                    font: ui_handles.font_sub.clone_weak(),
+                                    font_size: 20.0,
+                                    color: Color::WHITE,
+                                },
                             },
-                        },
-                        TextSection {
-                            value: format!("{}\n", 0),
-                            style: TextStyle {
-                                font: ui_handles.font_sub.clone_weak(),
-                                font_size: 20.0,
-                                color: Color::WHITE,
+                            TextSection {
+                                value: format!("{}\n", 0),
+                                style: TextStyle {
+                                    font: ui_handles.font_sub.clone_weak(),
+                                    font_size: 20.0,
+                                    color: Color::WHITE,
+                                },
                             },
-                        },
-                        TextSection {
-                            value: "Revenue    ".to_string(),
-                            style: TextStyle {
-                                font: ui_handles.font_sub.clone_weak(),
-                                font_size: 20.0,
-                                color: Color::WHITE,
+                            TextSection {
+                                value: "Savings    ".to_string(),
+                                style: TextStyle {
+                                    font: ui_handles.font_sub.clone_weak(),
+                                    font_size: 20.0,
+                                    color: Color::WHITE,
+                                },
                             },
-                        },
-                        TextSection {
-                            value: format!("{}\n", 0),
-                            style: TextStyle {
-                                font: ui_handles.font_sub.clone_weak(),
-                                font_size: 20.0,
-                                color: Color::WHITE,
+                            TextSection {
+                                value: format!("{}\n", 0),
+                                style: TextStyle {
+                                    font: ui_handles.font_sub.clone_weak(),
+                                    font_size: 20.0,
+                                    color: Color::WHITE,
+                                },
                             },
-                        },
-                        TextSection {
-                            value: "Resources  ".to_string(),
-                            style: TextStyle {
-                                font: ui_handles.font_sub.clone_weak(),
-                                font_size: 20.0,
-                                color: Color::WHITE,
+                            TextSection {
+                                value: "Resources  ".to_string(),
+                                style: TextStyle {
+                                    font: ui_handles.font_sub.clone_weak(),
+                                    font_size: 20.0,
+                                    color: Color::WHITE,
+                                },
                             },
-                        },
-                        TextSection {
-                            value: format!("{}\n", 0),
-                            style: TextStyle {
-                                font: ui_handles.font_sub.clone_weak(),
-                                font_size: 20.0,
-                                color: Color::WHITE,
+                            TextSection {
+                                value: format!("{}\n", 0),
+                                style: TextStyle {
+                                    font: ui_handles.font_sub.clone_weak(),
+                                    font_size: 20.0,
+                                    color: Color::WHITE,
+                                },
                             },
-                        },
-                    ]),
-                    style: Style {
-                        size: Size {
-                            width: Val::Undefined,
-                            height: Val::Px(80.0),
+                        ]),
+                        style: Style {
+                            size: Size {
+                                width: Val::Undefined,
+                                height: Val::Px(80.0),
+                            },
+                            ..default()
                         },
                         ..default()
                     },
-                    ..default()
-                });
+                    PlayerStatsMarker,
+                ));
             })
             .id();
 
@@ -750,7 +751,10 @@ fn display_star_selected(
                                     },
                                 },
                                 TextSection {
-                                    value: format!("Population {}\n", 0),
+                                    value: format!(
+                                        "Population {:.1}\n",
+                                        universe.star_details[index].population
+                                    ),
                                     style: TextStyle {
                                         font: ui_assets.font_sub.clone_weak(),
                                         font_size: 20.0,
@@ -758,7 +762,10 @@ fn display_star_selected(
                                     },
                                 },
                                 TextSection {
-                                    value: format!("Revenue    {}\n", 0),
+                                    value: format!(
+                                        "Revenue    {:.1}\n",
+                                        universe.star_revenue(index)
+                                    ),
                                     style: TextStyle {
                                         font: ui_assets.font_sub.clone_weak(),
                                         font_size: 20.0,
@@ -766,7 +773,10 @@ fn display_star_selected(
                                     },
                                 },
                                 TextSection {
-                                    value: format!("Resources  {}\n", 0),
+                                    value: format!(
+                                        "Resources  {:.1}\n",
+                                        universe.star_ressource(index)
+                                    ),
                                     style: TextStyle {
                                         font: ui_assets.font_sub.clone_weak(),
                                         font_size: 20.0,
@@ -859,5 +869,18 @@ fn rotate_mark(mut query: Query<&mut Transform, With<MarkedStar>>, time: Res<Tim
 
     for mut transform in query.iter_mut() {
         transform.rotate(Quat::from_rotation_z(-0.15 * delta));
+    }
+}
+
+fn update_player_stats(
+    mut text: Query<&mut Text, With<PlayerStatsMarker>>,
+    universe: Res<Universe>,
+) {
+    if universe.is_changed() {
+        let mut text = text.single_mut();
+        text.sections[1].value = format!("{:.1}\n", universe.player_population(0));
+        text.sections[3].value = format!("{:.1}\n", universe.player_revenue(0));
+        text.sections[5].value = format!("{:.1}\n", universe.players[0].savings);
+        text.sections[7].value = format!("{:.1}\n", universe.players[0].resources);
     }
 }

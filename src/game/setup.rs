@@ -17,7 +17,7 @@ use crate::{
     assets::{names::Names, GalaxyAssets, UiAssets},
     game::{
         galaxy::{GalaxyKind, StarSize},
-        Player, StarState, Universe,
+        Player, StarDetails, StarState, Universe,
     },
     ui_helper::{button::ButtonId, ColorScheme},
     GameState,
@@ -632,9 +632,18 @@ fn tear_down(
         commands.entity(entity).despawn_recursive();
     }
 
+    let mut rand = rand::thread_rng();
     let galaxy = creator.generated.clone();
 
-    let seed = rand::thread_rng().gen_range(0..creator.nb_players) as usize;
+    let mut star_details = (0..galaxy.len())
+        .map(|_| StarDetails {
+            population: 0.0,
+            resources: rand.gen_range(50.0..100.0),
+            owner: usize::MAX,
+        })
+        .collect::<Vec<StarDetails>>();
+
+    let seed = rand.gen_range(0..creator.nb_players) as usize;
     let players = (0..(creator.nb_players as usize))
         .into_iter()
         .map(|player| {
@@ -653,11 +662,18 @@ fn tear_down(
                     closest_distance = star.position.distance_squared(position);
                 }
             }
+            // populate the starting star, and increase its resources
+            star_details[closest_i].population = rand.gen_range(95.0..105.0);
+            star_details[closest_i].resources = rand.gen_range(100.0..150.0);
+            star_details[closest_i].owner = player;
+
             let mut vision = vec![StarState::Unknown; galaxy.len()];
             vision[closest_i] = StarState::Owned(player);
             Player {
                 start: closest_i,
                 vision,
+                savings: 10.0,
+                resources: 10.0,
             }
         })
         .collect();
@@ -666,5 +682,6 @@ fn tear_down(
         star_entities: Vec::with_capacity(galaxy.len()),
         galaxy,
         players,
+        star_details,
     })
 }

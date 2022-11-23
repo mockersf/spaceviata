@@ -28,7 +28,7 @@ pub struct Star {
     pub name: String,
 }
 
-#[derive(Component, Copy, Clone, Debug)]
+#[derive(Component, Copy, Clone, Debug, PartialEq, Eq)]
 pub enum StarColor {
     Blue,
     Yellow,
