@@ -589,7 +589,16 @@ fn display_star_list(
                     .with_children(|parent| {
                         parent.spawn(TextBundle {
                             text: Text::from_section(
-                                universe.galaxy[star].name.clone(),
+                                universe.galaxy[star]
+                                    .name
+                                    .split(" ")
+                                    .map(|word| {
+                                        let mut chars = word.chars();
+                                        chars.next().unwrap().to_uppercase().collect::<String>()
+                                            + chars.as_str()
+                                    })
+                                    .collect::<Vec<String>>()
+                                    .join(" "),
                                 TextStyle {
                                     font: ui_assets.font_sub.clone_weak(),
                                     font_size: 20.0,
