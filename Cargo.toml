@@ -51,11 +51,8 @@ tracy = [ "bevy/trace", "bevy/trace_tracy" ]
 # debug-graph = [ "bevy_mod_debugdump" ]
 
 
-# [profile.dev.package."*"]
-# opt-level = 3
-
-# [profile.dev.package.spaceviata]
-# opt-level = 3
+[profile.dev.package."*"]
+opt-level = 3
 
 [profile.wasm-release]
 inherits = "release"
