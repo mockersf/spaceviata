@@ -458,7 +458,9 @@ fn select_star(
             (star.position * controller.zoom_level / RATIO_ZOOM_DISTANCE).distance(clicked)
                 < <StarSize as Into<f32>>::into(star.size) * controller.zoom_level.powf(0.7) * 2.5
         }) {
-            selected_star.0 = Some(index);
+            if selected_star.0 != Some(index) {
+                selected_star.0 = Some(index);
+            }
         } else {
             selected_star.0 = None;
         }
