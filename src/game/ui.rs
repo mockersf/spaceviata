@@ -205,15 +205,96 @@ fn setup(
                 },
                 ..Default::default()
             })
+            .with_children(|parent| {
+                parent.spawn(TextBundle {
+                    text: Text::from_sections([
+                        TextSection {
+                            value: "Population ".to_string(),
+                            style: TextStyle {
+                                font: ui_handles.font_sub.clone_weak(),
+                                font_size: 20.0,
+                                color: Color::WHITE,
+                            },
+                        },
+                        TextSection {
+                            value: format!("{}\n", 0),
+                            style: TextStyle {
+                                font: ui_handles.font_sub.clone_weak(),
+                                font_size: 20.0,
+                                color: Color::WHITE,
+                            },
+                        },
+                        TextSection {
+                            value: "Savings    ".to_string(),
+                            style: TextStyle {
+                                font: ui_handles.font_sub.clone_weak(),
+                                font_size: 20.0,
+                                color: Color::WHITE,
+                            },
+                        },
+                        TextSection {
+                            value: format!("{}\n", 0),
+                            style: TextStyle {
+                                font: ui_handles.font_sub.clone_weak(),
+                                font_size: 20.0,
+                                color: Color::WHITE,
+                            },
+                        },
+                        TextSection {
+                            value: "Revenue    ".to_string(),
+                            style: TextStyle {
+                                font: ui_handles.font_sub.clone_weak(),
+                                font_size: 20.0,
+                                color: Color::WHITE,
+                            },
+                        },
+                        TextSection {
+                            value: format!("{}\n", 0),
+                            style: TextStyle {
+                                font: ui_handles.font_sub.clone_weak(),
+                                font_size: 20.0,
+                                color: Color::WHITE,
+                            },
+                        },
+                        TextSection {
+                            value: "Resources  ".to_string(),
+                            style: TextStyle {
+                                font: ui_handles.font_sub.clone_weak(),
+                                font_size: 20.0,
+                                color: Color::WHITE,
+                            },
+                        },
+                        TextSection {
+                            value: format!("{}\n", 0),
+                            style: TextStyle {
+                                font: ui_handles.font_sub.clone_weak(),
+                                font_size: 20.0,
+                                color: Color::WHITE,
+                            },
+                        },
+                    ]),
+                    style: Style {
+                        size: Size {
+                            width: Val::Undefined,
+                            height: Val::Px(80.0),
+                        },
+                        ..default()
+                    },
+                    ..default()
+                });
+            })
             .id();
 
+        let panel_height = 120.0;
         let panel_style = Style {
             justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
-            size: Size::new(Val::Percent(100.0), Val::Px(200.0)),
+            size: Size::new(Val::Percent(100.0), Val::Px(panel_height)),
             align_content: AlignContent::Stretch,
             flex_direction: FlexDirection::Column,
             flex_grow: 0.0,
+            min_size: Size::new(Val::Percent(100.0), Val::Px(panel_height)),
+            max_size: Size::new(Val::Percent(100.0), Val::Px(panel_height)),
             ..Default::default()
         };
 
