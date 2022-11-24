@@ -214,7 +214,7 @@ fn setup(
             Val::Px(40.),
             Val::Px(40.),
             UiRect::all(Val::Auto),
-            material.clone(),
+            material,
             UiButtons::EndTurn,
             25.,
             crate::ui_helper::ColorScheme::TEXT,
@@ -960,13 +960,11 @@ fn display_messages(
     mut content: Query<&mut Text, With<MessageContentMarker>>,
     buttons: Res<Assets<crate::ui_helper::button::Button>>,
 ) {
-    if turns.is_changed() && turns.messages.len() > 0 {
+    if turns.is_changed() && !turns.messages.is_empty() {
         if let Ok(entity) = panel.get_single() {
-            info!("despawning the panel");
             commands.entity(entity).despawn_recursive();
         };
 
-        info!("spawning the panel");
         current_message.0 = 0;
 
         let button_handle = ui_handles.button_handle.clone_weak();
@@ -1082,10 +1080,8 @@ fn display_messages(
             let Ok(entity) = panel.get_single() else {
                 return
             };
-            info!("despawning the panel");
             commands.entity(entity).despawn_recursive();
         } else if current_message.0 > 0 {
-            info!("updating the message");
             content.single_mut().sections[0].value = turns.messages[current_message.0].clone();
         }
     }

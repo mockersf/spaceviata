@@ -9,6 +9,7 @@ use bevy_easings::Ease;
 
 use crate::{
     assets::{CloneWeak, UiAssets},
+    game::turns::TurnState,
     ui_helper::ColorScheme,
 };
 
@@ -79,6 +80,7 @@ fn setup(
     mut keyboard_input: ResMut<Input<KeyCode>>,
     mut gamepad_input: ResMut<Input<GamepadButton>>,
     windows: Res<Windows>,
+    mut turn_state: ResMut<State<TurnState>>,
 ) {
     info!("Loading screen");
 
@@ -303,6 +305,8 @@ fn setup(
     } else {
         commands.entity(panel).insert(panel_style);
     }
+
+    let _ = turn_state.set(TurnState::Out);
 
     screen.first_load = false;
 }
