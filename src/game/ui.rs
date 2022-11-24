@@ -39,7 +39,8 @@ impl bevy::app::Plugin for Plugin {
                     .with_system(display_star_selected)
                     .with_system(rotate_mark)
                     .with_system(update_player_stats)
-                    .with_system(display_messages),
+                    .with_system(display_messages)
+                    .with_system(make_it_visible),
             )
             .add_system_set(SystemSet::on_exit(GameState::Game).with_system(tear_down));
     }
@@ -981,19 +982,24 @@ fn display_messages(
             crate::ui_helper::ColorScheme::TEXT,
         );
         let base = commands
-            .spawn(NodeBundle {
-                style: Style {
-                    flex_direction: FlexDirection::Column,
-                    margin: UiRect::all(Val::Px(10.0)),
-                    size: Size {
-                        width: Val::Percent(100.0),
-                        height: Val::Percent(100.0),
+            .spawn((
+                NodeBundle {
+                    style: Style {
+                        flex_direction: FlexDirection::Column,
+                        margin: UiRect::all(Val::Px(10.0)),
+                        size: Size {
+                            width: Val::Percent(100.0),
+                            height: Val::Percent(100.0),
+                        },
+                        overflow: Overflow::Hidden,
+                        display: Display::None,
+                        ..Default::default()
                     },
-                    overflow: Overflow::Hidden,
+
                     ..Default::default()
                 },
-                ..Default::default()
-            })
+                OneFrameDelay,
+            ))
             .with_children(|parent| {
                 parent.spawn((
                     TextBundle {
@@ -1084,5 +1090,18 @@ fn display_messages(
         } else if current_message.0 > 0 {
             content.single_mut().sections[0].value = turns.messages[current_message.0].clone();
         }
+    }
+}
+
+#[derive(Component)]
+struct OneFrameDelay;
+
+fn make_it_visible(
+    mut commands: Commands,
+    mut style: Query<(Entity, &mut Style), With<OneFrameDelay>>,
+) {
+    for (entity, mut style) in &mut style {
+        commands.entity(entity).remove::<OneFrameDelay>();
+        style.display = Display::Flex;
     }
 }
