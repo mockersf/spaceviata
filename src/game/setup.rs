@@ -17,13 +17,17 @@ use crate::{
     assets::{names::Names, GalaxyAssets, UiAssets},
     game::{
         galaxy::{GalaxyKind, StarSize},
+        turns::Turns,
         Player, StarDetails, StarState, Universe,
     },
     ui_helper::{button::ButtonId, ColorScheme},
     GameState,
 };
 
-use super::galaxy::{GalaxyCreator, StarColor};
+use super::{
+    galaxy::{GalaxyCreator, StarColor},
+    turns::TurnState,
+};
 
 const CURRENT_STATE: crate::GameState = crate::GameState::Setup;
 
@@ -625,6 +629,7 @@ fn tear_down(
     mut commands: Commands,
     query: Query<Entity, With<ScreenTag>>,
     creator: Res<GalaxyCreator>,
+    mut turn_state: ResMut<State<TurnState>>,
 ) {
     info!("tear down");
 
@@ -640,6 +645,7 @@ fn tear_down(
             population: 0.0,
             resources: rand.gen_range(50.0..100.0),
             owner: usize::MAX,
+            owned_since: usize::MAX,
         })
         .collect::<Vec<StarDetails>>();
 
@@ -663,9 +669,10 @@ fn tear_down(
                 }
             }
             // populate the starting star, and increase its resources
-            star_details[closest_i].population = rand.gen_range(95.0..105.0);
+            star_details[closest_i].population = rand.gen_range(70.0..80.0);
             star_details[closest_i].resources = rand.gen_range(100.0..150.0);
             star_details[closest_i].owner = player;
+            star_details[closest_i].owned_since = 0;
 
             let mut vision = vec![StarState::Unknown; galaxy.len()];
             vision[closest_i] = StarState::Owned(player);
@@ -683,5 +690,11 @@ fn tear_down(
         galaxy,
         players,
         star_details,
-    })
+    });
+
+    let _ = turn_state.overwrite_set(TurnState::Player);
+    commands.insert_resource(Turns {
+        count: 0,
+        messages: vec![],
+    });
 }

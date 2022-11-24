@@ -13,6 +13,7 @@ use crate::{assets::UiAssets, ui_helper::button::ButtonId, GameState};
 
 use super::{
     galaxy::StarSize,
+    turns::{TurnState, Turns},
     world::{CameraController, CameraControllerTarget, RATIO_ZOOM_DISTANCE},
     z_levels, StarState, Universe,
 };
@@ -26,6 +27,7 @@ pub(crate) struct Plugin;
 impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.init_resource::<SelectedStar>()
+            .init_resource::<DisplayedMessage>()
             .add_system_set(SystemSet::on_enter(GameState::Game).with_system(setup))
             .add_system_set(
                 SystemSet::on_update(GameState::Game)
@@ -36,7 +38,8 @@ impl bevy::app::Plugin for Plugin {
                     .with_system(star_list_scroll)
                     .with_system(display_star_selected)
                     .with_system(rotate_mark)
-                    .with_system(update_player_stats),
+                    .with_system(update_player_stats)
+                    .with_system(display_messages),
             )
             .add_system_set(SystemSet::on_exit(GameState::Game).with_system(tear_down));
     }
@@ -56,6 +59,8 @@ enum UiButtons {
     ZoomOut,
     GameMenu,
     BackToMenu,
+    EndTurn,
+    NextMessage,
 }
 
 #[derive(Component)]
@@ -74,12 +79,22 @@ impl From<UiButtons> for String {
                 material_icons::icon_to_char(material_icons::Icon::Settings).to_string()
             }
             UiButtons::BackToMenu => "Menu".to_string(),
+            UiButtons::EndTurn => {
+                material_icons::icon_to_char(material_icons::Icon::FastForward).to_string()
+            }
+            UiButtons::NextMessage => "...".to_string(),
         }
     }
 }
 
 #[derive(Component)]
 struct PlayerStatsMarker;
+
+#[derive(Component)]
+struct MessagePanelMarker;
+
+#[derive(Component)]
+struct MessageContentMarker;
 
 fn setup(
     mut commands: Commands,
@@ -186,6 +201,48 @@ fn setup(
                     ))
                     .push_children(&[back_to_menu_button]);
             });
+    }
+
+    // turns
+    {
+        let button_handle = ui_handles.button_handle.clone_weak();
+        let button = buttons.get(&button_handle).unwrap();
+        let material = ui_handles.font_material.clone_weak();
+
+        let end_turn = button.add(
+            &mut commands,
+            Val::Px(40.),
+            Val::Px(40.),
+            UiRect::all(Val::Auto),
+            material.clone(),
+            UiButtons::EndTurn,
+            25.,
+            crate::ui_helper::ColorScheme::TEXT,
+        );
+
+        commands
+            .spawn((
+                NodeBundle {
+                    style: Style {
+                        position: UiRect {
+                            right: Val::Px(20.0),
+                            bottom: Val::Px(20.0),
+                            ..default()
+                        },
+                        size: Size {
+                            width: Val::Px(40.0),
+                            height: Val::Px(40.0),
+                        },
+                        flex_direction: FlexDirection::Column,
+                        position_type: PositionType::Absolute,
+                        align_items: AlignItems::Baseline,
+                        ..default()
+                    },
+                    ..default()
+                },
+                ScreenTag,
+            ))
+            .push_children(&[end_turn]);
     }
 
     let left_panel_top = {
@@ -467,6 +524,9 @@ struct StarList {
 #[derive(Resource, Default)]
 struct SelectedStar(Option<usize>);
 
+#[derive(Resource, Default)]
+struct DisplayedMessage(usize);
+
 #[derive(Component)]
 struct MenuContainer;
 
@@ -475,7 +535,9 @@ fn button_system(
     controller: Res<CameraController>,
     mut target: ResMut<CameraControllerTarget>,
     mut state: ResMut<State<GameState>>,
+    mut turn_state: ResMut<State<TurnState>>,
     mut menu_container: Query<&mut Visibility, With<MenuContainer>>,
+    mut displayed_message: ResMut<DisplayedMessage>,
 ) {
     for (interaction, button_id, changed) in interaction_query.iter() {
         if *interaction == Interaction::Clicked {
@@ -492,6 +554,10 @@ fn button_system(
                     menu_container.single_mut().toggle();
                 }
                 (UiButtons::BackToMenu, true) => state.set(GameState::Menu).unwrap(),
+                (UiButtons::EndTurn, true) => turn_state.set(TurnState::Bots).unwrap(),
+                (UiButtons::NextMessage, true) => {
+                    displayed_message.0 += 1;
+                }
                 _ => (),
             }
         }
@@ -592,7 +658,7 @@ fn display_star_list(
                             text: Text::from_section(
                                 universe.galaxy[star]
                                     .name
-                                    .split(" ")
+                                    .split(' ')
                                     .map(|word| {
                                         let mut chars = word.chars();
                                         chars.next().unwrap().to_uppercase().collect::<String>()
@@ -882,5 +948,145 @@ fn update_player_stats(
         text.sections[3].value = format!("{:.1}\n", universe.player_revenue(0));
         text.sections[5].value = format!("{:.1}\n", universe.players[0].savings);
         text.sections[7].value = format!("{:.1}\n", universe.players[0].resources);
+    }
+}
+
+fn display_messages(
+    mut commands: Commands,
+    turns: Res<Turns>,
+    mut current_message: ResMut<DisplayedMessage>,
+    ui_handles: Res<UiAssets>,
+    panel: Query<Entity, With<MessagePanelMarker>>,
+    mut content: Query<&mut Text, With<MessageContentMarker>>,
+    buttons: Res<Assets<crate::ui_helper::button::Button>>,
+) {
+    if turns.is_changed() && turns.messages.len() > 0 {
+        if let Ok(entity) = panel.get_single() {
+            info!("despawning the panel");
+            commands.entity(entity).despawn_recursive();
+        };
+
+        info!("spawning the panel");
+        current_message.0 = 0;
+
+        let button_handle = ui_handles.button_handle.clone_weak();
+        let button = buttons.get(&button_handle).unwrap();
+
+        let next_message_button = button.add(
+            &mut commands,
+            Val::Px(30.),
+            Val::Px(25.),
+            UiRect::all(Val::Auto),
+            ui_handles.font_main.clone_weak(),
+            UiButtons::NextMessage,
+            15.,
+            crate::ui_helper::ColorScheme::TEXT,
+        );
+        let base = commands
+            .spawn(NodeBundle {
+                style: Style {
+                    flex_direction: FlexDirection::Column,
+                    margin: UiRect::all(Val::Px(10.0)),
+                    size: Size {
+                        width: Val::Percent(100.0),
+                        height: Val::Percent(100.0),
+                    },
+                    overflow: Overflow::Hidden,
+                    ..Default::default()
+                },
+                ..Default::default()
+            })
+            .with_children(|parent| {
+                parent.spawn((
+                    TextBundle {
+                        text: Text::from_section(
+                            turns.messages[current_message.0].clone(),
+                            TextStyle {
+                                font: ui_handles.font_main.clone_weak(),
+                                font_size: 20.0,
+                                color: Color::WHITE,
+                            },
+                        ),
+                        style: Style {
+                            size: Size {
+                                width: Val::Undefined,
+                                height: Val::Px(80.0),
+                            },
+                            ..default()
+                        },
+                        ..default()
+                    },
+                    MessageContentMarker,
+                ));
+            })
+            .push_children(&[next_message_button])
+            .id();
+
+        let panel_style = Style {
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            size: Size::new(Val::Px(300.0), Val::Px(200.0)),
+            align_content: AlignContent::Stretch,
+            flex_direction: FlexDirection::Column,
+            ..Default::default()
+        };
+
+        let message_panel = commands
+            .spawn(bevy_ninepatch::NinePatchBundle {
+                style: panel_style,
+                nine_patch_data: bevy_ninepatch::NinePatchData::with_single_content(
+                    ui_handles.panel_handle.1.clone_weak(),
+                    ui_handles.panel_handle.0.clone_weak(),
+                    base,
+                ),
+                ..default()
+            })
+            .id();
+
+        commands
+            .spawn((
+                NodeBundle {
+                    style: Style {
+                        position: UiRect {
+                            right: Val::Px(0.0),
+                            ..default()
+                        },
+                        position_type: PositionType::Absolute,
+                        size: Size::new(Val::Px(400.0), Val::Percent(100.0)),
+                        align_items: AlignItems::Center,
+                        justify_content: JustifyContent::Center,
+                        ..default()
+                    },
+                    focus_policy: FocusPolicy::Pass,
+                    ..default()
+                },
+                MessagePanelMarker,
+                ScreenTag,
+            ))
+            .with_children(|parent| {
+                parent
+                    .spawn(NodeBundle {
+                        style: Style {
+                            justify_content: JustifyContent::Center,
+                            align_items: AlignItems::Center,
+                            ..default()
+                        },
+                        background_color: BackgroundColor(DAMPENER),
+                        ..default()
+                    })
+                    .push_children(&[message_panel]);
+            });
+    }
+    if current_message.is_changed() {
+        if current_message.0 >= turns.messages.len() {
+            let Ok(entity) = panel.get_single() else {
+                return
+            };
+            info!("despawning the panel");
+            commands.entity(entity).despawn_recursive();
+        } else if current_message.0 > 0 {
+            info!("updating the message");
+            content.single_mut().sections[0].value = turns.messages[current_message.0].clone();
+        }
     }
 }

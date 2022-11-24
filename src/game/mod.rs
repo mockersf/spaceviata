@@ -8,6 +8,7 @@ use self::galaxy::Star;
 mod galaxy;
 pub mod setup;
 pub mod starfield;
+pub mod turns;
 pub mod ui;
 pub mod world;
 
@@ -16,6 +17,7 @@ struct StarDetails {
     population: f32,
     resources: f32,
     owner: usize,
+    owned_since: usize,
 }
 
 #[derive(Resource)]
