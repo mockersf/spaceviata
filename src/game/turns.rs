@@ -62,12 +62,15 @@ fn start_player_turn(mut universe: ResMut<Universe>, mut turns: ResMut<Turns>) {
 
             // harvest resources
             {
-                harvested += 1.0;
+                let current_resources = (details.resources * 1.2).powf(1.5);
+                let collect = 1.0_f32.min(current_resources);
+                harvested += collect;
                 details.resources = if star.color != good_conditions.color {
-                    ((details.resources * 1.2).powf(1.5) - 1.0).powf(1.0 / 1.5) / 1.2
+                    ((details.resources * 1.2).powf(1.5) - collect).powf(1.0 / 1.5) / 1.2
                 } else {
-                    ((details.resources).powf(0.8) - 1.0).powf(1.0 / 0.8)
-                };
+                    ((details.resources).powf(0.8) - collect).powf(1.0 / 0.8)
+                }
+                .max(0.0);
             }
         });
     universe.players[0].resources += harvested;
