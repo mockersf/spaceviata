@@ -42,9 +42,9 @@ fn start_player_turn(mut universe: ResMut<Universe>, mut turns: ResMut<Turns>) {
                 // grow population
                 {
                     let max_population = if star.color == good_conditions.color {
-                        120.0 + (turns.count as i32 - details.owned_since) as f32 / 5.0
+                        120.0 + (turns.count - details.owned_since) as f32 / 5.0
                     } else {
-                        10.0 + (turns.count as i32 - details.owned_since) as f32 / 10.0
+                        10.0 + (turns.count - details.owned_since) as f32 / 10.0
                     };
                     let lerp = details.population / max_population;
                     let growth_factor = if lerp < 0.5 {
