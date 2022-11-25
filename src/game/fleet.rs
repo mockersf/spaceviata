@@ -85,7 +85,7 @@ fn spawn_fleets(
         if owner == 0 {
             builder.with_children(|parent| {
                 parent.spawn(SpriteBundle {
-                    transform: Transform::from_scale(Vec3::splat(0.025)),
+                    transform: Transform::from_scale(Vec3::splat(0.02)),
                     texture: ship_assets.colony_ship.clone_weak(),
                     ..default()
                 });
