@@ -1,4 +1,4 @@
-use std::f32::consts::PI;
+use std::{f32::consts::PI, fmt};
 
 use bevy::prelude::*;
 
@@ -36,6 +36,30 @@ pub struct Fleet {
     pub ship: Ship,
     pub size: FleetSize,
     pub owner: Owner,
+}
+
+impl fmt::Display for FleetSize {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl fmt::Display for Ship {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.kind)
+    }
+}
+
+impl fmt::Display for ShipKind {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                ShipKind::Colony => "Colony Ship",
+            }
+        )
+    }
 }
 
 const CURRENT_STATE: GameState = GameState::Game;
