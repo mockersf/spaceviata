@@ -640,15 +640,17 @@ fn select_star(
     controller: Res<CameraController>,
     mut selected_star: ResMut<SelectedStar>,
     mut last_pressed: Local<f32>,
+    mut pressed_at: Local<Option<Vec2>>,
     time: Res<Time>,
 ) {
     if mouse_input.just_pressed(MouseButton::Left) {
-        *last_pressed = time.elapsed_seconds()
+        *last_pressed = time.elapsed_seconds();
+        *pressed_at = windows.primary().cursor_position();
     }
 
     if let Some(position) = mouse_input
         .just_released(MouseButton::Left)
-        .then(|| windows.primary().cursor_position())
+        .then(|| windows.primary().cursor_position().or(*pressed_at))
         .flatten()
         .or_else(|| {
             touches.first_pressed_position().map(|mut pos| {
@@ -798,6 +800,7 @@ fn star_list_scroll(
 #[derive(Component)]
 struct MarkedStar;
 
+#[allow(clippy::type_complexity)]
 fn display_star_selected(
     mut commands: Commands,
     selected_star: Res<SelectedStar>,
