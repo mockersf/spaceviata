@@ -920,7 +920,7 @@ fn display_star_selected(
             style.position.left = Val::Px(
                 pos.x
                     + (<StarSize as Into<f32>>::into(star.size)
-                        * 2.5
+                        * 5.0
                         * camera_controller.zoom_level.powf(0.7)),
             );
             let Val::Px(height) = style.size.height else{
