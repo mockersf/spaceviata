@@ -25,7 +25,7 @@ use super::{
 
 pub const LEFT_PANEL_WIDTH: f32 = 200.0;
 
-const DAMPENER: Color = Color::rgba(0.25, 0.25, 0.25, 0.75);
+const DAMPENER: Color = Color::rgba(0.15, 0.15, 0.15, 0.75);
 
 pub(crate) struct Plugin;
 
