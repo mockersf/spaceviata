@@ -14,6 +14,7 @@ use crate::{
 };
 
 use super::{
+    fleet::Order,
     galaxy::{GalaxyCreator, Star, StarColor},
     StarState,
 };
@@ -198,11 +199,14 @@ fn tear_down(mut commands: Commands, query: Query<Entity, With<ScreenTag>>) {
     }
 }
 
+#[allow(clippy::type_complexity)]
 fn update_camera(
     controller: Res<CameraController>,
     mut camera: Query<&mut Transform, With<Camera2d>>,
     mut systems: Query<(&mut Transform, &System), Without<Camera2d>>,
     mut star_names: Query<&mut Visibility, With<StarName>>,
+    mut fleets: Query<(&mut Transform, &Order), (Without<Camera2d>, Without<System>)>,
+    universe: Res<Universe>,
 ) {
     if controller.is_changed() {
         let mut camera_transform = camera.single_mut();
@@ -218,6 +222,13 @@ fn update_camera(
             transform.translation = (system.star.position * controller.zoom_level
                 / RATIO_ZOOM_DISTANCE)
                 .extend(z_levels::STAR);
+        }
+        for (mut transform, order) in &mut fleets {
+            transform.scale = Vec3::splat(controller.zoom_level.powf(0.7));
+            let Order::Orbit(star) = order;
+            transform.translation = (universe.galaxy[*star].position * controller.zoom_level
+                / RATIO_ZOOM_DISTANCE)
+                .extend(z_levels::SHIP);
         }
         if controller.zoom_level < 4.0 {
             for mut visibility in &mut star_names {

@@ -3,8 +3,9 @@ use bevy::{
     utils::Instant,
 };
 
-use self::galaxy::Star;
+use self::{fleet::Fleet, galaxy::Star};
 
+pub mod fleet;
 mod galaxy;
 pub mod setup;
 pub mod starfield;
@@ -27,6 +28,9 @@ struct Universe {
     star_entities: Vec<Entity>,
     star_details: Vec<StarDetails>,
 }
+
+#[derive(Resource)]
+struct FleetsToSpawn(pub Vec<Fleet>);
 
 impl Universe {
     fn star_revenue(&self, star_index: usize) -> f32 {
@@ -97,9 +101,10 @@ pub struct CurrentGame {
 }
 
 mod z_levels {
-    pub const STAR: f32 = 0.5;
-    pub const STAR_NAME: f32 = 0.7;
-    pub const STAR_SELECTION: f32 = 0.4;
-    pub const STAR_DECORATION: f32 = 0.6;
     pub const STARFIELD: f32 = 0.0;
+    pub const STAR_SELECTION: f32 = 0.4;
+    pub const STAR: f32 = 0.5;
+    pub const STAR_DECORATION: f32 = 0.6;
+    pub const STAR_NAME: f32 = 0.7;
+    pub const SHIP: f32 = 0.8;
 }

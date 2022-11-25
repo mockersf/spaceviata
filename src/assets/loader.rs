@@ -50,7 +50,8 @@ impl Plugin for AssetPlugin {
                 LoadingState::new(AllTheLoading::Assets)
                     .continue_to_state(AllTheLoading::Ready)
                     .with_collection::<RawUiAssets>()
-                    .with_collection::<RawGalaxyAssets>(),
+                    .with_collection::<RawGalaxyAssets>()
+                    .with_collection::<ShipAssets>(),
             )
             .add_system_set(SystemSet::on_enter(AllTheLoading::Ready).with_system(done));
     }
@@ -74,6 +75,12 @@ struct RawUiAssets {
     tr_panel_texture_handle: Handle<Image>,
     #[asset(path = "ui/glassPanel_projection.png")]
     button_texture_handle: Handle<Image>,
+}
+
+#[derive(AssetCollection)]
+pub(crate) struct ShipAssets {
+    #[asset(path = "ships/enemyRed4.png")]
+    pub(crate) colony_ship: Handle<Image>,
 }
 
 #[derive(Resource)]

@@ -16,9 +16,10 @@ use rand::Rng;
 use crate::{
     assets::{names::Names, GalaxyAssets, UiAssets},
     game::{
+        fleet::{Fleet, FleetSize, Order, Owner, Ship, ShipKind},
         galaxy::{GalaxyKind, StarSize},
         turns::Turns,
-        Player, StarDetails, StarState, Universe,
+        FleetsToSpawn, Player, StarDetails, StarState, Universe,
     },
     ui_helper::{button::ButtonId, ColorScheme},
     GameState,
@@ -649,6 +650,8 @@ fn tear_down(
         })
         .collect::<Vec<StarDetails>>();
 
+    let mut fleets = vec![];
+
     let seed = rand.gen_range(0..creator.nb_players) as usize;
     let players = (0..(creator.nb_players as usize))
         .into_iter()
@@ -676,6 +679,14 @@ fn tear_down(
 
             let mut vision = vec![StarState::Unknown; galaxy.len()];
             vision[closest_i] = StarState::Owned(player);
+            fleets.push(Fleet {
+                owner: Owner(player),
+                order: Order::Orbit(closest_i),
+                ship: Ship {
+                    kind: ShipKind::Colony,
+                },
+                size: FleetSize(1),
+            });
             Player {
                 start: closest_i,
                 vision,
@@ -691,6 +702,8 @@ fn tear_down(
         players,
         star_details,
     });
+
+    commands.insert_resource(FleetsToSpawn(fleets));
 
     let _ = turn_state.overwrite_set(TurnState::Player);
     commands.insert_resource(Turns {
