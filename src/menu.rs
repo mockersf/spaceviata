@@ -1,9 +1,4 @@
-use std::time::Duration;
-
-use bevy::{
-    prelude::*,
-    winit::{UpdateMode, WinitSettings},
-};
+use bevy::prelude::*;
 
 use bevy_easings::Ease;
 
@@ -84,12 +79,6 @@ fn setup(
 ) {
     info!("Loading screen");
 
-    commands.insert_resource(WinitSettings {
-        focused_mode: UpdateMode::Reactive {
-            max_wait: Duration::from_secs_f32(1.0 / 30.0),
-        },
-        ..WinitSettings::desktop_app()
-    });
     commands.insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.075)));
 
     mouse_button_input.clear();
