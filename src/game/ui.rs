@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use bevy::{
     input::mouse::{MouseScrollUnit, MouseWheel},
     math::Vec3Swizzles,
@@ -1025,6 +1027,9 @@ fn display_star_selected(
                                             size: Size::new(Val::Px(15.0), Val::Px(15.0)),
                                             ..default()
                                         },
+                                        transform: Transform::from_rotation(Quat::from_rotation_z(
+                                            PI,
+                                        )),
                                         ..default()
                                     });
                                     parent.spawn(TextBundle {
