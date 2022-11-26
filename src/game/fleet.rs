@@ -14,7 +14,6 @@ pub enum Order {
     Orbit(usize),
 }
 
-#[derive(Component)]
 pub enum ShipKind {
     Colony,
 }

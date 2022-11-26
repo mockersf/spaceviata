@@ -1,13 +1,13 @@
 use std::f32::consts::PI;
 
 use bevy::{
-    input::mouse::{MouseScrollUnit, MouseWheel},
+    input::mouse::{MouseMotion, MouseScrollUnit, MouseWheel},
     math::Vec3Swizzles,
     prelude::*,
     ui::FocusPolicy,
 };
 use bevy_prototype_lyon::{
-    prelude::{DrawMode, GeometryBuilder, StrokeMode},
+    prelude::{DrawMode, GeometryBuilder, PathBuilder, StrokeMode},
     shapes,
 };
 
@@ -44,7 +44,9 @@ impl bevy::app::Plugin for Plugin {
                     .with_system(star_list_click)
                     .with_system(star_list_scroll)
                     .with_system(display_star_selected)
+                    .with_system(star_button_system)
                     .with_system(rotate_mark)
+                    .with_system(dragging_ship)
                     .with_system(update_player_stats)
                     .with_system(display_messages)
                     .with_system(make_it_visible),
@@ -588,7 +590,10 @@ struct StarList {
 }
 
 #[derive(Resource, Default)]
-struct SelectedStar(Option<usize>);
+struct SelectedStar {
+    index: Option<usize>,
+    dragging_ship: (Option<Entity>, Option<Entity>),
+}
 
 #[derive(Resource, Default)]
 struct DisplayedMessage(usize);
@@ -650,35 +655,39 @@ fn select_star(
         *pressed_at = windows.primary().cursor_position();
     }
 
-    if let Some(position) = mouse_input
-        .just_released(MouseButton::Left)
-        .then(|| windows.primary().cursor_position().or(*pressed_at))
-        .flatten()
-        .or_else(|| {
-            touches.first_pressed_position().map(|mut pos| {
-                pos.y = windows.primary().height() - pos.y;
-                pos
+    if !selected_star.dragging_ship.0.is_some() {
+        if let Some(position) = mouse_input
+            .just_released(MouseButton::Left)
+            .then(|| windows.primary().cursor_position().or(*pressed_at))
+            .flatten()
+            .or_else(|| {
+                touches.first_pressed_position().map(|mut pos| {
+                    pos.y = windows.primary().height() - pos.y;
+                    pos
+                })
             })
-        })
-    {
-        if position.x < LEFT_PANEL_WIDTH || time.elapsed_seconds() - *last_pressed > 0.5 {
-            return;
-        }
-        let (camera, transform) = camera.single();
-        let clicked = camera
-            .viewport_to_world(transform, position)
-            .unwrap()
-            .origin
-            .xy();
-        if let Some((index, _)) = universe.galaxy.iter().enumerate().find(|(_, star)| {
-            (star.position * controller.zoom_level / RATIO_ZOOM_DISTANCE).distance(clicked)
-                < <StarSize as Into<f32>>::into(star.size) * controller.zoom_level.powf(0.7) * 2.5
-        }) {
-            if selected_star.0 != Some(index) {
-                selected_star.0 = Some(index);
+        {
+            if position.x < LEFT_PANEL_WIDTH || time.elapsed_seconds() - *last_pressed > 0.5 {
+                return;
             }
-        } else {
-            selected_star.0 = None;
+            let (camera, transform) = camera.single();
+            let clicked = camera
+                .viewport_to_world(transform, position)
+                .unwrap()
+                .origin
+                .xy();
+            if let Some((index, _)) = universe.galaxy.iter().enumerate().find(|(_, star)| {
+                (star.position * controller.zoom_level / RATIO_ZOOM_DISTANCE).distance(clicked)
+                    < <StarSize as Into<f32>>::into(star.size)
+                        * controller.zoom_level.powf(0.7)
+                        * 2.5
+            }) {
+                if selected_star.index != Some(index) {
+                    selected_star.index = Some(index);
+                }
+            } else {
+                selected_star.index = None;
+            }
         }
     }
 }
@@ -757,11 +766,11 @@ fn star_list_click(
 ) {
     for (interaction, star_index) in &interaction_query {
         if *interaction == Interaction::Clicked {
-            if selected_star.0 == Some(star_index.0) {
+            if selected_star.index == Some(star_index.0) {
                 controller_target.zoom_level = 8.0;
                 controller_target.position = universe.galaxy[star_index.0].position;
             } else {
-                selected_star.0 = Some(star_index.0);
+                selected_star.index = Some(star_index.0);
             }
         }
     }
@@ -802,6 +811,39 @@ fn star_list_scroll(
 #[derive(Component)]
 struct MarkedStar;
 
+enum StarAction {
+    Ship(Entity),
+}
+
+impl From<StarAction> for String {
+    fn from(action: StarAction) -> Self {
+        match action {
+            StarAction::Ship(_) => "".to_string(),
+        }
+    }
+}
+
+fn star_button_system(
+    interaction_query: Query<(&Interaction, &ButtonId<StarAction>, Changed<Interaction>)>,
+    mut target: ResMut<CameraControllerTarget>,
+    mut selected_star: ResMut<SelectedStar>,
+) {
+    for (interaction, button_id, changed) in interaction_query.iter() {
+        if *interaction == Interaction::Clicked {
+            match (&button_id.0, changed) {
+                (StarAction::Ship(entity), true) => {
+                    target.ignore_movement = true;
+                    selected_star.dragging_ship.0 = Some(*entity);
+                }
+                _ => (),
+            }
+        }
+        if *interaction == Interaction::None && changed {
+            target.ignore_movement = false;
+        }
+    }
+}
+
 #[allow(clippy::type_complexity)]
 fn display_star_selected(
     mut commands: Commands,
@@ -819,10 +861,24 @@ fn display_star_selected(
     camera: Query<(&GlobalTransform, &Camera, Changed<GlobalTransform>)>,
     ui_assets: Res<UiAssets>,
     camera_controller: Res<CameraController>,
-    fleets: Query<(&Ship, &Order, &FleetSize, &Owner)>,
+    fleets: Query<(Entity, &Ship, &Order, &FleetSize, &Owner)>,
     ship_assets: Res<ShipAssets>,
 ) {
     if selected_star.is_changed() {
+        if selected_star.dragging_ship.0.is_some() {
+            // hide star panel
+            let mut style = star_panel.single_mut().0;
+            style.display = Display::None;
+            style.size = Size::new(Val::Px(0.0), Val::Px(0.0));
+
+            // hide fleets panel
+            let mut style = fleets_panel.single_mut().0;
+            style.display = Display::None;
+            style.size = Size::new(Val::Px(0.0), Val::Px(0.0));
+
+            return;
+        }
+
         if let Ok(entity) = marked.get_single() {
             // remove star selection mark
             commands.entity(entity).despawn_recursive();
@@ -839,7 +895,7 @@ fn display_star_selected(
         };
     }
 
-    if let Some(index) = selected_star.0 {
+    if let Some(index) = selected_star.index {
         let star = &universe.galaxy[index];
         if selected_star.is_changed() {
             commands
@@ -996,7 +1052,7 @@ fn display_star_selected(
 
                 let fleets = fleets
                     .iter()
-                    .filter(|(_, order, _, owner)| {
+                    .filter(|(_, _, order, _, owner)| {
                         if owner.0 == 0 {
                             let Order::Orbit(around) = order;
                             *around == index
@@ -1007,7 +1063,7 @@ fn display_star_selected(
                     .collect::<Vec<_>>();
                 if !fleets.is_empty() {
                     commands.entity(details_entity).with_children(|parent| {
-                        for (ship, _, fleet_size, _) in &fleets {
+                        for (entity, ship, _, fleet_size, _) in &fleets {
                             parent
                                 .spawn(NodeBundle {
                                     style: Style {
@@ -1017,21 +1073,26 @@ fn display_star_selected(
                                     ..default()
                                 })
                                 .with_children(|parent| {
-                                    parent.spawn(ImageBundle {
-                                        image: UiImage(match ship.kind {
-                                            ShipKind::Colony => {
-                                                ship_assets.colony_ship.clone_weak()
-                                            }
-                                        }),
-                                        style: Style {
-                                            size: Size::new(Val::Px(15.0), Val::Px(15.0)),
+                                    parent.spawn((
+                                        ImageBundle {
+                                            image: UiImage(match ship.kind {
+                                                ShipKind::Colony => {
+                                                    ship_assets.colony_ship.clone_weak()
+                                                }
+                                            }),
+                                            style: Style {
+                                                size: Size::new(Val::Px(15.0), Val::Px(15.0)),
+                                                ..default()
+                                            },
+                                            transform: Transform::from_rotation(
+                                                Quat::from_rotation_z(PI),
+                                            ),
                                             ..default()
                                         },
-                                        transform: Transform::from_rotation(Quat::from_rotation_z(
-                                            PI,
-                                        )),
-                                        ..default()
-                                    });
+                                        Interaction::None,
+                                        ButtonId(StarAction::Ship(*entity)),
+                                    ));
+                                    // });
                                     parent.spawn(TextBundle {
                                         text: Text::from_section(
                                             format!(" {} {}\n", fleet_size, ship),
@@ -1081,7 +1142,7 @@ fn display_star_selected(
                 style.position.bottom = Val::Px(pos.y - height / 2.0);
             }
             {
-                let has_fleets = fleets.iter().any(|(_, order, _, owner)| {
+                let has_fleets = fleets.iter().any(|(_, _, order, _, owner)| {
                     if owner.0 == 0 {
                         let Order::Orbit(around) = order;
                         *around == index
@@ -1284,4 +1345,105 @@ fn make_it_visible(
         commands.entity(entity).remove::<OneFrameDelay>();
         style.display = Display::Flex;
     }
+}
+
+fn dragging_ship(
+    mut commands: Commands,
+    mut selected_star: ResMut<SelectedStar>,
+    mouse_input: Res<Input<MouseButton>>,
+    mut mouse_motion: EventReader<MouseMotion>,
+    universe: Res<Universe>,
+    controller: Res<CameraController>,
+    ship_assets: Res<ShipAssets>,
+    camera: Query<(&Camera, &GlobalTransform)>,
+    windows: Res<Windows>,
+    mut transform: Query<&mut Transform>,
+    time: Res<Time>,
+    fleets: Query<&Ship>,
+    mut over_star: Local<Option<(usize, Entity)>>,
+) {
+    if selected_star.is_changed() {
+        if let (Some(fleet_entity), None) = selected_star.dragging_ship {
+            let fleet = fleets.get(fleet_entity).unwrap();
+            let position = windows
+                .primary()
+                .cursor_position()
+                .and_then(|cursor| {
+                    let (camera, transform) = camera.single();
+                    camera.viewport_to_world(transform, cursor)
+                })
+                .map(|ray| ray.origin)
+                .unwrap_or_default()
+                .xy()
+                .extend(z_levels::SHIP_DRAGGING);
+            let ship_entity = commands
+                .spawn(SpriteBundle {
+                    texture: match fleet.kind {
+                        ShipKind::Colony => ship_assets.colony_ship.clone_weak(),
+                    },
+                    transform: Transform::from_translation(position)
+                        .with_scale(Vec3::splat(0.2))
+                        .with_rotation(Quat::from_rotation_z(PI)),
+                    ..default()
+                })
+                .id();
+            selected_star.dragging_ship.1 = Some(ship_entity);
+        }
+    }
+    if selected_star.dragging_ship.0.is_some() {
+        if mouse_input.just_released(MouseButton::Left) {
+            if let Some(entity) = selected_star.dragging_ship.1 {
+                commands.entity(entity).despawn_recursive();
+                selected_star.dragging_ship.0 = None;
+                selected_star.dragging_ship.1 = None;
+            }
+            return;
+        }
+        if let Some(entity) = selected_star.dragging_ship.1 {
+            if let Ok(mut transform) = transform.get_mut(entity) {
+                transform.rotation =
+                    Quat::from_rotation_z(PI + (time.elapsed_seconds() * 10.0).sin() / 2.0);
+                for motion in mouse_motion.iter() {
+                    transform.translation = (transform.translation.xy()
+                        + motion.delta * Vec2::new(1.0, -1.0))
+                    .extend(z_levels::SHIP_DRAGGING);
+                }
+                let hover = transform.translation.xy();
+                if let Some((index, _)) = universe.galaxy.iter().enumerate().find(|(_, star)| {
+                    (star.position * controller.zoom_level / RATIO_ZOOM_DISTANCE).distance(hover)
+                        < <StarSize as Into<f32>>::into(star.size)
+                            * controller.zoom_level.powf(0.7)
+                            * 2.5
+                }) {
+                    if over_star.is_none() {
+                        let mut path_builder = PathBuilder::new();
+                        path_builder.move_to(
+                            universe.galaxy[selected_star.index.unwrap()].position
+                                * controller.zoom_level
+                                / RATIO_ZOOM_DISTANCE,
+                        );
+                        path_builder.line_to(
+                            universe.galaxy[index].position * controller.zoom_level
+                                / RATIO_ZOOM_DISTANCE,
+                        );
+                        let line = path_builder.build();
+                        let path = commands
+                            .spawn(GeometryBuilder::build_as(
+                                &line,
+                                DrawMode::Stroke(StrokeMode::new(Color::rgb(1.4, 1.4, 1.4), 1.0)),
+                                Transform::default(),
+                            ))
+                            .id();
+                        *over_star = Some((index, path));
+                    }
+                } else {
+                    if let Some((_, entity)) = *over_star {
+                        commands.entity(entity).despawn_recursive();
+                        *over_star = None;
+                    }
+                }
+            }
+        }
+    }
+    mouse_motion.clear();
 }
