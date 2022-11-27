@@ -62,7 +62,7 @@ fn start_player_turn(
                     };
                     let lerp = details.population / max_population;
                     let growth_factor = if lerp < 0.5 {
-                        4.0 * lerp.powf(3.0)
+                        (10.0 * lerp).powf(3.0)
                     } else if lerp < 1.0 {
                         1.0 - (-2.0 * lerp + 2.0).powf(3.0) / 2.0
                     } else {
@@ -71,7 +71,7 @@ fn start_player_turn(
                     details.population = if star.size == good_conditions.size {
                         details.population + growth_factor
                     } else {
-                        details.population + growth_factor / 10.0
+                        details.population + growth_factor / 5.0
                     };
                 }
 
