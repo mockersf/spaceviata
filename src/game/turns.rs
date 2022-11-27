@@ -104,22 +104,24 @@ fn start_player_turn(
                 {
                     match ship.kind {
                         super::fleet::ShipKind::Colony => {
-                            universe.players[owner.0].vision[*to] = StarState::Owned(owner.0);
-                            universe.star_details[*to].owner = owner.0;
-                            universe.star_details[*to].owned_since = turns.count;
-                            universe.star_details[*to].population = 10.0;
-                            *materials.get_mut(universe.star_entities[*to]).unwrap() =
-                                match universe.galaxy[*to].color {
-                                    StarColor::Blue => galaxy_assets.blue_star.clone_weak(),
-                                    StarColor::Orange => galaxy_assets.orange_star.clone_weak(),
-                                    StarColor::Yellow => galaxy_assets.yellow_star.clone_weak(),
-                                };
-                            if owner.0 == 0 {
-                                hats.iter_mut()
-                                    .find(|(_, hat)| hat.0 == *to)
-                                    .unwrap()
-                                    .0
-                                    .is_visible = true;
+                            if universe.star_details[*to].owner != owner.0 {
+                                universe.players[owner.0].vision[*to] = StarState::Owned(owner.0);
+                                universe.star_details[*to].owner = owner.0;
+                                universe.star_details[*to].owned_since = turns.count;
+                                universe.star_details[*to].population = 10.0;
+                                *materials.get_mut(universe.star_entities[*to]).unwrap() =
+                                    match universe.galaxy[*to].color {
+                                        StarColor::Blue => galaxy_assets.blue_star.clone_weak(),
+                                        StarColor::Orange => galaxy_assets.orange_star.clone_weak(),
+                                        StarColor::Yellow => galaxy_assets.yellow_star.clone_weak(),
+                                    };
+                                if owner.0 == 0 {
+                                    hats.iter_mut()
+                                        .find(|(_, hat)| hat.0 == *to)
+                                        .unwrap()
+                                        .0
+                                        .is_visible = true;
+                                }
                             }
                         }
                     }
