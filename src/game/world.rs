@@ -111,14 +111,14 @@ fn setup(
                                 temp_materials.blue_star.clone_weak()
                             }
                             (StarColor::Orange, StarState::Unknown) => {
-                                temp_materials.yellow_star.clone_weak()
-                            }
-                            (StarColor::Yellow, StarState::Unknown) => {
                                 temp_materials.orange_star.clone_weak()
                             }
-                            (StarColor::Blue, _) => galaxy_assets.yellow_star.clone_weak(),
-                            (StarColor::Orange, _) => galaxy_assets.yellow_star.clone_weak(),
-                            (StarColor::Yellow, _) => galaxy_assets.orange_star.clone_weak(),
+                            (StarColor::Yellow, StarState::Unknown) => {
+                                temp_materials.yellow_star.clone_weak()
+                            }
+                            (StarColor::Blue, _) => galaxy_assets.blue_star.clone_weak(),
+                            (StarColor::Orange, _) => galaxy_assets.orange_star.clone_weak(),
+                            (StarColor::Yellow, _) => galaxy_assets.yellow_star.clone_weak(),
                         },
                         transform: Transform::from_translation(
                             star.position.extend(z_levels::STAR),

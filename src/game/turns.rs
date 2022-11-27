@@ -110,9 +110,9 @@ fn start_player_turn(
                             universe.star_details[*to].population = 10.0;
                             *materials.get_mut(universe.star_entities[*to]).unwrap() =
                                 match universe.galaxy[*to].color {
-                                    StarColor::Blue => galaxy_assets.yellow_star.clone_weak(),
-                                    StarColor::Orange => galaxy_assets.yellow_star.clone_weak(),
-                                    StarColor::Yellow => galaxy_assets.orange_star.clone_weak(),
+                                    StarColor::Blue => galaxy_assets.blue_star.clone_weak(),
+                                    StarColor::Orange => galaxy_assets.orange_star.clone_weak(),
+                                    StarColor::Yellow => galaxy_assets.yellow_star.clone_weak(),
                                 };
                             if owner.0 == 0 {
                                 hats.iter_mut()
