@@ -1446,9 +1446,12 @@ fn dragging_ship(
                 transform.rotation =
                     Quat::from_rotation_z(PI + (time.elapsed_seconds() * 10.0).sin() / 2.0);
                 for motion in mouse_motion.iter() {
-                    transform.translation = (transform.translation.xy()
-                        + motion.delta * Vec2::new(1.0, -1.0))
-                    .extend(z_levels::SHIP_DRAGGING);
+                    #[cfg(target_arch = "wasm32")]
+                    let fixer = Vec2::new(1.0, -1.0) / windows.primary().scale_factor() as f32;
+                    #[cfg(not(target_arch = "wasm32"))]
+                    let fixer = Vec2::new(1.0, -1.0);
+                    transform.translation = (transform.translation.xy() + motion.delta * fixer)
+                        .extend(z_levels::SHIP_DRAGGING);
                 }
                 let hover = transform.translation.xy();
                 if let Some((index, _)) = universe.galaxy.iter().enumerate().find(|(_, star)| {
