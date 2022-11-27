@@ -31,23 +31,12 @@ pub(crate) enum Message {
         color_condition: bool,
         size_condition: bool,
     },
-    Story(String),
+    Story {
+        title: String,
+        details: String,
+        order: u32,
+    },
 }
-
-// impl ToString for Message {
-//     fn to_string(&self) -> String {
-//         match self {
-//             Message::Turn(n) => format!("Turn {}", n),
-//             Message::StarExplored {
-//                 star_name,
-//                 color_condition,
-//                 size_condition,
-//             } => format!("Just explored\n{}", star_name),
-//             Message::ColonyFounded(star_name) => format!("Colony founded\non {}", star_name),
-//             Message::Story(message) => message.clone(),
-//         }
-//     }
-// }
 
 impl Message {
     fn order(&self) -> u32 {
@@ -55,7 +44,7 @@ impl Message {
             Message::Turn(_) => 0,
             Message::StarExplored { .. } => 1,
             Message::ColonyFounded(_) => 2,
-            Message::Story(_) => 3,
+            Message::Story { order, .. } => 3 + order,
         }
     }
 
@@ -115,14 +104,24 @@ impl Message {
                     },
                 },
             ],
-            Message::Story(message) => vec![TextSection {
-                value: message.clone(),
-                style: TextStyle {
-                    font: ui_handles.font_main.clone_weak(),
-                    font_size: 20.0,
-                    color: Color::WHITE,
+            Message::Story { title, details, .. } => vec![
+                TextSection {
+                    value: format!("{}\n", title),
+                    style: TextStyle {
+                        font: ui_handles.font_main.clone_weak(),
+                        font_size: 20.0,
+                        color: Color::WHITE,
+                    },
                 },
-            }],
+                TextSection {
+                    value: details.clone(),
+                    style: TextStyle {
+                        font: ui_handles.font_sub.clone_weak(),
+                        font_size: 20.0,
+                        color: Color::WHITE,
+                    },
+                },
+            ],
         }
     }
 }
@@ -225,6 +224,18 @@ fn start_player_turn(
                                     turns.messages.push(Message::ColonyFounded(
                                         universe.galaxy[*to].name.clone(),
                                     ));
+                                    if !universe.players[0].first_colony_done {
+                                        universe.players[0].first_colony_done = true;
+                                        turns.messages.push(Message::Story {
+                                            title: "First colony!".to_string(),
+                                            details: r#"You just founded your first colony!
+If the color is the same as your
+starting system, your population
+will grow easily"#
+                                                .to_string(),
+                                            order: 0,
+                                        })
+                                    }
                                 }
                                 universe.players[owner.0].vision[*to] = StarState::Owned(owner.0);
                                 universe.star_details[*to].owner = owner.0;
@@ -256,9 +267,28 @@ fn start_player_turn(
     let count = turns.count;
     turns.messages.push(Message::Turn(count));
     if turns.count == 1 {
-        turns
-            .messages
-            .push(Message::Story("Let's explore!".to_string()));
+        turns.messages.push(Message::Story {
+            title: "You can see your starting\nstar system".to_string(),
+            details: "Click on it for more details".to_string(),
+            order: 0,
+        });
+        turns.messages.push(Message::Story {
+            title: "Fleet panel".to_string(),
+            details: "Drag and drop your colony ship\nto another star to launch it".to_string(),
+            order: 1,
+        });
+        turns.messages.push(Message::Story {
+            title: "Ending turn".to_string(),
+            details: r#"You can end your turn with the
+button in the bottom right corner"#
+                .to_string(),
+            order: 1,
+        });
+        turns.messages.push(Message::Story {
+            title: "Let's explore!".to_string(),
+            details: "".to_string(),
+            order: 4,
+        });
     }
     turns.messages.sort_by_key(|m| m.order());
 }

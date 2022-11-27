@@ -87,6 +87,7 @@ struct Player {
     vision: Vec<StarState>,
     savings: f32,
     resources: f32,
+    first_colony_done: bool,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]

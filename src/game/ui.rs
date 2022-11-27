@@ -1293,7 +1293,7 @@ fn display_messages(
                         style: Style {
                             size: Size {
                                 width: Val::Undefined,
-                                height: Val::Px(80.0),
+                                height: Val::Px(100.0),
                             },
                             ..default()
                         },

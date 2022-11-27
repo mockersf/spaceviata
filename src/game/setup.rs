@@ -692,6 +692,7 @@ fn tear_down(
                 vision,
                 savings: 10.0,
                 resources: 10.0,
+                first_colony_done: false,
             }
         })
         .collect();
