@@ -81,9 +81,9 @@ impl Message {
                 },
                 TextSection {
                     value: if *size_condition {
-                        format!("Star size condition: ideal\n")
+                        "Star size condition: ideal\n".to_string()
                     } else {
-                        format!("Star size condition: imperfect\n")
+                        "Star size condition: imperfect\n".to_string()
                     },
                     style: TextStyle {
                         font: ui_handles.font_sub.clone_weak(),
@@ -93,9 +93,9 @@ impl Message {
                 },
                 TextSection {
                     value: if *color_condition {
-                        format!("Star color condition: ideal\n")
+                        "Star color condition: ideal\n".to_string()
                     } else {
-                        format!("Star color condition: bad\n")
+                        "Star color condition: bad\n".to_string()
                     },
                     style: TextStyle {
                         font: ui_handles.font_sub.clone_weak(),
