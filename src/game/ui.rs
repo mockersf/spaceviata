@@ -1434,6 +1434,13 @@ fn dragging_ship(
     }
     if selected_star.dragging_ship.0.is_some() {
         if mouse_input.just_released(MouseButton::Left) {
+            if over_star.is_none() {
+                // reset order to orbiting
+                commands
+                    .entity(selected_star.dragging_ship.0.unwrap())
+                    .insert(Order::Orbit(selected_star.index.unwrap()));
+                selected_star.set_changed();
+            }
             if let Some(entity) = selected_star.dragging_ship.1 {
                 commands.entity(entity).despawn_recursive();
                 selected_star.dragging_ship.0 = None;

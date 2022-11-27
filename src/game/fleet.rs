@@ -140,8 +140,6 @@ fn orbit(
     universe: Res<Universe>,
 ) {
     for (order, children) in &fleets {
-        info!("a fleet");
-
         match order {
             Order::Orbit(around) => {
                 let star_size = universe.galaxy[*around].size;
