@@ -910,6 +910,9 @@ fn display_star_selected(
                         GeometryBuilder::build_as(
                             &shape,
                             DrawMode::Stroke(StrokeMode::new(
+                                #[cfg(target_arch = "wasm32")]
+                                Color::rgb(0.5, 1.0, 0.5),
+                                #[cfg(not(target_arch = "wasm32"))]
                                 Color::rgb(0.5, 1.25, 0.5),
                                 0.5 / <StarSize as Into<f32>>::into(star.size),
                             )),
