@@ -43,10 +43,10 @@ impl bevy::app::Plugin for Plugin {
                     .with_system(display_star_list)
                     .with_system(star_list_click)
                     .with_system(star_list_scroll)
-                    .with_system(display_star_selected)
+                    .with_system(display_star_selected.before(dragging_ship))
                     .with_system(star_button_system)
                     .with_system(rotate_mark)
-                    .with_system(dragging_ship)
+                    .with_system(dragging_ship.after(display_star_selected))
                     .with_system(update_player_stats)
                     .with_system(display_messages)
                     .with_system(make_it_visible),
@@ -1522,6 +1522,7 @@ fn dragging_ship(
             to: index,
             step: 0,
         });
+        selected_star.set_changed();
     }
     mouse_motion.clear();
 }
