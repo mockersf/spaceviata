@@ -1985,8 +1985,7 @@ dependencies = [
 [[package]]
 name = "material-icons"
 version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d3c66ba5859c80e2e0a86e95d8d62cb85df0bdef18b2c1e91d1f31eb0490a4b3"
+source = "git+https://github.com/mockersf/material-icons?branch=update-font#528d5129a591781913bc7f63e24d978d2f6b1adc"
 dependencies = [
  "enum-iterator",
 ]

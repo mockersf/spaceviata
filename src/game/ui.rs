@@ -1111,7 +1111,7 @@ fn display_star_selected(
                                                 value: match order {
                                                     Order::Move { .. } => {
                                                         material_icons::icon_to_char(
-                                                            material_icons::Icon::ArrowForward,
+                                                            material_icons::Icon::Start,
                                                         )
                                                         .to_string()
                                                     }

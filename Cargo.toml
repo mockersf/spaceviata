@@ -65,6 +65,7 @@ bevy_asset_loader = { git = "https://github.com/mockersf/bevy_asset_loader", bra
 winit = { git = "https://github.com/mockersf/winit", branch = "web-touch-event" }
 bevy = { git = "https://github.com/mockersf/bevy", branch = "spaceviata-branch" }
 bevy_prototype_lyon = { git = "https://github.com/mockersf/bevy_prototype_lyon", branch = "support-hdr-0.7" }
+material-icons = { git = "https://github.com/mockersf/material-icons", branch = "update-font" }
 
 [package.metadata.release]
 release = true
