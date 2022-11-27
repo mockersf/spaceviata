@@ -71,6 +71,7 @@ enum UiButtons {
     BackToMenu,
     EndTurn,
     NextMessage,
+    LastMessage,
 }
 
 #[derive(Component)]
@@ -94,6 +95,9 @@ impl From<UiButtons> for String {
             }
             UiButtons::NextMessage => {
                 material_icons::icon_to_char(material_icons::Icon::NavigateNext).to_string()
+            }
+            UiButtons::LastMessage => {
+                material_icons::icon_to_char(material_icons::Icon::Done).to_string()
             }
         }
     }
@@ -622,7 +626,7 @@ fn button_system(
                 }
                 (UiButtons::BackToMenu, true) => state.set(GameState::Menu).unwrap(),
                 (UiButtons::EndTurn, true) => turn_state.set(TurnState::Bots).unwrap(),
-                (UiButtons::NextMessage, true) => {
+                (UiButtons::NextMessage, true) | (UiButtons::LastMessage, true) => {
                     displayed_message.0 += 1;
                 }
                 _ => (),
@@ -1255,7 +1259,11 @@ fn display_messages(
             Val::Px(30.),
             UiRect::all(Val::Auto),
             ui_handles.font_material.clone_weak(),
-            UiButtons::NextMessage,
+            if turns.messages.len() == 1 {
+                UiButtons::LastMessage
+            } else {
+                UiButtons::NextMessage
+            },
             20.,
             crate::ui_helper::ColorScheme::TEXT,
         );
