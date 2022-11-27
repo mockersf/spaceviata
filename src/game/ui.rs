@@ -655,7 +655,7 @@ fn select_star(
         *pressed_at = windows.primary().cursor_position();
     }
 
-    if !selected_star.dragging_ship.0.is_some() {
+    if selected_star.dragging_ship.0.is_none() {
         if let Some(position) = mouse_input
             .just_released(MouseButton::Left)
             .then(|| windows.primary().cursor_position().or(*pressed_at))
@@ -1106,20 +1106,18 @@ fn display_star_selected(
                                             },
                                             TextSection {
                                                 value: match order {
-                                                    Order::Move { .. } => format!(
-                                                        "{}",
+                                                    Order::Move { .. } => {
                                                         material_icons::icon_to_char(
-                                                            material_icons::Icon::ArrowForward
+                                                            material_icons::Icon::ArrowForward,
                                                         )
                                                         .to_string()
-                                                    ),
-                                                    Order::Orbit(_) => format!(
-                                                        "{}",
+                                                    }
+                                                    Order::Orbit(_) => {
                                                         material_icons::icon_to_char(
-                                                            material_icons::Icon::Refresh
+                                                            material_icons::Icon::Refresh,
                                                         )
                                                         .to_string()
-                                                    ),
+                                                    }
                                                 },
                                                 style: TextStyle {
                                                     font: ui_assets.font_material.clone_weak(),
@@ -1386,6 +1384,7 @@ fn make_it_visible(
     }
 }
 
+#[allow(clippy::type_complexity)]
 fn dragging_ship(
     mut commands: Commands,
     mut selected_star: ResMut<SelectedStar>,
@@ -1500,27 +1499,23 @@ fn dragging_ship(
                             selected_star.index.unwrap(),
                         ));
                     }
-                } else {
-                    if let Some((_, entities, _, _)) = *over_star {
-                        commands.entity(entities[0]).despawn_recursive();
-                        commands.entity(entities[1]).despawn_recursive();
-                        *over_star = None;
-                    }
+                } else if let Some((_, entities, _, _)) = *over_star {
+                    commands.entity(entities[0]).despawn_recursive();
+                    commands.entity(entities[1]).despawn_recursive();
+                    *over_star = None;
                 }
             }
         }
-    } else {
-        if let Some((index, entities, fleet_entity, from_star)) = *over_star {
-            info!("dropped on star {}", index);
-            commands.entity(entities[0]).despawn_recursive();
-            commands.entity(entities[1]).despawn_recursive();
-            *over_star = None;
-            commands.entity(fleet_entity).insert(Order::Move {
-                from: from_star,
-                to: index,
-                step: 0,
-            });
-        }
+    } else if let Some((index, entities, fleet_entity, from_star)) = *over_star {
+        info!("dropped on star {}", index);
+        commands.entity(entities[0]).despawn_recursive();
+        commands.entity(entities[1]).despawn_recursive();
+        *over_star = None;
+        commands.entity(fleet_entity).insert(Order::Move {
+            from: from_star,
+            to: index,
+            step: 0,
+        });
     }
     mouse_motion.clear();
 }
