@@ -140,7 +140,7 @@ fn place_fleets(
     fleets: Query<(Entity, &Order, &Children), Changed<Order>>,
     mut fleets_position: ParamSet<(
         Query<(&mut Transform, &Orbiting)>,
-        Query<(&mut Transform, &MovingTo)>,
+        Query<(&mut Transform, &MovingTo, Changed<MovingTo>)>,
     )>,
     time: Res<Time>,
     universe: Res<Universe>,
@@ -167,6 +167,14 @@ fn place_fleets(
                     });
             }
             Order::Move { from, to, step } => {
+                commands.entity(entity).insert(
+                    Transform::from_translation(
+                        (universe.galaxy[*from].position * camera_controller.zoom_level
+                            / RATIO_ZOOM_DISTANCE)
+                            .extend(z_levels::SHIP),
+                    )
+                    .with_scale(Vec3::splat(camera_controller.zoom_level.powf(0.7))),
+                );
                 commands
                     .entity(children[0])
                     .remove::<Orbiting>()
@@ -188,13 +196,18 @@ fn place_fleets(
         );
         transform.rotation = Quat::from_rotation_z(time.elapsed_seconds() - orbiting.since + PI)
     }
-    for (mut transform, moving_to) in &mut fleets_position.p1() {
-        let direction = moving_to.to - moving_to.from;
-        let steps = turns_between(moving_to.from, moving_to.to) as f32;
-        transform.translation = ((direction * moving_to.step as f32 / steps)
-            + (direction.normalize() * moving_to.size * 4.0))
-            .extend(z_levels::SHIP);
-        transform.rotation = Quat::from_rotation_z(-direction.angle_between(Vec2::Y) + PI);
+    for (mut transform, moving_to, changed_moving) in &mut fleets_position.p1() {
+        if transform.is_changed() || changed_moving || camera_controller.is_changed() {
+            let direction = moving_to.to - moving_to.from;
+            let steps = turns_between(moving_to.from, moving_to.to) as f32;
+            transform.translation = (((direction * moving_to.step as f32 / steps)
+                * camera_controller.zoom_level
+                / RATIO_ZOOM_DISTANCE)
+                / camera_controller.zoom_level.powf(0.7)
+                + (direction.normalize() * moving_to.size * 4.0))
+                .extend(z_levels::SHIP);
+            transform.rotation = Quat::from_rotation_z(-direction.angle_between(Vec2::Y) + PI);
+        }
     }
 }
 
