@@ -497,10 +497,7 @@ fn setup(
                 top: Val::Undefined,
             },
             margin: UiRect::all(Val::Px(0.)),
-            // justify_content: JustifyContent::Center,
-            // align_items: AlignItems::Center,
             size: Size::new(Val::Px(0.0), Val::Px(0.0)),
-            // align_content: AlignContent::Stretch,
             flex_direction: FlexDirection::Column,
             ..Default::default()
         };
@@ -550,10 +547,7 @@ fn setup(
                 top: Val::Undefined,
             },
             margin: UiRect::all(Val::Px(0.)),
-            // justify_content: JustifyContent::Center,
-            // align_items: AlignItems::Center,
             size: Size::new(Val::Px(0.0), Val::Px(0.0)),
-            // align_content: AlignContent::Stretch,
             flex_direction: FlexDirection::Column,
             ..Default::default()
         };

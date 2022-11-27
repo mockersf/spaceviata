@@ -15,7 +15,6 @@ impl ColorScheme {
         0x53 as f32 / 255.0,
         0x6B as f32 / 255.0,
     );
-    // pub(crate) const TEXT_DIM: Color = Color::rgb_linear(0.6, 0.6, 0.6);
     pub(crate) const TEXT_HIGHLIGHT: Color = Color::rgb_linear(
         0x20 as f32 / 255.0,
         0x20 as f32 / 255.0,
