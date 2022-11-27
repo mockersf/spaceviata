@@ -1,8 +1,12 @@
 use bevy::prelude::*;
 
+use crate::assets::GalaxyAssets;
+
 use super::{
-    fleet::{turns_between, Order},
-    Universe,
+    fleet::{turns_between, Order, Owner, Ship},
+    galaxy::StarColor,
+    world::StarHat,
+    StarState, Universe,
 };
 
 #[derive(Clone, PartialEq, Debug, Eq, Hash)]
@@ -32,7 +36,10 @@ impl bevy::app::Plugin for Plugin {
 fn start_player_turn(
     mut universe: ResMut<Universe>,
     mut turns: ResMut<Turns>,
-    mut fleets: Query<&mut Order>,
+    galaxy_assets: Res<GalaxyAssets>,
+    mut fleets: Query<(&mut Order, &Ship, &Owner)>,
+    mut materials: Query<&mut Handle<ColorMaterial>>,
+    mut hats: Query<(&mut Visibility, &StarHat)>,
 ) {
     if turns.count != 0 {
         let good_conditions = &universe.galaxy[universe.players[0].start].clone();
@@ -84,8 +91,8 @@ fn start_player_turn(
         universe.players[0].resources += harvested;
     }
 
-    for mut fleet in &mut fleets {
-        match fleet.as_mut() {
+    for (mut order, ship, owner) in &mut fleets {
+        match order.as_mut() {
             Order::Orbit(_) => (),
             Order::Move { from, to, step, .. } => {
                 *step += 1;
@@ -95,7 +102,29 @@ fn start_player_turn(
                         universe.galaxy[*to].position,
                     )
                 {
-                    *fleet = Order::Orbit(*to)
+                    match ship.kind {
+                        super::fleet::ShipKind::Colony => {
+                            universe.players[owner.0].vision[*to] = StarState::Owned(owner.0);
+                            universe.star_details[*to].owner = owner.0;
+                            universe.star_details[*to].owned_since = turns.count;
+                            universe.star_details[*to].population = 10.0;
+                            *materials.get_mut(universe.star_entities[*to]).unwrap() =
+                                match universe.galaxy[*to].color {
+                                    StarColor::Blue => galaxy_assets.yellow_star.clone_weak(),
+                                    StarColor::Orange => galaxy_assets.yellow_star.clone_weak(),
+                                    StarColor::Yellow => galaxy_assets.orange_star.clone_weak(),
+                                };
+                            if owner.0 == 0 {
+                                hats.iter_mut()
+                                    .find(|(_, hat)| hat.0 == *to)
+                                    .unwrap()
+                                    .0
+                                    .is_visible = true;
+                            }
+                        }
+                    }
+
+                    *order = Order::Orbit(*to);
                 }
             }
         }

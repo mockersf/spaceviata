@@ -64,7 +64,7 @@ struct System {
 #[derive(Component)]
 struct StarName;
 #[derive(Component)]
-struct StarHat;
+pub(crate) struct StarHat(pub(crate) usize);
 
 #[derive(Resource)]
 struct TempMaterials {
@@ -100,7 +100,8 @@ fn setup(
         .galaxy
         .iter()
         .zip(universe.players[0].vision.iter())
-        .map(|(star, visibility)| {
+        .enumerate()
+        .map(|(index, (star, visibility))| {
             commands
                 .spawn((
                     MaterialMesh2dBundle {
@@ -166,7 +167,7 @@ fn setup(
                             },
                             ..default()
                         },
-                        StarHat,
+                        StarHat(index),
                     ));
                 })
                 .id()
