@@ -646,7 +646,7 @@ fn tear_down(
             population: 0.0,
             resources: rand.gen_range(50.0..100.0),
             owner: usize::MAX,
-            owned_since: usize::MAX,
+            owned_since: u32::MAX,
         })
         .collect::<Vec<StarDetails>>();
 

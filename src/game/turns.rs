@@ -19,10 +19,35 @@ pub(crate) enum TurnState {
 
 #[derive(Resource)]
 pub(crate) struct Turns {
-    pub(crate) count: usize,
-    pub(crate) messages: Vec<String>,
+    pub(crate) count: u32,
+    pub(crate) messages: Vec<Message>,
 }
 
+pub(crate) enum Message {
+    Turn(u32),
+    ColonyFounded(String),
+    Story(String),
+}
+
+impl ToString for Message {
+    fn to_string(&self) -> String {
+        match self {
+            Message::Turn(n) => format!("Turn {}", n),
+            Message::ColonyFounded(star_name) => format!("Colony founded on {}", star_name),
+            Message::Story(message) => message.clone(),
+        }
+    }
+}
+
+impl Message {
+    fn order(&self) -> u32 {
+        match self {
+            Message::Turn(_) => 0,
+            Message::ColonyFounded(_) => 1,
+            Message::Story(_) => 2,
+        }
+    }
+}
 pub(crate) struct Plugin;
 impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut App) {
@@ -41,6 +66,8 @@ fn start_player_turn(
     mut materials: Query<&mut Handle<ColorMaterial>>,
     mut hats: Query<(&mut Visibility, &StarHat)>,
 ) {
+    turns.messages = vec![];
+
     if turns.count != 0 {
         let good_conditions = &universe.galaxy[universe.players[0].start].clone();
 
@@ -56,9 +83,9 @@ fn start_player_turn(
                 // grow population
                 {
                     let max_population = if star.color == good_conditions.color {
-                        120.0 + (turns.count - details.owned_since) as f32 / 5.0
+                        120.0 + (turns.count as f32 - details.owned_since as f32) / 5.0
                     } else {
-                        10.0 + (turns.count - details.owned_since) as f32 / 10.0
+                        10.0 + (turns.count as f32 - details.owned_since as f32) / 10.0
                     };
                     let lerp = details.population / max_population;
                     let growth_factor = if lerp < 0.5 {
@@ -105,6 +132,9 @@ fn start_player_turn(
                     match ship.kind {
                         super::fleet::ShipKind::Colony => {
                             if universe.star_details[*to].owner != owner.0 {
+                                turns.messages.push(Message::ColonyFounded(
+                                    universe.galaxy[*to].name.clone(),
+                                ));
                                 universe.players[owner.0].vision[*to] = StarState::Owned(owner.0);
                                 universe.star_details[*to].owner = owner.0;
                                 universe.star_details[*to].owned_since = turns.count;
@@ -131,12 +161,15 @@ fn start_player_turn(
             }
         }
     }
-
     turns.count += 1;
-    turns.messages = vec![format!("turn {}", turns.count)];
+    let count = turns.count;
+    turns.messages.push(Message::Turn(count));
     if turns.count == 1 {
-        turns.messages.push("let's explore".to_string());
+        turns
+            .messages
+            .push(Message::Story("Let's explore!".to_string()));
     }
+    turns.messages.sort_by_key(|m| m.order());
 }
 
 fn run_bots_turn(mut state: ResMut<State<TurnState>>) {

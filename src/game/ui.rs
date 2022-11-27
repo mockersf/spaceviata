@@ -1280,7 +1280,7 @@ fn display_messages(
                 parent.spawn((
                     TextBundle {
                         text: Text::from_section(
-                            turns.messages[current_message.0].clone(),
+                            turns.messages[current_message.0].to_string(),
                             TextStyle {
                                 font: ui_handles.font_main.clone_weak(),
                                 font_size: 20.0,
@@ -1385,7 +1385,7 @@ fn display_messages(
                     }
                 }
             }
-            content.single_mut().sections[0].value = turns.messages[current_message.0].clone();
+            content.single_mut().sections[0].value = turns.messages[current_message.0].to_string();
         }
     }
 }

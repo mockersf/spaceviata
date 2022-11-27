@@ -18,7 +18,7 @@ struct StarDetails {
     population: f32,
     resources: f32,
     owner: usize,
-    owned_since: usize,
+    owned_since: u32,
 }
 
 #[derive(Resource)]
