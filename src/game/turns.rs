@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::assets::GalaxyAssets;
+use crate::assets::{GalaxyAssets, UiAssets};
 
 use super::{
     fleet::{turns_between, Order, Owner, Ship},
@@ -26,25 +26,103 @@ pub(crate) struct Turns {
 pub(crate) enum Message {
     Turn(u32),
     ColonyFounded(String),
+    StarExplored {
+        star_name: String,
+        color_condition: bool,
+        size_condition: bool,
+    },
     Story(String),
 }
 
-impl ToString for Message {
-    fn to_string(&self) -> String {
-        match self {
-            Message::Turn(n) => format!("Turn {}", n),
-            Message::ColonyFounded(star_name) => format!("Colony founded on {}", star_name),
-            Message::Story(message) => message.clone(),
-        }
-    }
-}
+// impl ToString for Message {
+//     fn to_string(&self) -> String {
+//         match self {
+//             Message::Turn(n) => format!("Turn {}", n),
+//             Message::StarExplored {
+//                 star_name,
+//                 color_condition,
+//                 size_condition,
+//             } => format!("Just explored\n{}", star_name),
+//             Message::ColonyFounded(star_name) => format!("Colony founded\non {}", star_name),
+//             Message::Story(message) => message.clone(),
+//         }
+//     }
+// }
 
 impl Message {
     fn order(&self) -> u32 {
         match self {
             Message::Turn(_) => 0,
-            Message::ColonyFounded(_) => 1,
-            Message::Story(_) => 2,
+            Message::StarExplored { .. } => 1,
+            Message::ColonyFounded(_) => 2,
+            Message::Story(_) => 3,
+        }
+    }
+
+    pub(crate) fn as_sections(&self, ui_handles: &UiAssets) -> Vec<TextSection> {
+        match self {
+            Message::Turn(n) => vec![TextSection {
+                value: format!("Turn {}", n),
+                style: TextStyle {
+                    font: ui_handles.font_main.clone_weak(),
+                    font_size: 20.0,
+                    color: Color::WHITE,
+                },
+            }],
+            Message::ColonyFounded(name) => vec![TextSection {
+                value: format!("Colony founded\non {}", name),
+                style: TextStyle {
+                    font: ui_handles.font_main.clone_weak(),
+                    font_size: 20.0,
+                    color: Color::WHITE,
+                },
+            }],
+            Message::StarExplored {
+                star_name,
+                color_condition,
+                size_condition,
+            } => vec![
+                TextSection {
+                    value: format!("Star explored\n{}\n", star_name),
+                    style: TextStyle {
+                        font: ui_handles.font_main.clone_weak(),
+                        font_size: 20.0,
+                        color: Color::WHITE,
+                    },
+                },
+                TextSection {
+                    value: if *size_condition {
+                        format!("Star size condition: ideal\n")
+                    } else {
+                        format!("Star size condition: imperfect\n")
+                    },
+                    style: TextStyle {
+                        font: ui_handles.font_sub.clone_weak(),
+                        font_size: 20.0,
+                        color: Color::WHITE,
+                    },
+                },
+                TextSection {
+                    value: if *color_condition {
+                        format!("Star color condition: ideal\n")
+                    } else {
+                        format!("Star color condition: bad\n")
+                    },
+                    style: TextStyle {
+                        font: ui_handles.font_sub.clone_weak(),
+                        font_size: 20.0,
+                        color: Color::WHITE,
+                    },
+                },
+            ],
+            Message::Story(message) => vec![TextSection {
+                value: message.clone(),
+                style: TextStyle {
+                    font: ui_handles.font_main.clone_weak(),
+                    font_size: 20.0,
+                    color: Color::WHITE,
+                },
+            }],
         }
     }
 }
@@ -132,9 +210,22 @@ fn start_player_turn(
                     match ship.kind {
                         super::fleet::ShipKind::Colony => {
                             if universe.star_details[*to].owner != owner.0 {
-                                turns.messages.push(Message::ColonyFounded(
-                                    universe.galaxy[*to].name.clone(),
-                                ));
+                                if owner.0 == 0 {
+                                    if universe.players[owner.0].vision[*to] == StarState::Unknown {
+                                        let start_conditions =
+                                            &universe.galaxy[universe.players[0].start];
+                                        let new_star = &universe.galaxy[*to];
+                                        turns.messages.push(Message::StarExplored {
+                                            star_name: universe.galaxy[*to].name.clone(),
+                                            color_condition: start_conditions.color
+                                                == new_star.color,
+                                            size_condition: start_conditions.size == new_star.size,
+                                        });
+                                    }
+                                    turns.messages.push(Message::ColonyFounded(
+                                        universe.galaxy[*to].name.clone(),
+                                    ));
+                                }
                                 universe.players[owner.0].vision[*to] = StarState::Owned(owner.0);
                                 universe.star_details[*to].owner = owner.0;
                                 universe.star_details[*to].owned_since = turns.count;

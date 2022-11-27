@@ -1287,13 +1287,8 @@ fn display_messages(
             .with_children(|parent| {
                 parent.spawn((
                     TextBundle {
-                        text: Text::from_section(
-                            turns.messages[current_message.0].to_string(),
-                            TextStyle {
-                                font: ui_handles.font_main.clone_weak(),
-                                font_size: 20.0,
-                                color: Color::WHITE,
-                            },
+                        text: Text::from_sections(
+                            turns.messages[current_message.0].as_sections(&ui_handles),
                         ),
                         style: Style {
                             size: Size {
@@ -1393,7 +1388,8 @@ fn display_messages(
                     }
                 }
             }
-            content.single_mut().sections[0].value = turns.messages[current_message.0].to_string();
+            content.single_mut().sections =
+                turns.messages[current_message.0].as_sections(&ui_handles);
         }
     }
 }
