@@ -13,7 +13,7 @@ use bevy_prototype_lyon::{
 
 use crate::{
     assets::{loader::ShipAssets, UiAssets},
-    ui_helper::button::ButtonId,
+    ui_helper::button::{ButtonId, ButtonText},
     GameState,
 };
 
@@ -92,7 +92,9 @@ impl From<UiButtons> for String {
             UiButtons::EndTurn => {
                 material_icons::icon_to_char(material_icons::Icon::FastForward).to_string()
             }
-            UiButtons::NextMessage => "...".to_string(),
+            UiButtons::NextMessage => {
+                material_icons::icon_to_char(material_icons::Icon::NavigateNext).to_string()
+            }
         }
     }
 }
@@ -1235,6 +1237,7 @@ fn display_messages(
     panel: Query<Entity, With<MessagePanelMarker>>,
     mut content: Query<&mut Text, With<MessageContentMarker>>,
     buttons: Res<Assets<crate::ui_helper::button::Button>>,
+    mut text: Query<(&mut Text, &ButtonText<UiButtons>), Without<MessageContentMarker>>,
 ) {
     if turns.is_changed() && !turns.messages.is_empty() {
         if let Ok(entity) = panel.get_single() {
@@ -1249,11 +1252,11 @@ fn display_messages(
         let next_message_button = button.add(
             &mut commands,
             Val::Px(30.),
-            Val::Px(25.),
+            Val::Px(30.),
             UiRect::all(Val::Auto),
-            ui_handles.font_main.clone_weak(),
+            ui_handles.font_material.clone_weak(),
             UiButtons::NextMessage,
-            15.,
+            20.,
             crate::ui_helper::ColorScheme::TEXT,
         );
         let base = commands
@@ -1261,12 +1264,10 @@ fn display_messages(
                 NodeBundle {
                     style: Style {
                         flex_direction: FlexDirection::Column,
-                        margin: UiRect::all(Val::Px(10.0)),
                         size: Size {
                             width: Val::Percent(100.0),
                             height: Val::Percent(100.0),
                         },
-                        overflow: Overflow::Hidden,
                         display: Display::None,
                         ..Default::default()
                     },
@@ -1297,8 +1298,21 @@ fn display_messages(
                     },
                     MessageContentMarker,
                 ));
+                parent
+                    .spawn(NodeBundle {
+                        style: Style {
+                            position_type: PositionType::Absolute,
+                            position: UiRect {
+                                right: Val::Px(0.0),
+                                bottom: Val::Px(0.0),
+                                ..default()
+                            },
+                            ..default()
+                        },
+                        ..default()
+                    })
+                    .push_children(&[next_message_button]);
             })
-            .push_children(&[next_message_button])
             .id();
 
         let panel_style = Style {
@@ -1357,12 +1371,20 @@ fn display_messages(
             });
     }
     if current_message.is_changed() {
-        if current_message.0 >= turns.messages.len() {
+        if current_message.0 == turns.messages.len() {
             let Ok(entity) = panel.get_single() else {
                 return
             };
             commands.entity(entity).despawn_recursive();
         } else if current_message.0 > 0 {
+            if current_message.0 == turns.messages.len() - 1 {
+                for (mut text, button) in &mut text {
+                    if button.0 == UiButtons::NextMessage {
+                        text.sections[0].value =
+                            material_icons::icon_to_char(material_icons::Icon::Done).to_string();
+                    }
+                }
+            }
             content.single_mut().sections[0].value = turns.messages[current_message.0].clone();
         }
     }
