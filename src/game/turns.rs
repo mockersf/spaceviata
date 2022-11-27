@@ -1,6 +1,9 @@
 use bevy::prelude::*;
 
-use super::Universe;
+use super::{
+    fleet::{turns_between, Order},
+    Universe,
+};
 
 #[derive(Clone, PartialEq, Debug, Eq, Hash)]
 pub(crate) enum TurnState {
@@ -26,7 +29,11 @@ impl bevy::app::Plugin for Plugin {
     }
 }
 
-fn start_player_turn(mut universe: ResMut<Universe>, mut turns: ResMut<Turns>) {
+fn start_player_turn(
+    mut universe: ResMut<Universe>,
+    mut turns: ResMut<Turns>,
+    mut fleets: Query<&mut Order>,
+) {
     if turns.count != 0 {
         let good_conditions = &universe.galaxy[universe.players[0].start].clone();
 
@@ -75,6 +82,23 @@ fn start_player_turn(mut universe: ResMut<Universe>, mut turns: ResMut<Turns>) {
                 }
             });
         universe.players[0].resources += harvested;
+    }
+
+    for mut fleet in &mut fleets {
+        match fleet.as_mut() {
+            Order::Orbit(_) => (),
+            Order::Move { from, to, step, .. } => {
+                *step += 1;
+                if *step
+                    == turns_between(
+                        universe.galaxy[*from].position,
+                        universe.galaxy[*to].position,
+                    )
+                {
+                    *fleet = Order::Orbit(*to)
+                }
+            }
+        }
     }
 
     turns.count += 1;

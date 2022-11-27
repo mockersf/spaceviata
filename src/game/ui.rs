@@ -18,7 +18,7 @@ use crate::{
 };
 
 use super::{
-    fleet::{FleetSize, Order, Owner, Ship, ShipKind},
+    fleet::{turns_between, FleetSize, Order, Owner, Ship, ShipKind},
     galaxy::StarSize,
     turns::{TurnState, Turns},
     world::{CameraController, CameraControllerTarget, RATIO_ZOOM_DISTANCE},
@@ -1471,7 +1471,7 @@ fn dragging_ship(
                         let mut path_builder = PathBuilder::new();
                         let from = universe.galaxy[selected_star.index.unwrap()].position;
                         let to = universe.galaxy[index].position;
-                        let turns = (from.distance(to) / 100.0).exp().floor().max(1.0);
+                        let turns = turns_between(from, to);
                         let length = commands
                             .spawn(Text2dBundle {
                                 text: Text::from_section(
@@ -1520,7 +1520,6 @@ fn dragging_ship(
             }
         }
     } else if let Some((index, entities, fleet_entity, from_star)) = *over_star {
-        info!("dropped on star {}", index);
         commands.entity(entities[0]).despawn_recursive();
         commands.entity(entities[1]).despawn_recursive();
         *over_star = None;

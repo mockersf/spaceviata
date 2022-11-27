@@ -12,7 +12,7 @@ use super::{
 #[derive(Component)]
 pub enum Order {
     Orbit(usize),
-    Move { from: usize, to: usize, step: usize },
+    Move { from: usize, to: usize, step: u32 },
 }
 
 pub enum ShipKind {
@@ -73,7 +73,7 @@ impl bevy::app::Plugin for Plugin {
         app.add_system_set(
             SystemSet::on_update(CURRENT_STATE)
                 .with_system(spawn_fleets)
-                .with_system(orbit),
+                .with_system(place_fleets),
         )
         .add_system_set(SystemSet::on_exit(CURRENT_STATE).with_system(tear_down));
     }
@@ -130,23 +130,41 @@ struct Orbiting {
 struct MovingTo {
     from: Vec2,
     to: Vec2,
+    step: u32,
+    size: f32,
 }
 
-fn orbit(
+#[allow(clippy::type_complexity)]
+fn place_fleets(
     mut commands: Commands,
-    fleets: Query<(&Order, &Children), Changed<Order>>,
-    mut orbiting: Query<(&mut Transform, &Orbiting)>,
+    fleets: Query<(Entity, &Order, &Children), Changed<Order>>,
+    mut fleets_position: ParamSet<(
+        Query<(&mut Transform, &Orbiting)>,
+        Query<(&mut Transform, &MovingTo)>,
+    )>,
     time: Res<Time>,
     universe: Res<Universe>,
+    camera_controller: Res<CameraController>,
 ) {
-    for (order, children) in &fleets {
+    for (entity, order, children) in &fleets {
         match order {
             Order::Orbit(around) => {
                 let star_size = universe.galaxy[*around].size;
-                commands.entity(children[0]).insert(Orbiting {
-                    since: time.elapsed_seconds(),
-                    size: star_size.into(),
-                });
+                commands.entity(entity).insert(
+                    Transform::from_translation(
+                        (universe.galaxy[*around].position * camera_controller.zoom_level
+                            / RATIO_ZOOM_DISTANCE)
+                            .extend(z_levels::SHIP),
+                    )
+                    .with_scale(Vec3::splat(camera_controller.zoom_level.powf(0.7))),
+                );
+                commands
+                    .entity(children[0])
+                    .remove::<MovingTo>()
+                    .insert(Orbiting {
+                        since: time.elapsed_seconds(),
+                        size: star_size.into(),
+                    });
             }
             Order::Move { from, to, step } => {
                 commands
@@ -155,12 +173,14 @@ fn orbit(
                     .insert(MovingTo {
                         from: universe.galaxy[*from].position,
                         to: universe.galaxy[*to].position,
+                        step: *step,
+                        size: universe.galaxy[*from].size.into(),
                     });
             }
         }
     }
 
-    for (mut transform, orbiting) in &mut orbiting {
+    for (mut transform, orbiting) in &mut fleets_position.p0() {
         transform.translation = Vec3::new(
             (time.elapsed_seconds() - orbiting.since).cos() * orbiting.size * 4.0,
             (time.elapsed_seconds() - orbiting.since).sin() * orbiting.size * 4.0,
@@ -168,4 +188,16 @@ fn orbit(
         );
         transform.rotation = Quat::from_rotation_z(time.elapsed_seconds() - orbiting.since + PI)
     }
+    for (mut transform, moving_to) in &mut fleets_position.p1() {
+        let direction = moving_to.to - moving_to.from;
+        let steps = turns_between(moving_to.from, moving_to.to) as f32;
+        transform.translation = ((direction * moving_to.step as f32 / steps)
+            + (direction.normalize() * moving_to.size * 4.0))
+            .extend(z_levels::SHIP);
+        transform.rotation = Quat::from_rotation_z(-direction.angle_between(Vec2::Y) + PI);
+    }
+}
+
+pub fn turns_between(from: Vec2, to: Vec2) -> u32 {
+    (from.distance(to) / 100.0).exp().floor().max(1.0) as u32
 }

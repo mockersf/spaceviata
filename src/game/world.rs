@@ -225,8 +225,9 @@ fn update_camera(
         }
         for (mut transform, order) in &mut fleets {
             transform.scale = Vec3::splat(controller.zoom_level.powf(0.7));
-            let Order::Orbit(star) = order else {
-                continue;
+            let star = match order {
+                Order::Orbit(around) => around,
+                Order::Move { from, .. } => from,
             };
             transform.translation = (universe.galaxy[*star].position * controller.zoom_level
                 / RATIO_ZOOM_DISTANCE)
