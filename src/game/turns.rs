@@ -207,7 +207,8 @@ fn start_player_turn(
     }
 
     for (mut order, ship, owner) in &mut fleets {
-        match order.as_mut() {
+        // match order.as_mut() {
+        match order.bypass_change_detection() {
             Order::Orbit(_) => (),
             Order::Move { from, to, step, .. } => {
                 *step += 1;
@@ -271,6 +272,7 @@ will grow easily."#
 
                     *order = Order::Orbit(*to);
                 }
+                order.set_changed();
             }
         }
     }
