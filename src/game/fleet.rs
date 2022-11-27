@@ -12,6 +12,7 @@ use super::{
 #[derive(Component)]
 pub enum Order {
     Orbit(usize),
+    Move { from: usize, to: usize, step: usize },
 }
 
 pub enum ShipKind {
@@ -94,7 +95,9 @@ fn spawn_fleets(
     camera_controller: Res<CameraController>,
 ) {
     for fleet in fleets.0.drain(..) {
-        let Order::Orbit(around) = fleet.order;
+        let Order::Orbit(around) = fleet.order else {
+            continue;
+        };
         let Owner(owner) = fleet.owner;
         let mut builder = commands.spawn((
             fleet,
@@ -123,6 +126,12 @@ struct Orbiting {
     size: f32,
 }
 
+#[derive(Component)]
+struct MovingTo {
+    from: Vec2,
+    to: Vec2,
+}
+
 fn orbit(
     mut commands: Commands,
     fleets: Query<(&Order, &Children), Changed<Order>>,
@@ -131,12 +140,26 @@ fn orbit(
     universe: Res<Universe>,
 ) {
     for (order, children) in &fleets {
-        let Order::Orbit(around) = order;
-        let star_size = universe.galaxy[*around].size;
-        commands.entity(children[0]).insert(Orbiting {
-            since: time.elapsed_seconds(),
-            size: star_size.into(),
-        });
+        info!("a fleet");
+
+        match order {
+            Order::Orbit(around) => {
+                let star_size = universe.galaxy[*around].size;
+                commands.entity(children[0]).insert(Orbiting {
+                    since: time.elapsed_seconds(),
+                    size: star_size.into(),
+                });
+            }
+            Order::Move { from, to, step } => {
+                commands
+                    .entity(children[0])
+                    .remove::<Orbiting>()
+                    .insert(MovingTo {
+                        from: universe.galaxy[*from].position,
+                        to: universe.galaxy[*to].position,
+                    });
+            }
+        }
     }
 
     for (mut transform, orbiting) in &mut orbiting {

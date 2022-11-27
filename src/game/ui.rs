@@ -1054,8 +1054,10 @@ fn display_star_selected(
                     .iter()
                     .filter(|(_, _, order, _, owner)| {
                         if owner.0 == 0 {
-                            let Order::Orbit(around) = order;
-                            *around == index
+                            match order {
+                                Order::Orbit(around) => *around == index,
+                                Order::Move { from, to: _, step } => *from == index && *step == 0,
+                            }
                         } else {
                             false
                         }
@@ -1063,7 +1065,7 @@ fn display_star_selected(
                     .collect::<Vec<_>>();
                 if !fleets.is_empty() {
                     commands.entity(details_entity).with_children(|parent| {
-                        for (entity, ship, _, fleet_size, _) in &fleets {
+                        for (entity, ship, order, fleet_size, _) in &fleets {
                             parent
                                 .spawn(NodeBundle {
                                     style: Style {
@@ -1092,16 +1094,51 @@ fn display_star_selected(
                                         Interaction::None,
                                         ButtonId(StarAction::Ship(*entity)),
                                     ));
-                                    // });
                                     parent.spawn(TextBundle {
-                                        text: Text::from_section(
-                                            format!(" {} {}\n", fleet_size, ship),
-                                            TextStyle {
-                                                font: ui_assets.font_sub.clone_weak(),
-                                                font_size: 20.0,
-                                                color: Color::WHITE,
+                                        text: Text::from_sections([
+                                            TextSection {
+                                                value: " ".to_string(),
+                                                style: TextStyle {
+                                                    font: ui_assets.font_sub.clone_weak(),
+                                                    font_size: 20.0,
+                                                    color: Color::WHITE,
+                                                },
                                             },
-                                        ),
+                                            TextSection {
+                                                value: match order {
+                                                    Order::Move { .. } => format!(
+                                                        "{}",
+                                                        material_icons::icon_to_char(
+                                                            material_icons::Icon::ArrowForward
+                                                        )
+                                                        .to_string()
+                                                    ),
+                                                    Order::Orbit(_) => format!(
+                                                        "{}",
+                                                        material_icons::icon_to_char(
+                                                            material_icons::Icon::Refresh
+                                                        )
+                                                        .to_string()
+                                                    ),
+                                                },
+                                                style: TextStyle {
+                                                    font: ui_assets.font_material.clone_weak(),
+                                                    font_size: 15.0,
+                                                    color: match order {
+                                                        Order::Move { .. } => Color::GREEN,
+                                                        Order::Orbit(_) => Color::WHITE,
+                                                    },
+                                                },
+                                            },
+                                            TextSection {
+                                                value: format!(" {} {}\n", fleet_size, ship),
+                                                style: TextStyle {
+                                                    font: ui_assets.font_sub.clone_weak(),
+                                                    font_size: 20.0,
+                                                    color: Color::WHITE,
+                                                },
+                                            },
+                                        ]),
                                         style: Style {
                                             size: Size {
                                                 width: Val::Undefined,
@@ -1144,8 +1181,10 @@ fn display_star_selected(
             {
                 let has_fleets = fleets.iter().any(|(_, _, order, _, owner)| {
                     if owner.0 == 0 {
-                        let Order::Orbit(around) = order;
-                        *around == index
+                        match order {
+                            Order::Orbit(around) => *around == index,
+                            Order::Move { from, to: _, step } => *from == index && *step == 0,
+                        }
                     } else {
                         false
                     }
@@ -1355,12 +1394,13 @@ fn dragging_ship(
     universe: Res<Universe>,
     controller: Res<CameraController>,
     ship_assets: Res<ShipAssets>,
+    ui_assets: Res<UiAssets>,
     camera: Query<(&Camera, &GlobalTransform)>,
     windows: Res<Windows>,
     mut transform: Query<&mut Transform>,
     time: Res<Time>,
     fleets: Query<&Ship>,
-    mut over_star: Local<Option<(usize, Entity)>>,
+    mut over_star: Local<Option<(usize, [Entity; 2], Entity, usize)>>,
 ) {
     if selected_star.is_changed() {
         if let (Some(fleet_entity), None) = selected_star.dragging_ship {
@@ -1399,8 +1439,8 @@ fn dragging_ship(
             }
             return;
         }
-        if let Some(entity) = selected_star.dragging_ship.1 {
-            if let Ok(mut transform) = transform.get_mut(entity) {
+        if let Some(dragged_ship_entity) = selected_star.dragging_ship.1 {
+            if let Ok(mut transform) = transform.get_mut(dragged_ship_entity) {
                 transform.rotation =
                     Quat::from_rotation_z(PI + (time.elapsed_seconds() * 10.0).sin() / 2.0);
                 for motion in mouse_motion.iter() {
@@ -1417,32 +1457,69 @@ fn dragging_ship(
                 }) {
                     if over_star.is_none() {
                         let mut path_builder = PathBuilder::new();
-                        path_builder.move_to(
-                            universe.galaxy[selected_star.index.unwrap()].position
-                                * controller.zoom_level
-                                / RATIO_ZOOM_DISTANCE,
-                        );
-                        path_builder.line_to(
-                            universe.galaxy[index].position * controller.zoom_level
-                                / RATIO_ZOOM_DISTANCE,
-                        );
+                        let from = universe.galaxy[selected_star.index.unwrap()].position;
+                        let to = universe.galaxy[index].position;
+                        let turns = (from.distance(to) / 100.0).exp().floor().max(1.0);
+                        let length = commands
+                            .spawn(Text2dBundle {
+                                text: Text::from_section(
+                                    format!("{} turn(s)", turns),
+                                    TextStyle {
+                                        font: ui_assets.font_main.clone_weak(),
+                                        font_size: 25.0,
+                                        color: Color::ANTIQUE_WHITE,
+                                    },
+                                ),
+                                transform: Transform::from_translation(
+                                    (((to - from) / 2.0 + from) * controller.zoom_level
+                                        / RATIO_ZOOM_DISTANCE)
+                                        .extend(z_levels::SHIP_DRAGGING),
+                                ),
+                                ..default()
+                            })
+                            .id();
+                        path_builder.move_to(from * controller.zoom_level / RATIO_ZOOM_DISTANCE);
+                        path_builder.line_to(to * controller.zoom_level / RATIO_ZOOM_DISTANCE);
                         let line = path_builder.build();
                         let path = commands
                             .spawn(GeometryBuilder::build_as(
                                 &line,
-                                DrawMode::Stroke(StrokeMode::new(Color::rgb(1.4, 1.4, 1.4), 1.0)),
-                                Transform::default(),
+                                DrawMode::Stroke(StrokeMode::new(
+                                    Color::rgb(0.75, 0.75, 0.75),
+                                    1.5,
+                                )),
+                                Transform::from_translation(
+                                    Vec2::ZERO.extend(z_levels::STAR_SELECTION),
+                                ),
                             ))
                             .id();
-                        *over_star = Some((index, path));
+                        *over_star = Some((
+                            index,
+                            [path, length],
+                            selected_star.dragging_ship.0.unwrap(),
+                            selected_star.index.unwrap(),
+                        ));
                     }
                 } else {
-                    if let Some((_, entity)) = *over_star {
-                        commands.entity(entity).despawn_recursive();
+                    if let Some((_, entities, _, _)) = *over_star {
+                        commands.entity(entities[0]).despawn_recursive();
+                        commands.entity(entities[1]).despawn_recursive();
                         *over_star = None;
                     }
                 }
             }
+        }
+    } else {
+        if let Some((index, entities, fleet_entity, from_star)) = *over_star {
+            info!("dropped on star {}", index);
+            commands.entity(entities[0]).despawn_recursive();
+            commands.entity(entities[1]).despawn_recursive();
+            *over_star = None;
+            commands.entity(fleet_entity).insert(Order::Move {
+                from: from_star,
+                to: index,
+                step: 0,
+            });
         }
     }
     mouse_motion.clear();
