@@ -148,7 +148,18 @@ fn start_player_turn(
     if turns.count != 0 {
         let good_conditions = &universe.galaxy[universe.players[0].start].clone();
 
-        universe.players[0].savings += universe.player_revenue(0);
+        for i in 0..universe.players.len() {
+            let revenue = universe.player_revenue(i);
+            universe.players[i].savings += revenue;
+            if i == 0 && revenue < 0.0 {
+                turns.messages.push(Message::Story {
+                    title: "Revenue Alert!".to_string(),
+                    details: "You have negative revenue.\nToo much debt and you'll lose\nthe game."
+                        .to_string(),
+                    order: 0,
+                });
+            }
+        }
         let mut harvested = 0.0;
         universe
             .galaxy
@@ -231,7 +242,7 @@ fn start_player_turn(
                                             details: r#"You just founded your first colony!
 If the color is the same as your
 starting system, your population
-will grow easily"#
+will grow easily."#
                                                 .to_string(),
                                             order: 0,
                                         })
@@ -269,18 +280,18 @@ will grow easily"#
     if turns.count == 1 {
         turns.messages.push(Message::Story {
             title: "You can see your starting\nstar system".to_string(),
-            details: "Click on it for more details".to_string(),
+            details: "Click on it for more details.".to_string(),
             order: 0,
         });
         turns.messages.push(Message::Story {
             title: "Fleet panel".to_string(),
-            details: "Drag and drop your colony ship\nto another star to launch it".to_string(),
+            details: "Drag and drop your colony ship\nto another star to launch it.".to_string(),
             order: 1,
         });
         turns.messages.push(Message::Story {
             title: "Ending turn".to_string(),
             details: r#"You can end your turn with the
-button in the bottom right corner"#
+button in the bottom right corner."#
                 .to_string(),
             order: 1,
         });

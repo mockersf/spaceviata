@@ -948,6 +948,7 @@ fn display_star_selected(
                         },
                         ..default()
                     });
+                    let star_revenue = universe.star_revenue(index);
                     match universe.players[0].vision[index] {
                         StarState::Owned(0) => {
                             parent.spawn(TextBundle {
@@ -972,14 +973,15 @@ fn display_star_selected(
                                         },
                                     },
                                     TextSection {
-                                        value: format!(
-                                            "Revenue    {:.1}\n",
-                                            universe.star_revenue(index)
-                                        ),
+                                        value: format!("Revenue    {:.1}\n", star_revenue),
                                         style: TextStyle {
                                             font: ui_assets.font_sub.clone_weak(),
                                             font_size: 20.0,
-                                            color: Color::WHITE,
+                                            color: if star_revenue < 0.0 {
+                                                Color::RED
+                                            } else {
+                                                Color::GREEN
+                                            },
                                         },
                                     },
                                     TextSection {
@@ -1227,8 +1229,19 @@ fn update_player_stats(
     if universe.is_changed() {
         let mut text = text.single_mut();
         text.sections[1].value = format!("{:.1}\n", universe.player_population(0));
+        let revenue = universe.player_revenue(0);
         text.sections[3].value = format!("{:.1}\n", universe.player_revenue(0));
+        if revenue < 0.0 {
+            text.sections[3].style.color = Color::RED
+        } else {
+            text.sections[3].style.color = Color::GREEN
+        }
         text.sections[5].value = format!("{:.1}\n", universe.players[0].savings);
+        if universe.players[0].savings < 0.0 {
+            text.sections[5].style.color = Color::RED
+        } else {
+            text.sections[5].style.color = Color::GREEN
+        }
         text.sections[7].value = format!("{:.1}\n", universe.players[0].resources);
     }
 }

@@ -38,9 +38,9 @@ impl Universe {
         let good_conditions = &self.galaxy[self.players[details.owner].start];
         let star = &self.galaxy[star_index];
         if star.color == good_conditions.color {
-            (details.population * 1.2).powf(1.5) / 100.0
+            (details.population * 1.1).powf(1.4) / 100.0 - 2.0
         } else {
-            (details.population).powf(0.8) / 100.0
+            (details.population).powf(0.8) / 100.0 - 2.0
         }
     }
 
@@ -72,13 +72,12 @@ impl Universe {
             .filter(|(details, _)| details.owner == player)
             .map(|(details, star)| {
                 if star.color == good_conditions.color {
-                    (details.population * 1.2).powf(1.5)
+                    (details.population * 1.1).powf(1.4) / 100.0 - 2.0
                 } else {
-                    (details.population).powf(0.8)
+                    (details.population).powf(0.8) / 100.0 - 2.0
                 }
             })
             .sum::<f32>()
-            / 100.0
     }
 }
 
