@@ -670,6 +670,27 @@ fn display_star_selected(
                                 ..default()
                             });
                         }
+                        StarState::Uninhabited => {
+                            parent.spawn(TextBundle {
+                                text: Text::from_section(
+                                    "Uninhabited",
+                                    TextStyle {
+                                        font: ui_assets.font_sub.clone_weak(),
+                                        font_size: 20.0,
+                                        color: Color::WHITE,
+                                    },
+                                ),
+                                style: Style {
+                                    size: Size {
+                                        width: Val::Undefined,
+                                        height: Val::Px(20.0),
+                                    },
+                                    flex_shrink: 0.,
+                                    ..default()
+                                },
+                                ..default()
+                            });
+                        }
                     }
                 });
             }

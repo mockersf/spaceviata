@@ -276,7 +276,31 @@ will start earning credits."#
                                 }
                             }
                         }
-                        ShipKind::Fighter => (),
+                        ShipKind::Fighter => {
+                            if universe.star_details[*to].owner != owner.0 {
+                                if owner.0 == 0 {
+                                    if universe.players[owner.0].vision[*to] == StarState::Unknown {
+                                        let start_conditions =
+                                            &universe.galaxy[universe.players[0].start];
+                                        let new_star = &universe.galaxy[*to];
+                                        turns.messages.push(Message::StarExplored {
+                                            star_name: universe.galaxy[*to].name.clone(),
+                                            color_condition: start_conditions.color
+                                                == new_star.color,
+                                            size_condition: start_conditions.size == new_star.size,
+                                            index: *to,
+                                        });
+                                    }
+                                }
+                                universe.players[owner.0].vision[*to] = StarState::Uninhabited;
+                                *materials.get_mut(universe.star_entities[*to]).unwrap() =
+                                    match universe.galaxy[*to].color {
+                                        StarColor::Blue => galaxy_assets.blue_star.clone_weak(),
+                                        StarColor::Orange => galaxy_assets.orange_star.clone_weak(),
+                                        StarColor::Yellow => galaxy_assets.yellow_star.clone_weak(),
+                                    };
+                            }
+                        }
                     }
 
                     *order = Order::Orbit(*to);

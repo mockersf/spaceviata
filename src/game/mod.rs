@@ -93,6 +93,7 @@ struct Player {
 enum StarState {
     Owned(usize),
     Unknown,
+    Uninhabited,
 }
 
 #[derive(Resource)]
