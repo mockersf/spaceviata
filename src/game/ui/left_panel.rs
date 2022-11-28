@@ -257,6 +257,7 @@ pub(crate) fn update_player_stats(
     }
 }
 
+#[allow(clippy::type_complexity)]
 pub(crate) fn star_list_click(
     interaction_query: Query<(&Interaction, &StarListIndex), (Changed<Interaction>, With<Button>)>,
     mut selected_star: ResMut<SelectedStar>,
