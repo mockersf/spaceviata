@@ -22,7 +22,7 @@ struct StarDetails {
 }
 
 #[derive(Resource)]
-struct Universe {
+pub(crate) struct Universe {
     galaxy: Vec<Star>,
     players: Vec<Player>,
     star_entities: Vec<Entity>,
