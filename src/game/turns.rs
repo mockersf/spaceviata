@@ -186,7 +186,7 @@ fn start_player_turn(
                     details.population = if star.size == good_conditions.size {
                         details.population + growth_factor
                     } else {
-                        details.population + growth_factor / 5.0
+                        details.population + growth_factor / 2.0
                     };
                 }
 
