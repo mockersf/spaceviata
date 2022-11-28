@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 use bevy::{prelude::*, ui::FocusPolicy};
-use bevy_easings::{Ease, EaseFunction, EasingType};
+use bevy_easings::{Ease, EaseFunction, EasingComponent, EasingType};
 
 use crate::{
     assets::UiAssets,
@@ -15,6 +15,9 @@ use crate::{
 };
 
 use super::{OneFrameDelay, SelectedStar, DAMPENER};
+
+#[derive(Component)]
+pub(crate) struct EndTurnButton;
 
 #[derive(Resource, Default)]
 pub(crate) struct DisplayedMessage(pub(crate) usize);
@@ -65,6 +68,7 @@ pub(crate) fn setup(
                 },
                 ..default()
             },
+            EndTurnButton,
             ScreenTag,
         ))
         .push_children(&[end_turn]);
@@ -82,6 +86,7 @@ pub(crate) fn display_messages(
     mut selected_star: ResMut<SelectedStar>,
     universe: Res<Universe>,
     mut controller_target: ResMut<CameraControllerTarget>,
+    end_turn_button: Query<Entity, With<EndTurnButton>>,
 ) {
     if turns.is_changed() && !turns.messages.is_empty() {
         if let Ok(entity) = panel.get_single() {
@@ -89,6 +94,11 @@ pub(crate) fn display_messages(
         };
 
         current_message.0 = 0;
+
+        commands
+            .entity(end_turn_button.single())
+            .remove::<EasingComponent<BackgroundColor>>()
+            .insert(BackgroundColor(Color::NONE));
 
         let button_handle = ui_handles.button_handle.clone_weak();
         let button = buttons.get(&button_handle).unwrap();
@@ -233,6 +243,17 @@ pub(crate) fn display_messages(
                 return
             };
             commands.entity(entity).despawn_recursive();
+            commands
+                .entity(end_turn_button.single())
+                .insert(Ease::ease_to(
+                    BackgroundColor(Color::NONE),
+                    BackgroundColor(Color::rgba(0.9, 0.9, 0.9, 0.5)),
+                    EaseFunction::SineInOut,
+                    EasingType::PingPong {
+                        duration: Duration::from_millis(400),
+                        pause: None,
+                    },
+                ));
         } else if current_message.0 > 0 {
             if current_message.0 == turns.messages.len() - 1 {
                 for (mut text, button) in &mut text {
