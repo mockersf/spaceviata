@@ -149,16 +149,7 @@ fn start_player_turn(
         let good_conditions = &universe.galaxy[universe.players[0].start].clone();
 
         for i in 0..universe.players.len() {
-            let revenue = universe.player_revenue(i);
-            universe.players[i].savings += revenue;
-            if i == 0 && revenue < 0.0 {
-                turns.messages.push(Message::Story {
-                    title: "Revenue Alert!".to_string(),
-                    details: "You have negative revenue.\nToo much debt and you'll lose\nthe game."
-                        .to_string(),
-                    order: 0,
-                });
-            }
+            universe.players[i].savings += universe.player_revenue(i);
         }
         let mut harvested = 0.0;
         universe
@@ -206,8 +197,17 @@ fn start_player_turn(
         universe.players[0].resources += harvested;
     }
 
+    let revenue = universe.player_revenue(0);
+    if revenue < 0.0 {
+        turns.messages.push(Message::Story {
+            title: "Revenue Alert!".to_string(),
+            details: "You have negative revenue.\nToo much debt and you'll lose\nthe game."
+                .to_string(),
+            order: 0,
+        });
+    }
+
     for (mut order, ship, owner) in &mut fleets {
-        // match order.as_mut() {
         match order.bypass_change_detection() {
             Order::Orbit(_) => (),
             Order::Move { from, to, step, .. } => {
