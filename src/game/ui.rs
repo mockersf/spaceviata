@@ -572,6 +572,45 @@ fn setup(
             ScreenTag,
         ));
     }
+
+    // shipyard
+    {
+        let button_handle = ui_handles.button_handle.clone_weak();
+        let button = buttons.get(&button_handle).unwrap();
+        let material = ui_handles.font_material.clone_weak();
+
+        let end_turn = button.add(
+            &mut commands,
+            Val::Px(40.),
+            Val::Px(40.),
+            UiRect::all(Val::Auto),
+            material,
+            StarAction::Shipyard,
+            25.,
+            crate::ui_helper::ColorScheme::TEXT,
+        );
+
+        commands
+            .spawn((
+                NodeBundle {
+                    style: Style {
+                        display: Display::None,
+                        position_type: PositionType::Absolute,
+                        position: UiRect {
+                            left: Val::Undefined,
+                            right: Val::Undefined,
+                            bottom: Val::Undefined,
+                            top: Val::Undefined,
+                        },
+                        ..default()
+                    },
+                    ..default()
+                },
+                ShipyardButton,
+                ScreenTag,
+            ))
+            .push_children(&[end_turn]);
+    }
 }
 
 #[derive(Component)]
@@ -583,6 +622,8 @@ struct StarDetails;
 struct FleetsPanel;
 #[derive(Component)]
 struct FleetsDetails;
+#[derive(Component)]
+struct ShipyardButton;
 
 #[derive(Component, Default)]
 struct StarList {
@@ -811,14 +852,19 @@ fn star_list_scroll(
 #[derive(Component)]
 struct MarkedStar;
 
+#[derive(Clone, Copy)]
 enum StarAction {
     Ship(Entity),
+    Shipyard,
 }
 
 impl From<StarAction> for String {
     fn from(action: StarAction) -> Self {
         match action {
             StarAction::Ship(_) => "".to_string(),
+            StarAction::Shipyard => {
+                material_icons::icon_to_char(material_icons::Icon::RocketLaunch).to_string()
+            }
         }
     }
 }
@@ -834,6 +880,9 @@ fn star_button_system(
                 (StarAction::Ship(entity), true) => {
                     target.ignore_movement = true;
                     selected_star.dragging_ship.0 = Some(*entity);
+                }
+                (StarAction::Shipyard, true) => {
+                    info!("opening shipyard")
                 }
                 _ => (),
             }
@@ -857,6 +906,14 @@ fn display_star_selected(
         (With<FleetsPanel>, Without<StarPanel>),
     >,
     fleets_details: Query<Entity, With<FleetsDetails>>,
+    mut shipyard_button: Query<
+        (&mut Style, &mut BackgroundColor),
+        (
+            With<ShipyardButton>,
+            Without<StarPanel>,
+            Without<FleetsPanel>,
+        ),
+    >,
     transform: Query<&GlobalTransform>,
     camera: Query<(&GlobalTransform, &Camera, Changed<GlobalTransform>)>,
     ui_assets: Res<UiAssets>,
@@ -876,6 +933,11 @@ fn display_star_selected(
             style.display = Display::None;
             style.size = Size::new(Val::Px(0.0), Val::Px(0.0));
 
+            // hide shipyard panel
+            let mut style = shipyard_button.single_mut().0;
+            style.display = Display::None;
+            style.size = Size::new(Val::Px(0.0), Val::Px(0.0));
+
             return;
         }
 
@@ -890,6 +952,11 @@ fn display_star_selected(
 
             // hide fleets panel
             let mut style = fleets_panel.single_mut().0;
+            style.display = Display::None;
+            style.size = Size::new(Val::Px(0.0), Val::Px(0.0));
+
+            // hide shipyard panel
+            let mut style = shipyard_button.single_mut().0;
             style.display = Display::None;
             style.size = Size::new(Val::Px(0.0), Val::Px(0.0));
         };
@@ -1205,10 +1272,22 @@ fn display_star_selected(
                             - 200.0,
                     );
                     let Val::Px(height) = style.size.height else{
-                    return;
-                };
+                        return;
+                    };
                     style.position.bottom = Val::Px(pos.y - height / 2.0);
                 }
+            }
+            if universe.star_details[index].owner == 0 {
+                let mut style = shipyard_button.single_mut().0;
+                style.display = Display::Flex;
+                style.size = Size::new(Val::Px(40.0), Val::Px(40.0));
+                style.position.left = Val::Px(pos.x - 20.0);
+                style.position.bottom = Val::Px(
+                    pos.y
+                        + <StarSize as Into<f32>>::into(star.size)
+                            * 5.0
+                            * camera_controller.zoom_level.powf(0.7),
+                );
             }
         }
     }
