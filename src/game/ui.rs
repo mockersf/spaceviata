@@ -1266,7 +1266,7 @@ fn display_messages(
         let button_handle = ui_handles.button_handle.clone_weak();
         let button = buttons.get(&button_handle).unwrap();
 
-        let next_message_button = button.add(
+        let next_message_button = button.add_hidden(
             &mut commands,
             Val::Px(30.),
             Val::Px(30.),
@@ -1279,6 +1279,7 @@ fn display_messages(
             },
             20.,
             crate::ui_helper::ColorScheme::TEXT,
+            true,
         );
         let base = commands
             .spawn((
@@ -1315,18 +1316,22 @@ fn display_messages(
                     MessageContentMarker,
                 ));
                 parent
-                    .spawn(NodeBundle {
-                        style: Style {
-                            position_type: PositionType::Absolute,
-                            position: UiRect {
-                                right: Val::Px(0.0),
-                                bottom: Val::Px(0.0),
+                    .spawn((
+                        NodeBundle {
+                            style: Style {
+                                position_type: PositionType::Absolute,
+                                position: UiRect {
+                                    right: Val::Px(0.0),
+                                    bottom: Val::Px(0.0),
+                                    ..default()
+                                },
+                                display: Display::None,
                                 ..default()
                             },
                             ..default()
                         },
-                        ..default()
-                    })
+                        OneFrameDelay,
+                    ))
                     .push_children(&[next_message_button]);
             })
             .id();
@@ -1408,7 +1413,7 @@ fn display_messages(
 }
 
 #[derive(Component)]
-struct OneFrameDelay;
+pub(crate) struct OneFrameDelay;
 
 fn make_it_visible(
     mut commands: Commands,

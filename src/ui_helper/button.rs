@@ -1,5 +1,7 @@
 use bevy::prelude::*;
 
+use crate::game::ui::OneFrameDelay;
+
 #[derive(bevy::reflect::TypeUuid)]
 #[uuid = "5114f317-f6a6-4436-bd2a-cb380f5eb551"]
 pub(crate) struct Button {
@@ -39,6 +41,26 @@ impl Button {
     where
         T: Into<String> + Send + Sync + Copy + 'static,
     {
+        self.add_hidden(
+            commands, width, height, margin, font, button, font_size, font_color, false,
+        )
+    }
+
+    pub(crate) fn add_hidden<T>(
+        &self,
+        commands: &mut Commands,
+        width: Val,
+        height: Val,
+        margin: UiRect,
+        font: Handle<Font>,
+        button: T,
+        font_size: f32,
+        font_color: Color,
+        hidden: bool,
+    ) -> Entity
+    where
+        T: Into<String> + Send + Sync + Copy + 'static,
+    {
         let button_entity = commands
             .spawn((
                 ButtonBundle {
@@ -47,11 +69,13 @@ impl Button {
                         margin,
                         justify_content: JustifyContent::Center,
                         align_items: AlignItems::Center,
+                        display: if hidden { Display::None } else { Display::Flex },
                         ..Default::default()
                     },
                     background_color: Color::NONE.into(),
                     ..Default::default()
                 },
+                OneFrameDelay,
                 ButtonId(button),
             ))
             .id();
@@ -67,6 +91,8 @@ impl Button {
                         margin: UiRect::all(Val::Auto),
                         justify_content: JustifyContent::Center,
                         align_items: AlignItems::Center,
+                        display: if hidden { Display::None } else { Display::Flex },
+
                         ..Default::default()
                     },
                     text: Text::from_section(
@@ -81,6 +107,7 @@ impl Button {
                     focus_policy: bevy::ui::FocusPolicy::Pass,
                     ..Default::default()
                 },
+                OneFrameDelay,
                 ButtonText(button),
             ))
             .id();
