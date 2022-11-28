@@ -20,7 +20,7 @@ use crate::{
 use super::{
     fleet::{turns_between, FleetSize, Order, Owner, Ship, ShipKind},
     galaxy::StarSize,
-    turns::{TurnState, Turns},
+    turns::{Message, TurnState, Turns},
     world::{CameraController, CameraControllerTarget, RATIO_ZOOM_DISTANCE},
     z_levels, StarState, Universe,
 };
@@ -38,8 +38,8 @@ impl bevy::app::Plugin for Plugin {
             .add_system_set(SystemSet::on_enter(GameState::Game).with_system(setup))
             .add_system_set(
                 SystemSet::on_update(GameState::Game)
-                    .with_system(button_system)
-                    .with_system(select_star)
+                    .with_system(button_system.before(select_star))
+                    .with_system(select_star.after(button_system))
                     .with_system(display_star_list)
                     .with_system(star_list_click)
                     .with_system(star_list_scroll)
@@ -49,6 +49,7 @@ impl bevy::app::Plugin for Plugin {
                     .with_system(dragging_ship.after(display_star_selected))
                     .with_system(update_player_stats)
                     .with_system(display_messages)
+                    .with_system(pulse_button)
                     .with_system(make_it_visible),
             )
             .add_system_set(SystemSet::on_exit(GameState::Game).with_system(tear_down));
@@ -632,6 +633,7 @@ struct StarList {
 
 #[derive(Resource, Default)]
 struct SelectedStar {
+    ignore_next_click: bool,
     index: Option<usize>,
     dragging_ship: (Option<Entity>, Option<Entity>),
 }
@@ -650,6 +652,7 @@ fn button_system(
     mut turn_state: ResMut<State<TurnState>>,
     mut menu_container: Query<&mut Visibility, With<MenuContainer>>,
     mut displayed_message: ResMut<DisplayedMessage>,
+    mut selected_star: ResMut<SelectedStar>,
 ) {
     for (interaction, button_id, changed) in interaction_query.iter() {
         if *interaction == Interaction::Clicked {
@@ -669,6 +672,7 @@ fn button_system(
                 (UiButtons::EndTurn, true) => turn_state.set(TurnState::Bots).unwrap(),
                 (UiButtons::NextMessage, true) | (UiButtons::LastMessage, true) => {
                     displayed_message.0 += 1;
+                    selected_star.bypass_change_detection().ignore_next_click = true;
                 }
                 _ => (),
             }
@@ -709,6 +713,10 @@ fn select_star(
             })
         {
             if position.x < LEFT_PANEL_WIDTH || time.elapsed_seconds() - *last_pressed > 0.5 {
+                return;
+            }
+            if selected_star.ignore_next_click {
+                selected_star.bypass_change_detection().ignore_next_click = false;
                 return;
             }
             let (camera, transform) = camera.single();
@@ -1282,12 +1290,7 @@ fn display_star_selected(
                 style.display = Display::Flex;
                 style.size = Size::new(Val::Px(40.0), Val::Px(40.0));
                 style.position.left = Val::Px(pos.x - 20.0);
-                style.position.bottom = Val::Px(
-                    pos.y
-                        + <StarSize as Into<f32>>::into(star.size)
-                            * 5.0
-                            * camera_controller.zoom_level.powf(0.7),
-                );
+                style.position.bottom = Val::Px(pos.y + 65.0);
             }
         }
     }
@@ -1334,6 +1337,9 @@ fn display_messages(
     mut content: Query<&mut Text, With<MessageContentMarker>>,
     buttons: Res<Assets<crate::ui_helper::button::Button>>,
     mut text: Query<(&mut Text, &ButtonText<UiButtons>), Without<MessageContentMarker>>,
+    mut selected_star: ResMut<SelectedStar>,
+    universe: Res<Universe>,
+    mut controller_target: ResMut<CameraControllerTarget>,
 ) {
     if turns.is_changed() && !turns.messages.is_empty() {
         if let Ok(entity) = panel.get_single() {
@@ -1409,6 +1415,7 @@ fn display_messages(
                             },
                             ..default()
                         },
+                        Pulse,
                         OneFrameDelay,
                     ))
                     .push_children(&[next_message_button]);
@@ -1487,6 +1494,33 @@ fn display_messages(
             }
             content.single_mut().sections =
                 turns.messages[current_message.0].as_sections(&ui_handles);
+            match turns.messages[current_message.0] {
+                Message::ColonyFounded { index, .. } => {
+                    if selected_star.index != Some(index) {
+                        selected_star.index = Some(index);
+                    }
+                    controller_target.zoom_level = 8.0;
+                    controller_target.position = universe.galaxy[index].position;
+                }
+                Message::StarExplored { index, .. } => {
+                    if selected_star.index != Some(index) {
+                        selected_star.index = Some(index);
+                    }
+                    controller_target.zoom_level = 8.0;
+                    controller_target.position = universe.galaxy[index].position;
+                }
+                Message::Story {
+                    index: Some(index), ..
+                } => {
+                    if selected_star.index != Some(index) {
+                        selected_star.index = Some(index);
+                    }
+                    controller_target.zoom_level = 8.0;
+                    controller_target.position = universe.galaxy[index].position;
+                }
+
+                _ => (),
+            }
         }
     }
 }
@@ -1648,4 +1682,15 @@ fn dragging_ship(
         selected_star.set_changed();
     }
     mouse_motion.clear();
+}
+
+#[derive(Component)]
+struct Pulse;
+
+fn pulse_button(mut pulsatings: Query<&mut BackgroundColor, With<Pulse>>, time: Res<Time>) {
+    for mut background_color in &mut pulsatings {
+        background_color.0 = Color::from(
+            (Vec3::splat((time.elapsed_seconds() * 10.0).sin() / 3.0 + 1.0) / 2.0).extend(0.75),
+        );
+    }
 }
