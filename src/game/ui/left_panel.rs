@@ -200,37 +200,34 @@ pub(crate) fn setup(commands: &mut Commands, ui_handles: &UiAssets) {
             .id()
     };
 
-    // left panel
-    {
-        let panel_style = Style {
-            position_type: PositionType::Absolute,
-            position: UiRect {
-                left: Val::Px(0.0),
-                right: Val::Undefined,
-                top: Val::Px(0.0),
-                bottom: Val::Undefined,
-            },
-            margin: UiRect::all(Val::Px(0.)),
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-            size: Size::new(Val::Px(LEFT_PANEL_WIDTH), Val::Percent(100.0)),
-            align_content: AlignContent::Stretch,
-            flex_direction: FlexDirection::Column,
-            ..Default::default()
-        };
+    let panel_style = Style {
+        position_type: PositionType::Absolute,
+        position: UiRect {
+            left: Val::Px(0.0),
+            right: Val::Undefined,
+            top: Val::Px(0.0),
+            bottom: Val::Undefined,
+        },
+        margin: UiRect::all(Val::Px(0.)),
+        justify_content: JustifyContent::Center,
+        align_items: AlignItems::Center,
+        size: Size::new(Val::Px(LEFT_PANEL_WIDTH), Val::Percent(100.0)),
+        align_content: AlignContent::Stretch,
+        flex_direction: FlexDirection::Column,
+        ..Default::default()
+    };
 
-        commands
-            .spawn((
-                NodeBundle {
-                    style: panel_style,
-                    background_color: BackgroundColor(DAMPENER),
-                    focus_policy: FocusPolicy::Pass,
-                    ..default()
-                },
-                ScreenTag,
-            ))
-            .push_children(&[left_panel_top, left_panel_bottom]);
-    }
+    commands
+        .spawn((
+            NodeBundle {
+                style: panel_style,
+                background_color: BackgroundColor(DAMPENER),
+                focus_policy: FocusPolicy::Pass,
+                ..default()
+            },
+            ScreenTag,
+        ))
+        .push_children(&[left_panel_top, left_panel_bottom]);
 }
 
 pub(crate) fn update_player_stats(

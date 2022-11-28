@@ -30,49 +30,44 @@ pub(crate) fn setup(
     ui_handles: &UiAssets,
     buttons: &Assets<crate::ui_helper::button::Button>,
 ) {
-    info!("loading UI");
+    let button_handle = ui_handles.button_handle.clone_weak();
+    let button = buttons.get(&button_handle).unwrap();
+    let material = ui_handles.font_material.clone_weak();
 
-    // turns
-    {
-        let button_handle = ui_handles.button_handle.clone_weak();
-        let button = buttons.get(&button_handle).unwrap();
-        let material = ui_handles.font_material.clone_weak();
+    let end_turn = button.add(
+        commands,
+        Val::Px(40.),
+        Val::Px(40.),
+        UiRect::all(Val::Auto),
+        material,
+        UiButtons::EndTurn,
+        25.,
+        crate::ui_helper::ColorScheme::TEXT,
+    );
 
-        let end_turn = button.add(
-            commands,
-            Val::Px(40.),
-            Val::Px(40.),
-            UiRect::all(Val::Auto),
-            material,
-            UiButtons::EndTurn,
-            25.,
-            crate::ui_helper::ColorScheme::TEXT,
-        );
-
-        commands
-            .spawn((
-                NodeBundle {
-                    style: Style {
-                        position: UiRect {
-                            right: Val::Px(20.0),
-                            bottom: Val::Px(20.0),
-                            ..default()
-                        },
-                        size: Size {
-                            width: Val::Px(40.0),
-                            height: Val::Px(40.0),
-                        },
-                        flex_direction: FlexDirection::Column,
-                        position_type: PositionType::Absolute,
-                        align_items: AlignItems::Baseline,
+    commands
+        .spawn((
+            NodeBundle {
+                style: Style {
+                    position: UiRect {
+                        right: Val::Px(20.0),
+                        bottom: Val::Px(20.0),
                         ..default()
                     },
+                    size: Size {
+                        width: Val::Px(40.0),
+                        height: Val::Px(40.0),
+                    },
+                    flex_direction: FlexDirection::Column,
+                    position_type: PositionType::Absolute,
+                    align_items: AlignItems::Baseline,
                     ..default()
                 },
-                ScreenTag,
-            ))
-            .push_children(&[end_turn]);
-    }
+                ..default()
+            },
+            ScreenTag,
+        ))
+        .push_children(&[end_turn]);
 }
 
 pub(crate) fn display_messages(
