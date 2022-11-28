@@ -731,59 +731,63 @@ fn display_star_selected(
                                         Interaction::None,
                                         ButtonId(StarAction::Ship(*entity)),
                                     ));
-                                    parent.spawn(TextBundle {
-                                        text: Text::from_sections([
-                                            TextSection {
-                                                value: " ".to_string(),
-                                                style: TextStyle {
-                                                    font: ui_assets.font_sub.clone_weak(),
-                                                    font_size: 20.0,
-                                                    color: Color::WHITE,
-                                                },
-                                            },
-                                            TextSection {
-                                                value: match order {
-                                                    Order::Move { .. } => {
-                                                        material_icons::icon_to_char(
-                                                            material_icons::Icon::Start,
-                                                        )
-                                                        .to_string()
-                                                    }
-                                                    Order::Orbit(_) => {
-                                                        material_icons::icon_to_char(
-                                                            material_icons::Icon::Refresh,
-                                                        )
-                                                        .to_string()
-                                                    }
-                                                },
-                                                style: TextStyle {
-                                                    font: ui_assets.font_material.clone_weak(),
-                                                    font_size: 15.0,
-                                                    color: match order {
-                                                        Order::Move { .. } => Color::GREEN,
-                                                        Order::Orbit(_) => Color::WHITE,
+                                    parent.spawn((
+                                        TextBundle {
+                                            text: Text::from_sections([
+                                                TextSection {
+                                                    value: " ".to_string(),
+                                                    style: TextStyle {
+                                                        font: ui_assets.font_sub.clone_weak(),
+                                                        font_size: 20.0,
+                                                        color: Color::WHITE,
                                                     },
                                                 },
-                                            },
-                                            TextSection {
-                                                value: format!(" {} {}\n", fleet_size, ship),
-                                                style: TextStyle {
-                                                    font: ui_assets.font_sub.clone_weak(),
-                                                    font_size: 20.0,
-                                                    color: Color::WHITE,
+                                                TextSection {
+                                                    value: match order {
+                                                        Order::Move { .. } => {
+                                                            material_icons::icon_to_char(
+                                                                material_icons::Icon::Start,
+                                                            )
+                                                            .to_string()
+                                                        }
+                                                        Order::Orbit(_) => {
+                                                            material_icons::icon_to_char(
+                                                                material_icons::Icon::Refresh,
+                                                            )
+                                                            .to_string()
+                                                        }
+                                                    },
+                                                    style: TextStyle {
+                                                        font: ui_assets.font_material.clone_weak(),
+                                                        font_size: 15.0,
+                                                        color: match order {
+                                                            Order::Move { .. } => Color::GREEN,
+                                                            Order::Orbit(_) => Color::WHITE,
+                                                        },
+                                                    },
                                                 },
+                                                TextSection {
+                                                    value: format!(" {} {}\n", fleet_size, ship),
+                                                    style: TextStyle {
+                                                        font: ui_assets.font_sub.clone_weak(),
+                                                        font_size: 20.0,
+                                                        color: Color::WHITE,
+                                                    },
+                                                },
+                                            ]),
+                                            style: Style {
+                                                size: Size {
+                                                    width: Val::Undefined,
+                                                    height: Val::Px(20.0),
+                                                },
+                                                flex_shrink: 0.,
+                                                ..default()
                                             },
-                                        ]),
-                                        style: Style {
-                                            size: Size {
-                                                width: Val::Undefined,
-                                                height: Val::Px(20.0),
-                                            },
-                                            flex_shrink: 0.,
                                             ..default()
                                         },
-                                        ..default()
-                                    });
+                                        Interaction::None,
+                                        ButtonId(StarAction::Ship(*entity)),
+                                    ));
                                 });
                         }
                     });
