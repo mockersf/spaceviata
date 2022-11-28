@@ -1,4 +1,4 @@
-use std::f32::consts::PI;
+use std::{f32::consts::PI, time::Duration};
 
 use bevy::{
     input::mouse::{MouseMotion, MouseScrollUnit, MouseWheel},
@@ -6,6 +6,7 @@ use bevy::{
     prelude::*,
     ui::FocusPolicy,
 };
+use bevy_easings::{Ease, EaseFunction, EasingType};
 use bevy_prototype_lyon::{
     prelude::{DrawMode, GeometryBuilder, PathBuilder, StrokeMode},
     shapes,
@@ -49,7 +50,6 @@ impl bevy::app::Plugin for Plugin {
                     .with_system(dragging_ship.after(display_star_selected))
                     .with_system(update_player_stats)
                     .with_system(display_messages)
-                    .with_system(pulse_button)
                     .with_system(make_it_visible),
             )
             .add_system_set(SystemSet::on_exit(GameState::Game).with_system(tear_down));
@@ -1172,14 +1172,14 @@ fn display_star_selected(
                                             transform: transform_eased,
                                             ..default()
                                         },
-                                        bevy_easings::Ease::ease_to(
+                                        Ease::ease_to(
                                             transform_eased,
                                             Transform::from_rotation(Quat::from_rotation_z(PI))
                                                 .with_scale(Vec3::ONE * 1.2f32),
-                                            bevy_easings::EaseFunction::SineInOut,
-                                            bevy_easings::EasingType::PingPong {
-                                                duration: std::time::Duration::from_millis(800),
-                                                pause: Some(std::time::Duration::from_millis(0)),
+                                            EaseFunction::SineInOut,
+                                            EasingType::PingPong {
+                                                duration: Duration::from_millis(800),
+                                                pause: None,
                                             },
                                         ),
                                         Interaction::None,
@@ -1426,7 +1426,15 @@ fn display_messages(
                             },
                             ..default()
                         },
-                        Pulse,
+                        Ease::ease_to(
+                            BackgroundColor(Color::NONE),
+                            BackgroundColor(Color::rgba(0.9, 0.9, 0.9, 0.5)),
+                            EaseFunction::SineInOut,
+                            EasingType::PingPong {
+                                duration: Duration::from_millis(400),
+                                pause: None,
+                            },
+                        ),
                         OneFrameDelay,
                     ))
                     .push_children(&[next_message_button]);
@@ -1693,15 +1701,4 @@ fn dragging_ship(
         selected_star.set_changed();
     }
     mouse_motion.clear();
-}
-
-#[derive(Component)]
-struct Pulse;
-
-fn pulse_button(mut pulsatings: Query<&mut BackgroundColor, With<Pulse>>, time: Res<Time>) {
-    for mut background_color in &mut pulsatings {
-        background_color.0 = Color::from(
-            (Vec3::splat((time.elapsed_seconds() * 10.0).sin() / 3.0 + 1.0) / 2.0).extend(0.75),
-        );
-    }
 }
