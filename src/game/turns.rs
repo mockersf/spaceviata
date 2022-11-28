@@ -245,7 +245,16 @@ will grow faster."#
                                                 .to_string(),
                                             order: 0,
                                             index: None,
-                                        })
+                                        });
+                                        turns.messages.push(Message::Story {
+                                            title: "revenue".to_string(),
+                                            details: r#"New colony cost credits.
+Once population has grown, colonies
+will start earning credits."#
+                                                .to_string(),
+                                            order: 1,
+                                            index: None,
+                                        });
                                     }
                                 }
                                 universe.players[owner.0].vision[*to] = StarState::Owned(owner.0);
