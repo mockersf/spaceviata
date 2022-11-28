@@ -578,17 +578,36 @@ fn setup(
     {
         let button_handle = ui_handles.button_handle.clone_weak();
         let button = buttons.get(&button_handle).unwrap();
-        let material = ui_handles.font_material.clone_weak();
 
-        let end_turn = button.add(
+        let shipyard = button.add_hidden_section(
             &mut commands,
-            Val::Px(40.),
+            Val::Px(110.),
             Val::Px(40.),
             UiRect::all(Val::Auto),
-            material,
-            StarAction::Shipyard,
-            25.,
-            crate::ui_helper::ColorScheme::TEXT,
+            vec![
+                TextSection {
+                    value: material_icons::icon_to_char(material_icons::Icon::RocketLaunch)
+                        .to_string(),
+                    style: TextStyle {
+                        font: ui_handles.font_material.clone_weak(),
+                        font_size: 15.0,
+                        color: crate::ui_helper::ColorScheme::TEXT,
+                        ..Default::default()
+                    },
+                },
+                TextSection {
+                    value: " shipyard".to_string(),
+                    style: TextStyle {
+                        font: ui_handles.font_main.clone_weak(),
+                        font_size: 20.0,
+                        color: crate::ui_helper::ColorScheme::TEXT,
+                        ..Default::default()
+                    },
+                },
+            ],
+            StarAction::Shipyard(usize::MAX),
+            20.,
+            false,
         );
 
         commands
@@ -610,7 +629,7 @@ fn setup(
                 ShipyardButton,
                 ScreenTag,
             ))
-            .push_children(&[end_turn]);
+            .push_children(&[shipyard]);
     }
 }
 
@@ -863,14 +882,14 @@ struct MarkedStar;
 #[derive(Clone, Copy)]
 enum StarAction {
     Ship(Entity),
-    Shipyard,
+    Shipyard(usize),
 }
 
 impl From<StarAction> for String {
     fn from(action: StarAction) -> Self {
         match action {
             StarAction::Ship(_) => "".to_string(),
-            StarAction::Shipyard => {
+            StarAction::Shipyard(_) => {
                 material_icons::icon_to_char(material_icons::Icon::RocketLaunch).to_string()
             }
         }
@@ -889,8 +908,8 @@ fn star_button_system(
                     target.ignore_movement = true;
                     selected_star.dragging_ship.0 = Some(*entity);
                 }
-                (StarAction::Shipyard, true) => {
-                    info!("opening shipyard")
+                (StarAction::Shipyard(index), true) => {
+                    info!("opening shipyard on star {}", index);
                 }
                 _ => (),
             }
@@ -922,6 +941,7 @@ fn display_star_selected(
             Without<FleetsPanel>,
         ),
     >,
+    mut star_actions: Query<&mut ButtonId<StarAction>>,
     transform: Query<&GlobalTransform>,
     camera: Query<(&GlobalTransform, &Camera, Changed<GlobalTransform>)>,
     ui_assets: Res<UiAssets>,
@@ -1299,9 +1319,14 @@ fn display_star_selected(
             if universe.star_details[index].owner == 0 {
                 let mut style = shipyard_button.single_mut().0;
                 style.display = Display::Flex;
-                style.size = Size::new(Val::Px(40.0), Val::Px(40.0));
-                style.position.left = Val::Px(pos.x - 20.0);
+                style.size = Size::new(Val::Px(110.0), Val::Px(40.0));
+                style.position.left = Val::Px(pos.x - 55.0);
                 style.position.bottom = Val::Px(pos.y + 65.0);
+                for mut action in &mut star_actions {
+                    if let StarAction::Shipyard(shipyard_index) = &mut action.as_mut().0 {
+                        *shipyard_index = index;
+                    }
+                }
             }
         }
     }

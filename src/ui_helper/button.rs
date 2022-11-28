@@ -61,6 +61,40 @@ impl Button {
     where
         T: Into<String> + Send + Sync + Copy + 'static,
     {
+        self.add_hidden_section(
+            commands,
+            width,
+            height,
+            margin,
+            vec![TextSection {
+                value: button.into(),
+                style: TextStyle {
+                    font,
+                    font_size,
+                    color: font_color,
+                    ..Default::default()
+                },
+            }],
+            button,
+            font_size,
+            hidden,
+        )
+    }
+
+    pub(crate) fn add_hidden_section<T>(
+        &self,
+        commands: &mut Commands,
+        width: Val,
+        height: Val,
+        margin: UiRect,
+        sections: Vec<TextSection>,
+        button: T,
+        font_size: f32,
+        hidden: bool,
+    ) -> Entity
+    where
+        T: Into<String> + Send + Sync + Copy + 'static,
+    {
         let button_entity = commands
             .spawn((
                 ButtonBundle {
@@ -95,15 +129,7 @@ impl Button {
 
                         ..Default::default()
                     },
-                    text: Text::from_section(
-                        button.into(),
-                        TextStyle {
-                            font,
-                            font_size,
-                            color: font_color,
-                            ..Default::default()
-                        },
-                    ),
+                    text: Text::from_sections(sections),
                     focus_policy: bevy::ui::FocusPolicy::Pass,
                     ..Default::default()
                 },
