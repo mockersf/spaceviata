@@ -23,6 +23,7 @@ use super::{
 
 mod left_panel;
 mod menu;
+mod shipyard;
 mod turn;
 
 pub const LEFT_PANEL_WIDTH: f32 = 200.0;
@@ -35,6 +36,7 @@ impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.init_resource::<SelectedStar>()
             .init_resource::<turn::DisplayedMessage>()
+            .add_event::<shipyard::ShipyardEvent>()
             .add_system_set(SystemSet::on_enter(GameState::Game).with_system(setup))
             .add_system_set(
                 SystemSet::on_update(GameState::Game)
@@ -49,6 +51,8 @@ impl bevy::app::Plugin for Plugin {
                     .with_system(dragging_ship.after(display_star_selected))
                     .with_system(left_panel::update_player_stats)
                     .with_system(turn::display_messages)
+                    .with_system(shipyard::display_shipyard)
+                    .with_system(shipyard::button_system)
                     .with_system(make_it_visible),
             )
             .add_system_set(SystemSet::on_exit(GameState::Game).with_system(tear_down));
@@ -303,6 +307,7 @@ fn button_system(
     mut menu_container: Query<&mut Visibility, With<menu::MenuContainer>>,
     mut displayed_message: ResMut<turn::DisplayedMessage>,
     mut selected_star: ResMut<SelectedStar>,
+    mut shipyard: EventWriter<shipyard::ShipyardEvent>,
 ) {
     for (interaction, button_id, changed) in interaction_query.iter() {
         if *interaction == Interaction::Clicked {
@@ -319,10 +324,14 @@ fn button_system(
                     menu_container.single_mut().toggle();
                 }
                 (UiButtons::BackToMenu, true) => state.set(GameState::Menu).unwrap(),
-                (UiButtons::EndTurn, true) => turn_state.set(TurnState::Bots).unwrap(),
+                (UiButtons::EndTurn, true) => {
+                    turn_state.set(TurnState::Bots).unwrap();
+                    shipyard.send(shipyard::ShipyardEvent::Close);
+                }
                 (UiButtons::NextMessage, true) | (UiButtons::LastMessage, true) => {
                     displayed_message.0 += 1;
                     selected_star.bypass_change_detection().ignore_next_click = true;
+                    shipyard.send(shipyard::ShipyardEvent::Close);
                 }
                 _ => (),
             }
@@ -416,6 +425,7 @@ fn star_button_system(
     interaction_query: Query<(&Interaction, &ButtonId<StarAction>, Changed<Interaction>)>,
     mut target: ResMut<CameraControllerTarget>,
     mut selected_star: ResMut<SelectedStar>,
+    mut shipyard: EventWriter<shipyard::ShipyardEvent>,
 ) {
     for (interaction, button_id, changed) in interaction_query.iter() {
         if *interaction == Interaction::Clicked {
@@ -425,12 +435,12 @@ fn star_button_system(
                     selected_star.dragging_ship.0 = Some(*entity);
                 }
                 (StarAction::Shipyard(index), true) => {
-                    info!("opening shipyard on star {}", index);
+                    shipyard.send(shipyard::ShipyardEvent::OpenForStar(*index));
                 }
                 _ => (),
             }
         }
-        if *interaction == Interaction::None && changed {
+        if *interaction == Interaction::None && changed && selected_star.index.is_some() {
             target.ignore_movement = false;
         }
     }

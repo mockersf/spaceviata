@@ -9,7 +9,7 @@ use crate::{
     game::{world::CameraControllerTarget, StarState, Universe},
 };
 
-use super::{ScreenTag, SelectedStar, DAMPENER, LEFT_PANEL_WIDTH};
+use super::{shipyard, ScreenTag, SelectedStar, DAMPENER, LEFT_PANEL_WIDTH};
 
 #[derive(Component)]
 pub(crate) struct PlayerStatsMarker;
@@ -260,9 +260,11 @@ pub(crate) fn star_list_click(
     mut selected_star: ResMut<SelectedStar>,
     universe: Res<Universe>,
     mut controller_target: ResMut<CameraControllerTarget>,
+    mut shipyard: ResMut<Events<shipyard::ShipyardEvent>>,
 ) {
     for (interaction, star_index) in &interaction_query {
         if *interaction == Interaction::Clicked {
+            shipyard.send(shipyard::ShipyardEvent::Close);
             if selected_star.index == Some(star_index.0) {
                 controller_target.zoom_level = 8.0;
                 controller_target.position = universe.galaxy[star_index.0].position;
