@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use crate::assets::{GalaxyAssets, UiAssets};
 
 use super::{
-    fleet::{turns_between, Order, Owner, Ship},
+    fleet::{turns_between, Order, Owner, Ship, ShipKind},
     galaxy::StarColor,
     world::StarHat,
     StarState, Universe,
@@ -215,7 +215,7 @@ fn start_player_turn(
                     )
                 {
                     match ship.kind {
-                        super::fleet::ShipKind::Colony => {
+                        ShipKind::Colony => {
                             if universe.star_details[*to].owner != owner.0 {
                                 if owner.0 == 0 {
                                     if universe.players[owner.0].vision[*to] == StarState::Unknown {
@@ -276,6 +276,7 @@ will start earning credits."#
                                 }
                             }
                         }
+                        ShipKind::Fighter => (),
                     }
 
                     *order = Order::Orbit(*to);

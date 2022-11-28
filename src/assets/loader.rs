@@ -83,6 +83,8 @@ struct RawUiAssets {
 pub(crate) struct ShipAssets {
     #[asset(path = "ships/enemyRed4.png")]
     pub(crate) colony_ship: Handle<Image>,
+    #[asset(path = "ships/enemyBlue1.png")]
+    pub(crate) fighter: Handle<Image>,
 }
 
 #[derive(Resource)]

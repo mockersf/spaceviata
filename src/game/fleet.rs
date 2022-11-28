@@ -15,8 +15,10 @@ pub enum Order {
     Move { from: usize, to: usize, step: u32 },
 }
 
+#[derive(Clone, Copy)]
 pub enum ShipKind {
     Colony,
+    Fighter,
 }
 
 #[derive(Component)]
@@ -57,6 +59,7 @@ impl fmt::Display for ShipKind {
             "{}",
             match self {
                 ShipKind::Colony => "Colony Ship",
+                ShipKind::Fighter => "Fighter",
             }
         )
     }
@@ -66,12 +69,14 @@ impl ShipKind {
     pub(crate) fn cost_credits(&self) -> f32 {
         match self {
             ShipKind::Colony => 10.0,
+            ShipKind::Fighter => 1.0,
         }
     }
 
     pub(crate) fn cost_resources(&self) -> f32 {
         match self {
             ShipKind::Colony => 5.0,
+            ShipKind::Fighter => 10.0,
         }
     }
 }
@@ -113,6 +118,7 @@ fn spawn_fleets(
             continue;
         };
         let Owner(owner) = fleet.owner;
+        let kind = fleet.ship.kind;
         let mut builder = commands.spawn((
             fleet,
             SpatialBundle::from_transform(Transform::from_translation(
@@ -126,7 +132,10 @@ fn spawn_fleets(
             builder.with_children(|parent| {
                 parent.spawn(SpriteBundle {
                     transform: Transform::from_scale(Vec3::splat(0.02)),
-                    texture: ship_assets.colony_ship.clone_weak(),
+                    texture: match kind {
+                        ShipKind::Colony => ship_assets.colony_ship.clone_weak(),
+                        ShipKind::Fighter => ship_assets.fighter.clone_weak(),
+                    },
                     ..default()
                 });
             });

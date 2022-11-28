@@ -17,6 +17,7 @@ use super::{OneFrameDelay, ScreenTag, SelectedStar, DAMPENER};
 #[derive(Clone, Copy)]
 pub(crate) enum ShipyardButtons {
     BuildColonyShip,
+    BuildFighter,
     Exit,
 }
 
@@ -24,6 +25,9 @@ impl From<ShipyardButtons> for String {
     fn from(button: ShipyardButtons) -> Self {
         match button {
             ShipyardButtons::BuildColonyShip => {
+                material_icons::icon_to_char(material_icons::Icon::Construction).to_string()
+            }
+            ShipyardButtons::BuildFighter => {
                 material_icons::icon_to_char(material_icons::Icon::Construction).to_string()
             }
             ShipyardButtons::Exit => {
@@ -97,6 +101,34 @@ pub(crate) fn display_shipyard(
                 20.,
                 true,
             );
+            let build_fighter_button = button.add_hidden_section(
+                &mut commands,
+                Val::Px(250.),
+                Val::Px(40.),
+                UiRect::all(Val::Undefined),
+                vec![
+                    TextSection {
+                        value: material_icons::icon_to_char(material_icons::Icon::Construction)
+                            .to_string(),
+                        style: TextStyle {
+                            font: ui_handles.font_material.clone_weak(),
+                            font_size: 15.0,
+                            color: crate::ui_helper::ColorScheme::TEXT,
+                        },
+                    },
+                    TextSection {
+                        value: " 1 fighter".to_string(),
+                        style: TextStyle {
+                            font: ui_handles.font_main.clone_weak(),
+                            font_size: 20.0,
+                            color: crate::ui_helper::ColorScheme::TEXT,
+                        },
+                    },
+                ],
+                ShipyardButtons::BuildFighter,
+                20.,
+                true,
+            );
 
             let exit_button = button.add_hidden(
                 &mut commands,
@@ -113,7 +145,7 @@ pub(crate) fn display_shipyard(
                 .spawn((
                     NodeBundle {
                         style: Style {
-                            flex_direction: FlexDirection::Row,
+                            flex_direction: FlexDirection::Column,
                             size: Size {
                                 width: Val::Percent(100.0),
                                 height: Val::Percent(100.0),
@@ -131,6 +163,7 @@ pub(crate) fn display_shipyard(
                         .spawn(NodeBundle {
                             style: Style {
                                 flex_direction: FlexDirection::Column,
+                                margin: UiRect::all(Val::Px(10.0)),
                                 ..default()
                             },
                             ..default()
@@ -148,9 +181,10 @@ pub(crate) fn display_shipyard(
                                     parent.spawn(TextBundle {
                                         text: Text::from_section(
                                             format!(
-                                                r#"Build 1 Colony Ship
+                                                r#"Build 1 {}
   credits: {}
   resources: {}"#,
+                                                ShipKind::Colony,
                                                 ShipKind::Colony.cost_credits(),
                                                 ShipKind::Colony.cost_resources()
                                             ),
@@ -183,6 +217,64 @@ pub(crate) fn display_shipyard(
                                 });
                         })
                         .push_children(&[build_colony_button]);
+                    parent
+                        .spawn(NodeBundle {
+                            style: Style {
+                                flex_direction: FlexDirection::Column,
+                                margin: UiRect::all(Val::Px(10.0)),
+                                ..default()
+                            },
+                            ..default()
+                        })
+                        .with_children(|parent| {
+                            parent
+                                .spawn(NodeBundle {
+                                    style: Style {
+                                        flex_direction: FlexDirection::Row,
+                                        ..default()
+                                    },
+                                    ..default()
+                                })
+                                .with_children(|parent| {
+                                    parent.spawn(TextBundle {
+                                        text: Text::from_section(
+                                            format!(
+                                                r#"Build 1 {}
+  credits: {}
+  resources: {}"#,
+                                                ShipKind::Fighter,
+                                                ShipKind::Fighter.cost_credits(),
+                                                ShipKind::Fighter.cost_resources()
+                                            ),
+                                            TextStyle {
+                                                font: ui_handles.font_sub.clone_weak(),
+                                                font_size: 20.0,
+                                                color: Color::WHITE,
+                                            },
+                                        ),
+                                        style: Style {
+                                            size: Size {
+                                                width: Val::Px(200.0),
+                                                height: Val::Px(70.0),
+                                            },
+                                            ..default()
+                                        },
+                                        ..default()
+                                    });
+                                    parent.spawn(ImageBundle {
+                                        image: UiImage(ship_assets.fighter.clone_weak()),
+                                        style: Style {
+                                            size: Size::new(Val::Px(50.0), Val::Px(50.0)),
+                                            ..default()
+                                        },
+                                        transform: Transform::from_rotation(Quat::from_rotation_z(
+                                            FRAC_PI_8 + PI,
+                                        )),
+                                        ..default()
+                                    });
+                                });
+                        })
+                        .push_children(&[build_fighter_button]);
                     parent.spawn((
                         NodeBundle {
                             style: Style {
@@ -345,6 +437,27 @@ pub(crate) fn button_system(
                         order: Order::Orbit(for_star.0),
                         ship: Ship {
                             kind: ShipKind::Colony,
+                        },
+                        size: FleetSize(1),
+                        owner: Owner(0),
+                    });
+                    shipyard_events.send(ShipyardEvent::Close);
+                }
+                ShipyardButtons::BuildFighter => {
+                    if universe.players[0].savings < ShipKind::Fighter.cost_credits() {
+                        shipyard_events.send(ShipyardEvent::InsufficentSavings);
+                        return;
+                    }
+                    if universe.players[0].resources < ShipKind::Fighter.cost_resources() {
+                        shipyard_events.send(ShipyardEvent::InsufficentResources);
+                        return;
+                    }
+                    universe.players[0].savings -= ShipKind::Fighter.cost_credits();
+                    universe.players[0].resources -= ShipKind::Fighter.cost_resources();
+                    fleets_to_spawn.0.push(Fleet {
+                        order: Order::Orbit(for_star.0),
+                        ship: Ship {
+                            kind: ShipKind::Fighter,
                         },
                         size: FleetSize(1),
                         owner: Owner(0),

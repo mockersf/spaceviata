@@ -711,6 +711,9 @@ fn display_star_selected(
                                                 ShipKind::Colony => {
                                                     ship_assets.colony_ship.clone_weak()
                                                 }
+                                                ShipKind::Fighter => {
+                                                    ship_assets.fighter.clone_weak()
+                                                }
                                             }),
                                             style: Style {
                                                 size: Size::new(Val::Px(15.0), Val::Px(15.0)),
@@ -919,6 +922,7 @@ fn dragging_ship(
                 .spawn(SpriteBundle {
                     texture: match fleet.kind {
                         ShipKind::Colony => ship_assets.colony_ship.clone_weak(),
+                        ShipKind::Fighter => ship_assets.fighter.clone_weak(),
                     },
                     transform: Transform::from_translation(position)
                         .with_scale(Vec3::splat(0.2))
