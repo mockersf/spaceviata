@@ -22,6 +22,7 @@ use super::{
 };
 
 mod left_panel;
+mod menu;
 mod turn;
 
 pub const LEFT_PANEL_WIDTH: f32 = 200.0;
@@ -109,105 +110,7 @@ fn setup(
 ) {
     info!("loading UI");
 
-    // menu
-    {
-        let button_handle = ui_handles.button_handle.clone_weak();
-        let button = buttons.get(&button_handle).unwrap();
-        let material = ui_handles.font_material.clone_weak();
-
-        let zoom_in_button = button.add(
-            &mut commands,
-            Val::Px(40.),
-            Val::Px(40.),
-            UiRect::all(Val::Auto),
-            material.clone(),
-            UiButtons::ZoomIn,
-            25.,
-            crate::ui_helper::ColorScheme::TEXT,
-        );
-        let zoom_out_button = button.add(
-            &mut commands,
-            Val::Px(40.),
-            Val::Px(40.),
-            UiRect::all(Val::Auto),
-            material.clone(),
-            UiButtons::ZoomOut,
-            25.,
-            crate::ui_helper::ColorScheme::TEXT,
-        );
-        let game_menu_button = button.add(
-            &mut commands,
-            Val::Px(40.),
-            Val::Px(40.),
-            UiRect::all(Val::Auto),
-            material,
-            UiButtons::GameMenu,
-            25.,
-            crate::ui_helper::ColorScheme::TEXT,
-        );
-        let back_to_menu_button = button.add(
-            &mut commands,
-            Val::Px(100.),
-            Val::Px(40.),
-            UiRect::all(Val::Auto),
-            ui_handles.font_sub.clone_weak(),
-            UiButtons::BackToMenu,
-            25.,
-            crate::ui_helper::ColorScheme::TEXT,
-        );
-
-        commands
-            .spawn((
-                NodeBundle {
-                    style: Style {
-                        position: UiRect {
-                            right: Val::Px(20.0),
-                            top: Val::Px(20.0),
-                            ..default()
-                        },
-                        size: Size {
-                            width: Val::Px(100.0),
-                            height: Val::Px(150.0),
-                        },
-                        flex_direction: FlexDirection::Column,
-                        justify_content: JustifyContent::SpaceAround,
-                        position_type: PositionType::Absolute,
-                        ..default()
-                    },
-                    ..default()
-                },
-                ScreenTag,
-            ))
-            .with_children(|builder| {
-                builder
-                    .spawn(NodeBundle {
-                        style: Style {
-                            flex_direction: FlexDirection::Row,
-                            justify_content: JustifyContent::SpaceAround,
-                            ..default()
-                        },
-                        ..default()
-                    })
-                    .push_children(&[zoom_in_button, zoom_out_button]);
-            })
-            .push_children(&[game_menu_button, back_to_menu_button])
-            .with_children(|builder| {
-                builder
-                    .spawn((
-                        NodeBundle {
-                            style: Style {
-                                flex_direction: FlexDirection::Column,
-                                justify_content: JustifyContent::SpaceAround,
-                                ..default()
-                            },
-                            visibility: Visibility::INVISIBLE,
-                            ..default()
-                        },
-                        MenuContainer,
-                    ))
-                    .push_children(&[back_to_menu_button]);
-            });
-    }
+    menu::setup(&mut commands, &ui_handles, &buttons);
 
     turn::setup(&mut commands, &ui_handles, &buttons);
 
@@ -391,16 +294,13 @@ pub(crate) struct SelectedStar {
     dragging_ship: (Option<Entity>, Option<Entity>),
 }
 
-#[derive(Component)]
-struct MenuContainer;
-
 fn button_system(
     interaction_query: Query<(&Interaction, &ButtonId<UiButtons>, Changed<Interaction>)>,
     controller: Res<CameraController>,
     mut target: ResMut<CameraControllerTarget>,
     mut state: ResMut<State<GameState>>,
     mut turn_state: ResMut<State<TurnState>>,
-    mut menu_container: Query<&mut Visibility, With<MenuContainer>>,
+    mut menu_container: Query<&mut Visibility, With<menu::MenuContainer>>,
     mut displayed_message: ResMut<turn::DisplayedMessage>,
     mut selected_star: ResMut<SelectedStar>,
 ) {
