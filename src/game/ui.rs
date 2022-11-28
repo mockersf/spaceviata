@@ -1155,6 +1155,9 @@ fn display_star_selected(
                                     ..default()
                                 })
                                 .with_children(|parent| {
+                                    let transform_eased =
+                                        Transform::from_rotation(Quat::from_rotation_z(PI));
+
                                     parent.spawn((
                                         ImageBundle {
                                             image: UiImage(match ship.kind {
@@ -1166,11 +1169,19 @@ fn display_star_selected(
                                                 size: Size::new(Val::Px(15.0), Val::Px(15.0)),
                                                 ..default()
                                             },
-                                            transform: Transform::from_rotation(
-                                                Quat::from_rotation_z(PI),
-                                            ),
+                                            transform: transform_eased,
                                             ..default()
                                         },
+                                        bevy_easings::Ease::ease_to(
+                                            transform_eased,
+                                            Transform::from_rotation(Quat::from_rotation_z(PI))
+                                                .with_scale(Vec3::ONE * 1.2f32),
+                                            bevy_easings::EaseFunction::SineInOut,
+                                            bevy_easings::EasingType::PingPong {
+                                                duration: std::time::Duration::from_millis(800),
+                                                pause: Some(std::time::Duration::from_millis(0)),
+                                            },
+                                        ),
                                         Interaction::None,
                                         ButtonId(StarAction::Ship(*entity)),
                                     ));
