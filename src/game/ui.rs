@@ -948,9 +948,9 @@ fn display_star_selected(
                         },
                         ..default()
                     });
-                    let star_revenue = universe.star_revenue(index);
                     match universe.players[0].vision[index] {
                         StarState::Owned(0) => {
+                            let star_revenue = universe.star_revenue(index);
                             parent.spawn(TextBundle {
                                 text: Text::from_sections([
                                     TextSection {
