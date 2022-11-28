@@ -197,16 +197,6 @@ fn start_player_turn(
         universe.players[0].resources += harvested;
     }
 
-    let revenue = universe.player_revenue(0);
-    if revenue < 0.0 {
-        turns.messages.push(Message::Story {
-            title: "Revenue Alert!".to_string(),
-            details: "You have negative revenue.\nToo much debt and you'll lose\nthe game."
-                .to_string(),
-            order: 0,
-        });
-    }
-
     for (mut order, ship, owner) in &mut fleets {
         match order.bypass_change_detection() {
             Order::Orbit(_) => (),
@@ -276,6 +266,17 @@ will grow easily."#
             }
         }
     }
+
+    let revenue = universe.player_revenue(0);
+    if revenue < 0.0 {
+        turns.messages.push(Message::Story {
+            title: "Revenue Alert!".to_string(),
+            details: "You have negative revenue.\nToo much debt and you'll lose\nthe game."
+                .to_string(),
+            order: 0,
+        });
+    }
+
     turns.count += 1;
     let count = turns.count;
     turns.messages.push(Message::Turn(count));
