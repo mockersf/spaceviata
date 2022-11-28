@@ -36,6 +36,7 @@ impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut bevy::prelude::App) {
         app.init_resource::<SelectedStar>()
             .init_resource::<turn::DisplayedMessage>()
+            .init_resource::<shipyard::ShipyadForStar>()
             .add_event::<shipyard::ShipyardEvent>()
             .add_system_set(SystemSet::on_enter(GameState::Game).with_system(setup))
             .add_system_set(
@@ -599,7 +600,7 @@ fn display_star_selected(
                                             font: ui_assets.font_sub.clone_weak(),
                                             font_size: 20.0,
                                             color: if star_revenue < 0.0 {
-                                                Color::RED
+                                                Color::rgb(0.64, 0.17, 0.17)
                                             } else {
                                                 Color::GREEN
                                             },

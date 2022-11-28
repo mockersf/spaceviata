@@ -240,13 +240,13 @@ pub(crate) fn update_player_stats(
         let revenue = universe.player_revenue(0);
         text.sections[3].value = format!("{:.1}\n", universe.player_revenue(0));
         if revenue < 0.0 {
-            text.sections[3].style.color = Color::RED
+            text.sections[3].style.color = Color::rgb(0.64, 0.17, 0.17)
         } else {
             text.sections[3].style.color = Color::GREEN
         }
         text.sections[5].value = format!("{:.1}\n", universe.players[0].savings);
         if universe.players[0].savings < 0.0 {
-            text.sections[5].style.color = Color::RED
+            text.sections[5].style.color = Color::rgb(0.64, 0.17, 0.17)
         } else {
             text.sections[5].style.color = Color::GREEN
         }

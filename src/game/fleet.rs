@@ -62,6 +62,20 @@ impl fmt::Display for ShipKind {
     }
 }
 
+impl ShipKind {
+    pub(crate) fn cost_credits(&self) -> f32 {
+        match self {
+            ShipKind::Colony => 10.0,
+        }
+    }
+
+    pub(crate) fn cost_resources(&self) -> f32 {
+        match self {
+            ShipKind::Colony => 5.0,
+        }
+    }
+}
+
 const CURRENT_STATE: GameState = GameState::Game;
 
 #[derive(Component)]

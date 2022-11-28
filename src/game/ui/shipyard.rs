@@ -1,17 +1,31 @@
+use std::f32::consts::{FRAC_PI_8, PI};
+
 use bevy::{prelude::*, ui::FocusPolicy};
 
-use crate::{assets::UiAssets, game::world::CameraControllerTarget, ui_helper::button::ButtonId};
+use crate::{
+    assets::{loader::ShipAssets, UiAssets},
+    game::{
+        fleet::{Fleet, FleetSize, Order, Owner, Ship, ShipKind},
+        world::CameraControllerTarget,
+        FleetsToSpawn, Universe,
+    },
+    ui_helper::button::ButtonId,
+};
 
 use super::{OneFrameDelay, ScreenTag, SelectedStar, DAMPENER};
 
 #[derive(Clone, Copy)]
 pub(crate) enum ShipyardButtons {
+    BuildColonyShip,
     Exit,
 }
 
 impl From<ShipyardButtons> for String {
     fn from(button: ShipyardButtons) -> Self {
         match button {
+            ShipyardButtons::BuildColonyShip => {
+                material_icons::icon_to_char(material_icons::Icon::Construction).to_string()
+            }
             ShipyardButtons::Exit => {
                 material_icons::icon_to_char(material_icons::Icon::Logout).to_string()
             }
@@ -22,10 +36,18 @@ impl From<ShipyardButtons> for String {
 pub(crate) enum ShipyardEvent {
     OpenForStar(usize),
     Close,
+    InsufficentSavings,
+    InsufficentResources,
 }
 
 #[derive(Component)]
 pub(crate) struct ShipyardPanelMarker;
+
+#[derive(Component)]
+pub(crate) struct ShipyardErrorMarker;
+
+#[derive(Resource, Default)]
+pub(crate) struct ShipyadForStar(usize);
 
 pub(crate) fn display_shipyard(
     mut commands: Commands,
@@ -33,18 +55,50 @@ pub(crate) fn display_shipyard(
     buttons: Res<Assets<crate::ui_helper::button::Button>>,
     mut shipyard_events: EventReader<ShipyardEvent>,
     panel: Query<Entity, With<ShipyardPanelMarker>>,
+    error: Query<Entity, With<ShipyardErrorMarker>>,
     mut target: ResMut<CameraControllerTarget>,
     mut selected_star: ResMut<SelectedStar>,
+    mut for_star: ResMut<ShipyadForStar>,
+    ship_assets: Res<ShipAssets>,
 ) {
     match shipyard_events.iter().last() {
-        Some(ShipyardEvent::OpenForStar(_index)) => {
+        Some(ShipyardEvent::OpenForStar(index)) => {
+            for_star.0 = *index;
             target.ignore_movement = true;
             selected_star.index = None;
-            dbg!(target.ignore_movement);
             let button_handle = ui_handles.button_handle.clone_weak();
             let button = buttons.get(&button_handle).unwrap();
 
-            let next_message_button = button.add_hidden(
+            let build_colony_button = button.add_hidden_section(
+                &mut commands,
+                Val::Px(250.),
+                Val::Px(40.),
+                UiRect::all(Val::Undefined),
+                vec![
+                    TextSection {
+                        value: material_icons::icon_to_char(material_icons::Icon::Construction)
+                            .to_string(),
+                        style: TextStyle {
+                            font: ui_handles.font_material.clone_weak(),
+                            font_size: 15.0,
+                            color: crate::ui_helper::ColorScheme::TEXT,
+                        },
+                    },
+                    TextSection {
+                        value: " 1 colony ship".to_string(),
+                        style: TextStyle {
+                            font: ui_handles.font_main.clone_weak(),
+                            font_size: 20.0,
+                            color: crate::ui_helper::ColorScheme::TEXT,
+                        },
+                    },
+                ],
+                ShipyardButtons::BuildColonyShip,
+                20.,
+                true,
+            );
+
+            let exit_button = button.add_hidden(
                 &mut commands,
                 Val::Px(30.),
                 Val::Px(30.),
@@ -59,7 +113,7 @@ pub(crate) fn display_shipyard(
                 .spawn((
                     NodeBundle {
                         style: Style {
-                            flex_direction: FlexDirection::Column,
+                            flex_direction: FlexDirection::Row,
                             size: Size {
                                 width: Val::Percent(100.0),
                                 height: Val::Percent(100.0),
@@ -73,6 +127,79 @@ pub(crate) fn display_shipyard(
                     OneFrameDelay,
                 ))
                 .with_children(|parent| {
+                    parent
+                        .spawn(NodeBundle {
+                            style: Style {
+                                flex_direction: FlexDirection::Column,
+                                ..default()
+                            },
+                            ..default()
+                        })
+                        .with_children(|parent| {
+                            parent
+                                .spawn(NodeBundle {
+                                    style: Style {
+                                        flex_direction: FlexDirection::Row,
+                                        ..default()
+                                    },
+                                    ..default()
+                                })
+                                .with_children(|parent| {
+                                    parent.spawn(TextBundle {
+                                        text: Text::from_section(
+                                            format!(
+                                                r#"Build 1 Colony Ship
+  credits: {}
+  resources: {}"#,
+                                                ShipKind::Colony.cost_credits(),
+                                                ShipKind::Colony.cost_resources()
+                                            ),
+                                            TextStyle {
+                                                font: ui_handles.font_sub.clone_weak(),
+                                                font_size: 20.0,
+                                                color: Color::WHITE,
+                                            },
+                                        ),
+                                        style: Style {
+                                            size: Size {
+                                                width: Val::Px(200.0),
+                                                height: Val::Px(70.0),
+                                            },
+                                            ..default()
+                                        },
+                                        ..default()
+                                    });
+                                    parent.spawn(ImageBundle {
+                                        image: UiImage(ship_assets.colony_ship.clone_weak()),
+                                        style: Style {
+                                            size: Size::new(Val::Px(50.0), Val::Px(50.0)),
+                                            ..default()
+                                        },
+                                        transform: Transform::from_rotation(Quat::from_rotation_z(
+                                            FRAC_PI_8 + PI,
+                                        )),
+                                        ..default()
+                                    });
+                                });
+                        })
+                        .push_children(&[build_colony_button]);
+                    parent.spawn((
+                        NodeBundle {
+                            style: Style {
+                                position_type: PositionType::Absolute,
+                                position: UiRect {
+                                    bottom: Val::Px(0.0),
+                                    ..default()
+                                },
+                                size: Size::new(Val::Percent(100.0), Val::Px(30.0)),
+                                display: Display::None,
+                                ..default()
+                            },
+                            ..default()
+                        },
+                        ShipyardErrorMarker,
+                        OneFrameDelay,
+                    ));
                     parent
                         .spawn((
                             NodeBundle {
@@ -90,14 +217,14 @@ pub(crate) fn display_shipyard(
                             },
                             OneFrameDelay,
                         ))
-                        .push_children(&[next_message_button]);
+                        .push_children(&[exit_button]);
                 })
                 .id();
 
             let panel_style = Style {
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
-                size: Size::new(Val::Px(600.0), Val::Px(400.0)),
+                size: Size::new(Val::Px(300.0), Val::Px(400.0)),
                 align_content: AlignContent::Stretch,
                 flex_direction: FlexDirection::Column,
                 ..Default::default()
@@ -152,6 +279,42 @@ pub(crate) fn display_shipyard(
                 commands.entity(entity).despawn_recursive();
             }
         }
+        Some(ShipyardEvent::InsufficentSavings) => {
+            if let Ok(entity) = error.get_single() {
+                commands.entity(entity).despawn_descendants();
+                commands.entity(entity).with_children(|parent| {
+                    parent.spawn(TextBundle {
+                        text: Text::from_section(
+                            "Insufficient Savings",
+                            TextStyle {
+                                font: ui_handles.font_sub.clone_weak(),
+                                font_size: 20.0,
+                                color: Color::rgb(0.64, 0.17, 0.17),
+                            },
+                        ),
+                        ..default()
+                    });
+                });
+            }
+        }
+        Some(ShipyardEvent::InsufficentResources) => {
+            if let Ok(entity) = error.get_single() {
+                commands.entity(entity).despawn_descendants();
+                commands.entity(entity).with_children(|parent| {
+                    parent.spawn(TextBundle {
+                        text: Text::from_section(
+                            "Insufficient Resources",
+                            TextStyle {
+                                font: ui_handles.font_sub.clone_weak(),
+                                font_size: 20.0,
+                                color: Color::ORANGE_RED,
+                            },
+                        ),
+                        ..default()
+                    });
+                });
+            }
+        }
         None => (),
     }
 }
@@ -159,11 +322,35 @@ pub(crate) fn display_shipyard(
 pub(crate) fn button_system(
     interaction_query: Query<(&Interaction, &ButtonId<ShipyardButtons>), Changed<Interaction>>,
     mut shipyard_events: EventWriter<ShipyardEvent>,
+    mut universe: ResMut<Universe>,
+    mut fleets_to_spawn: ResMut<FleetsToSpawn>,
+    for_star: Res<ShipyadForStar>,
 ) {
     for (interaction, button_id) in interaction_query.iter() {
         if *interaction == Interaction::Clicked {
             match button_id.0 {
                 ShipyardButtons::Exit => shipyard_events.send(ShipyardEvent::Close),
+                ShipyardButtons::BuildColonyShip => {
+                    if universe.players[0].savings < ShipKind::Colony.cost_credits() {
+                        shipyard_events.send(ShipyardEvent::InsufficentSavings);
+                        return;
+                    }
+                    if universe.players[0].resources < ShipKind::Colony.cost_resources() {
+                        shipyard_events.send(ShipyardEvent::InsufficentResources);
+                        return;
+                    }
+                    universe.players[0].savings -= ShipKind::Colony.cost_credits();
+                    universe.players[0].resources -= ShipKind::Colony.cost_resources();
+                    fleets_to_spawn.0.push(Fleet {
+                        order: Order::Orbit(for_star.0),
+                        ship: Ship {
+                            kind: ShipKind::Colony,
+                        },
+                        size: FleetSize(1),
+                        owner: Owner(0),
+                    });
+                    shipyard_events.send(ShipyardEvent::Close);
+                }
             }
         }
     }
