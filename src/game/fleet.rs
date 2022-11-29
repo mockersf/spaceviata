@@ -147,6 +147,7 @@ fn spawn_fleets(
 struct Orbiting {
     since: f32,
     size: f32,
+    speed: f32,
 }
 
 #[derive(Component)]
@@ -160,7 +161,7 @@ struct MovingTo {
 #[allow(clippy::type_complexity)]
 fn place_fleets(
     mut commands: Commands,
-    fleets: Query<(Entity, &Order, &Children), Changed<Order>>,
+    fleets: Query<(Entity, &Order, &Children, &Ship), Changed<Order>>,
     mut fleets_position: ParamSet<(
         Query<(&mut Transform, &Orbiting)>,
         Query<(&mut Transform, &MovingTo, Changed<MovingTo>)>,
@@ -169,7 +170,7 @@ fn place_fleets(
     universe: Res<Universe>,
     camera_controller: Res<CameraController>,
 ) {
-    for (entity, order, children) in &fleets {
+    for (entity, order, children, ship) in &fleets {
         match order {
             Order::Orbit(around) => {
                 let star_size = universe.galaxy[*around].size;
@@ -187,6 +188,10 @@ fn place_fleets(
                     .insert(Orbiting {
                         since: time.elapsed_seconds(),
                         size: star_size.into(),
+                        speed: match ship.kind {
+                            ShipKind::Colony => 0.8,
+                            ShipKind::Fighter => 1.2,
+                        },
                     });
             }
             Order::Move { from, to, step } => {
@@ -213,11 +218,12 @@ fn place_fleets(
 
     for (mut transform, orbiting) in &mut fleets_position.p0() {
         transform.translation = Vec3::new(
-            (time.elapsed_seconds() - orbiting.since).cos() * orbiting.size * 4.0,
-            (time.elapsed_seconds() - orbiting.since).sin() * orbiting.size * 4.0,
+            (time.elapsed_seconds() * orbiting.speed - orbiting.since).cos() * orbiting.size * 4.0,
+            (time.elapsed_seconds() * orbiting.speed - orbiting.since).sin() * orbiting.size * 4.0,
             z_levels::SHIP,
         );
-        transform.rotation = Quat::from_rotation_z(time.elapsed_seconds() - orbiting.since + PI)
+        transform.rotation =
+            Quat::from_rotation_z(time.elapsed_seconds() * orbiting.speed - orbiting.since + PI)
     }
     for (mut transform, moving_to, changed_moving) in &mut fleets_position.p1() {
         if transform.is_changed() || changed_moving || camera_controller.is_changed() {
