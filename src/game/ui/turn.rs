@@ -77,6 +77,7 @@ pub fn setup(
         .push_children(&[end_turn]);
 }
 
+#[allow(clippy::type_complexity)]
 pub fn display_messages(
     mut commands: Commands,
     turns: Res<Turns>,
