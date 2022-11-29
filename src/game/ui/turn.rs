@@ -19,6 +19,9 @@ use super::{OneFrameDelay, SelectedStar, DAMPENER};
 #[derive(Component)]
 pub struct EndTurnButton;
 
+#[derive(Component)]
+pub struct TurnIcon;
+
 #[derive(Resource, Default)]
 pub struct DisplayedMessage(pub usize);
 
@@ -80,13 +83,17 @@ pub fn display_messages(
     mut current_message: ResMut<DisplayedMessage>,
     ui_handles: Res<UiAssets>,
     panel: Query<Entity, With<MessagePanelMarker>>,
-    mut content: Query<&mut Text, With<MessageContentMarker>>,
+    mut content: Query<&mut Text, (With<MessageContentMarker>, Without<TurnIcon>)>,
     buttons: Res<Assets<crate::ui_helper::button::Button>>,
-    mut text: Query<(&mut Text, &ButtonText<UiButtons>), Without<MessageContentMarker>>,
+    mut text: Query<
+        (&mut Text, &ButtonText<UiButtons>),
+        (Without<MessageContentMarker>, Without<TurnIcon>),
+    >,
     mut selected_star: ResMut<SelectedStar>,
     universe: Res<Universe>,
     mut controller_target: ResMut<CameraControllerTarget>,
     end_turn_button: Query<Entity, With<EndTurnButton>>,
+    mut turn_icon: Query<(Entity, &mut Visibility, &mut Text), With<TurnIcon>>,
 ) {
     if turns.is_changed() && !turns.messages.is_empty() {
         if let Ok(entity) = panel.get_single() {
@@ -136,6 +143,31 @@ pub fn display_messages(
                 OneFrameDelay,
             ))
             .with_children(|parent| {
+                parent.spawn((
+                    TextBundle {
+                        text: Text::from_section(
+                            material_icons::icon_to_char(material_icons::Icon::Flag).to_string(),
+                            TextStyle {
+                                font: ui_handles.font_material.clone_weak(),
+                                font_size: 32.0,
+                                color: Color::WHITE,
+                            },
+                        ),
+                        style: Style {
+                            size: Size::new(Val::Px(32.0), Val::Px(32.0)),
+                            position_type: PositionType::Absolute,
+                            position: UiRect {
+                                right: Val::Px(-10.0),
+                                top: Val::Px(-10.0),
+                                ..default()
+                            },
+                            ..default()
+                        },
+                        visibility: Visibility::INVISIBLE,
+                        ..default()
+                    },
+                    TurnIcon,
+                ));
                 parent.spawn((
                     TextBundle {
                         text: Text::from_sections(
@@ -255,6 +287,7 @@ pub fn display_messages(
                     },
                 ));
         } else if current_message.0 > 0 {
+            turn_icon.single_mut().1.is_visible = false;
             if current_message.0 == turns.messages.len() - 1 {
                 for (mut text, button) in &mut text {
                     if button.0 == UiButtons::NextMessage {
@@ -267,6 +300,9 @@ pub fn display_messages(
                 turns.messages[current_message.0].as_sections(&ui_handles);
             match turns.messages[current_message.0] {
                 Message::ColonyFounded { index, .. } => {
+                    turn_icon.single_mut().1.is_visible = true;
+                    turn_icon.single_mut().2.sections[0].value =
+                        material_icons::icon_to_char(material_icons::Icon::Flag).to_string();
                     if selected_star.index != Some(index) {
                         selected_star.index = Some(index);
                     }
@@ -274,29 +310,41 @@ pub fn display_messages(
                     controller_target.position = universe.galaxy[index].position;
                 }
                 Message::StarExplored { index, .. } => {
+                    turn_icon.single_mut().1.is_visible = true;
+                    turn_icon.single_mut().2.sections[0].value =
+                        material_icons::icon_to_char(material_icons::Icon::TravelExplore)
+                            .to_string();
                     if selected_star.index != Some(index) {
                         selected_star.index = Some(index);
                     }
                     controller_target.zoom_level = 8.0;
                     controller_target.position = universe.galaxy[index].position;
                 }
-                Message::Story {
-                    index: Some(index), ..
-                } => {
-                    if selected_star.index != Some(index) {
-                        selected_star.index = Some(index);
+                Message::Story { index, .. } => {
+                    turn_icon.single_mut().1.is_visible = true;
+                    turn_icon.single_mut().2.sections[0].value =
+                        material_icons::icon_to_char(material_icons::Icon::MenuBook).to_string();
+
+                    if let Some(index) = index {
+                        if selected_star.index != Some(index) {
+                            selected_star.index = Some(index);
+                        }
+                        controller_target.zoom_level = 8.0;
+                        controller_target.position = universe.galaxy[index].position;
                     }
-                    controller_target.zoom_level = 8.0;
-                    controller_target.position = universe.galaxy[index].position;
                 }
                 Message::Fight { index, .. } => {
+                    turn_icon.single_mut().1.is_visible = true;
+                    turn_icon.single_mut().2.sections[0].value =
+                        material_icons::icon_to_char(material_icons::Icon::GppMaybe).to_string();
+
                     if selected_star.index != Some(index) {
                         selected_star.index = Some(index);
                     }
                     controller_target.zoom_level = 8.0;
                     controller_target.position = universe.galaxy[index].position;
                 }
-                Message::Turn(_) | Message::Story { index: None, .. } => (),
+                Message::Turn(_) => (),
             }
         }
     }
