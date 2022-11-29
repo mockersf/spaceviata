@@ -76,7 +76,7 @@ impl ShipKind {
     pub(crate) fn cost_resources(&self) -> f32 {
         match self {
             ShipKind::Colony => 5.0,
-            ShipKind::Fighter => 10.0,
+            ShipKind::Fighter => 1.0,
         }
     }
 }

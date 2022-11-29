@@ -65,6 +65,8 @@ struct System {
 struct StarName;
 #[derive(Component)]
 pub(crate) struct StarHat(pub(crate) usize);
+#[derive(Component)]
+pub(crate) struct StarMask(pub(crate) usize);
 
 #[derive(Resource)]
 struct TempMaterials {
@@ -168,6 +170,16 @@ fn setup(
                             ..default()
                         },
                         StarHat(index),
+                    ));
+                    parent.spawn((
+                        SpriteBundle {
+                            texture: galaxy_assets.mask.clone_weak(),
+                            transform: Transform::from_scale(Vec3::new(0.045, 0.035, 0.0))
+                                .with_translation(Vec2::ZERO.extend(z_levels::STAR_DECORATION)),
+                            visibility: Visibility { is_visible: false },
+                            ..default()
+                        },
+                        StarMask(index),
                     ));
                 })
                 .id()

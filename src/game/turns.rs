@@ -3,9 +3,9 @@ use bevy::prelude::*;
 use crate::assets::{GalaxyAssets, UiAssets};
 
 use super::{
-    fleet::{turns_between, Order, Owner, Ship, ShipKind},
+    fleet::{turns_between, FleetSize, Order, Owner, Ship, ShipKind},
     galaxy::StarColor,
-    world::StarHat,
+    world::{StarHat, StarMask},
     StarState, Universe,
 };
 
@@ -41,6 +41,15 @@ pub(crate) enum Message {
         order: u32,
         index: Option<usize>,
     },
+    Fight {
+        index: usize,
+        star_name: String,
+        against: usize,
+        attacker: bool,
+        ship_lost: u32,
+        ship_destroyed: u32,
+        population_killed: f32,
+    },
 }
 
 impl Message {
@@ -48,8 +57,9 @@ impl Message {
         match self {
             Message::Turn(_) => 0,
             Message::StarExplored { .. } => 1,
-            Message::ColonyFounded { .. } => 2,
-            Message::Story { order, .. } => 3 + order,
+            Message::Fight { .. } => 2,
+            Message::ColonyFounded { .. } => 3,
+            Message::Story { order, .. } => 4 + order,
         }
     }
 
@@ -128,6 +138,36 @@ impl Message {
                     },
                 },
             ],
+            Message::Fight {
+                star_name,
+                against,
+                attacker,
+                ship_lost,
+                ship_destroyed,
+                population_killed,
+                ..
+            } => vec![
+                TextSection {
+                    value: format!("Fight on {}\n", star_name),
+                    style: TextStyle {
+                        font: ui_handles.font_main.clone_weak(),
+                        font_size: 20.0,
+                        color: Color::WHITE,
+                    },
+                },
+                TextSection {
+                    value: if *attacker {
+                        format!("You attacked player {}\nand lost {} ships.\nYou destroyed {} ships and\nkilled {} population.", against, ship_lost, ship_destroyed, population_killed)
+                    } else {
+                        format!("You defended against player {},\n lost {} ships and {} population.\nYou destroyed {} ships.", against, ship_lost, population_killed, ship_destroyed)
+                    },
+                    style: TextStyle {
+                        font: ui_handles.font_sub.clone_weak(),
+                        font_size: 20.0,
+                        color: Color::WHITE,
+                    },
+                },
+            ],
         }
     }
 }
@@ -142,12 +182,16 @@ impl bevy::app::Plugin for Plugin {
 }
 
 fn start_player_turn(
+    mut commands: Commands,
     mut universe: ResMut<Universe>,
     mut turns: ResMut<Turns>,
     galaxy_assets: Res<GalaxyAssets>,
-    mut fleets: Query<(&mut Order, &Ship, &Owner)>,
+    mut fleets: Query<(Entity, &mut Order, &Ship, &Owner, &mut FleetSize)>,
     mut materials: Query<&mut Handle<ColorMaterial>>,
-    mut hats: Query<(&mut Visibility, &StarHat)>,
+    mut decorations: ParamSet<(
+        Query<(&mut Visibility, &StarHat)>,
+        Query<(&mut Visibility, &mut Sprite, &StarMask)>,
+    )>,
 ) {
     turns.messages = vec![];
 
@@ -203,7 +247,7 @@ fn start_player_turn(
         universe.players[0].resources += harvested;
     }
 
-    for (mut order, ship, owner) in &mut fleets {
+    for (entity, mut order, ship, owner, mut fleet_size) in &mut fleets {
         match order.bypass_change_detection() {
             Order::Orbit(_) => (),
             Order::Move { from, to, step, .. } => {
@@ -218,6 +262,7 @@ fn start_player_turn(
                         ShipKind::Colony => {
                             if universe.star_details[*to].owner != owner.0 {
                                 if owner.0 == 0 {
+                                    // star exploration and visibility in universe
                                     if universe.players[owner.0].vision[*to] == StarState::Unknown {
                                         let start_conditions =
                                             &universe.galaxy[universe.players[0].start];
@@ -230,32 +275,7 @@ fn start_player_turn(
                                             index: *to,
                                         });
                                     }
-                                    turns.messages.push(Message::ColonyFounded {
-                                        name: universe.galaxy[*to].name.clone(),
-                                        index: *to,
-                                    });
-                                    if !universe.players[0].first_colony_done {
-                                        universe.players[0].first_colony_done = true;
-                                        turns.messages.push(Message::Story {
-                                            title: "First colony!".to_string(),
-                                            details: r#"You just founded your first colony!
-If the color is the same as your
-starting system, your population
-will grow faster."#
-                                                .to_string(),
-                                            order: 0,
-                                            index: None,
-                                        });
-                                        turns.messages.push(Message::Story {
-                                            title: "revenue".to_string(),
-                                            details: r#"New colony cost credits.
-Once population has grown, colonies
-will start earning credits."#
-                                                .to_string(),
-                                            order: 1,
-                                            index: None,
-                                        });
-                                    }
+
                                     *materials.get_mut(universe.star_entities[*to]).unwrap() =
                                         match universe.galaxy[*to].color {
                                             StarColor::Blue => galaxy_assets.blue_star.clone_weak(),
@@ -266,18 +286,81 @@ will start earning credits."#
                                                 galaxy_assets.yellow_star.clone_weak()
                                             }
                                         };
+                                }
+                                if universe.star_details[*to].owner != usize::MAX {
+                                    // fight against population, colony ship always lose
+                                    commands.entity(entity).despawn_recursive();
+                                    universe.players[owner.0].vision[*to] =
+                                        StarState::Owned(universe.star_details[*to].owner);
+                                    let mut p1 = decorations.p1();
+                                    let mut p11 = p1.iter_mut();
+                                    let (mut visibility, mut sprite, _) =
+                                        p11.find(|(_, _, mask)| mask.0 == *to).unwrap();
+                                    visibility.is_visible = true;
+                                    sprite.color = match universe.star_details[*to].owner {
+                                        1 => Color::RED,
+                                        2 => Color::BLUE,
+                                        3 => Color::PURPLE,
+                                        4 => Color::BLACK,
+                                        _ => unreachable!(),
+                                    };
+
                                     if owner.0 == 0 {
-                                        hats.iter_mut()
+                                        turns.messages.push(Message::Fight {
+                                            index: *to,
+                                            star_name: universe.galaxy[*to].name.clone(),
+                                            against: universe.star_details[*to].owner,
+                                            attacker: true,
+                                            ship_lost: 1,
+                                            ship_destroyed: 0,
+                                            population_killed: 0.0,
+                                        })
+                                    }
+                                } else {
+                                    // colonize the star!
+                                    if owner.0 == 0 {
+                                        turns.messages.push(Message::ColonyFounded {
+                                            name: universe.galaxy[*to].name.clone(),
+                                            index: *to,
+                                        });
+                                        if !universe.players[0].first_colony_done {
+                                            universe.players[0].first_colony_done = true;
+                                            turns.messages.push(Message::Story {
+                                                title: "First colony!".to_string(),
+                                                details: r#"You just founded your first colony!
+If the color is the same as your
+starting system, your population
+will grow faster."#
+                                                    .to_string(),
+                                                order: 0,
+                                                index: None,
+                                            });
+                                            turns.messages.push(Message::Story {
+                                                title: "revenue".to_string(),
+                                                details: r#"New colony cost credits.
+Once population has grown, colonies
+will start earning credits."#
+                                                    .to_string(),
+                                                order: 1,
+                                                index: None,
+                                            });
+                                        }
+
+                                        decorations
+                                            .p0()
+                                            .iter_mut()
                                             .find(|(_, hat)| hat.0 == *to)
                                             .unwrap()
                                             .0
                                             .is_visible = true;
                                     }
+
+                                    universe.players[owner.0].vision[*to] =
+                                        StarState::Owned(owner.0);
+                                    universe.star_details[*to].owner = owner.0;
+                                    universe.star_details[*to].owned_since = turns.count;
+                                    universe.star_details[*to].population = 10.0;
                                 }
-                                universe.players[owner.0].vision[*to] = StarState::Owned(owner.0);
-                                universe.star_details[*to].owner = owner.0;
-                                universe.star_details[*to].owned_since = turns.count;
-                                universe.star_details[*to].population = 10.0;
                             }
                         }
                         ShipKind::Fighter => {
@@ -306,7 +389,64 @@ will start earning credits."#
                                             }
                                         };
                                 }
-                                universe.players[owner.0].vision[*to] = StarState::Uninhabited;
+                                if universe.star_details[*to].owner != usize::MAX {
+                                    // fight against population, each fighter kills 10 population
+                                    let mut population = universe.star_details[*to].population;
+                                    let mut killed = 0.0;
+                                    let mut lost = 0;
+                                    let attacked = universe.star_details[*to].owner;
+                                    while population >= 0.0 && fleet_size.0 > 0 {
+                                        population -= 10.0;
+                                        killed += 10.0;
+                                        fleet_size.0 -= 1;
+                                        lost += 1;
+                                    }
+
+                                    if fleet_size.0 > 0 {
+                                        killed = universe.star_details[*to].population;
+                                        universe.star_details[*to].population = 0.0;
+                                        universe.star_details[*to].owner = usize::MAX;
+                                        universe.players[owner.0].vision[*to] =
+                                            StarState::Uninhabited;
+                                        let mut p1 = decorations.p1();
+                                        let mut p11 = p1.iter_mut();
+                                        let (mut visibility, _, _) =
+                                            p11.find(|(_, _, mask)| mask.0 == *to).unwrap();
+                                        visibility.is_visible = false;
+                                    } else {
+                                        commands.entity(entity).despawn_recursive();
+                                        universe.star_details[*to].population = population;
+
+                                        universe.players[owner.0].vision[*to] =
+                                            StarState::Owned(universe.star_details[*to].owner);
+                                        let mut p1 = decorations.p1();
+                                        let mut p11 = p1.iter_mut();
+                                        let (mut visibility, mut sprite, _) =
+                                            p11.find(|(_, _, mask)| mask.0 == *to).unwrap();
+                                        visibility.is_visible = true;
+                                        sprite.color = match universe.star_details[*to].owner {
+                                            1 => Color::RED,
+                                            2 => Color::BLUE,
+                                            3 => Color::PURPLE,
+                                            4 => Color::BLACK,
+                                            _ => unreachable!(),
+                                        }
+                                    }
+
+                                    if owner.0 == 0 {
+                                        turns.messages.push(Message::Fight {
+                                            index: *to,
+                                            star_name: universe.galaxy[*to].name.clone(),
+                                            against: attacked,
+                                            attacker: true,
+                                            ship_lost: lost,
+                                            ship_destroyed: 0,
+                                            population_killed: killed,
+                                        })
+                                    }
+                                } else {
+                                    universe.players[owner.0].vision[*to] = StarState::Uninhabited;
+                                }
                             }
                         }
                     }

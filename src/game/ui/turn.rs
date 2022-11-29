@@ -289,8 +289,14 @@ pub(crate) fn display_messages(
                     controller_target.zoom_level = 8.0;
                     controller_target.position = universe.galaxy[index].position;
                 }
-
-                _ => (),
+                Message::Fight { index, .. } => {
+                    if selected_star.index != Some(index) {
+                        selected_star.index = Some(index);
+                    }
+                    controller_target.zoom_level = 8.0;
+                    controller_target.position = universe.galaxy[index].position;
+                }
+                Message::Turn(_) | Message::Story { index: None, .. } => (),
             }
         }
     }
