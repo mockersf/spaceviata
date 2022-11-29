@@ -51,7 +51,8 @@ impl Plugin for AssetPlugin {
                     .continue_to_state(AllTheLoading::Ready)
                     .with_collection::<RawUiAssets>()
                     .with_collection::<RawGalaxyAssets>()
-                    .with_collection::<ShipAssets>(),
+                    .with_collection::<ShipAssets>()
+                    .with_collection::<TurnAssets>(),
             )
             .add_system_set(SystemSet::on_enter(AllTheLoading::Ready).with_system(done));
     }
@@ -85,6 +86,18 @@ pub struct ShipAssets {
     pub colony_ship: Handle<Image>,
     #[asset(path = "ships/enemyBlue1.png")]
     pub fighter: Handle<Image>,
+}
+
+#[derive(AssetCollection)]
+pub struct TurnAssets {
+    #[asset(path = "ui/turns/punch-blast.png")]
+    pub fight: Handle<Image>,
+    #[asset(path = "ui/turns/read.png")]
+    pub story: Handle<Image>,
+    #[asset(path = "ui/turns/planet-conquest.png")]
+    pub colony_founded: Handle<Image>,
+    #[asset(path = "ui/turns/orbit.png")]
+    pub star_explored: Handle<Image>,
 }
 
 #[derive(Resource)]
