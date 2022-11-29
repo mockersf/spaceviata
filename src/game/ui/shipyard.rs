@@ -9,7 +9,7 @@ use crate::{
         world::CameraControllerTarget,
         FleetsToSpawn, Universe,
     },
-    ui_helper::button::ButtonId,
+    ui_helper::button::{ButtonId, ButtonText},
 };
 
 use super::{OneFrameDelay, ScreenTag, SelectedStar, DAMPENER};
@@ -18,6 +18,8 @@ use super::{OneFrameDelay, ScreenTag, SelectedStar, DAMPENER};
 pub enum ShipyardButtons {
     BuildColonyShip,
     BuildFighter,
+    AddFighter,
+    RemoveFighter,
     Exit,
 }
 
@@ -32,6 +34,12 @@ impl From<ShipyardButtons> for String {
             }
             ShipyardButtons::Exit => {
                 material_icons::icon_to_char(material_icons::Icon::Logout).to_string()
+            }
+            ShipyardButtons::AddFighter => {
+                material_icons::icon_to_char(material_icons::Icon::Add).to_string()
+            }
+            ShipyardButtons::RemoveFighter => {
+                material_icons::icon_to_char(material_icons::Icon::Remove).to_string()
             }
         }
     }
@@ -51,7 +59,10 @@ pub struct ShipyardPanelMarker;
 pub struct ShipyardErrorMarker;
 
 #[derive(Resource, Default)]
-pub struct ShipyadForStar(usize);
+pub struct ShipyadForStar {
+    star: usize,
+    fighter_count: u32,
+}
 
 pub fn display_shipyard(
     mut commands: Commands,
@@ -67,7 +78,8 @@ pub fn display_shipyard(
 ) {
     match shipyard_events.iter().last() {
         Some(ShipyardEvent::OpenForStar(index)) => {
-            for_star.0 = *index;
+            for_star.star = *index;
+            for_star.fighter_count = 1;
             target.ignore_movement = true;
             selected_star.index = None;
             let button_handle = ui_handles.button_handle.clone_weak();
@@ -101,6 +113,7 @@ pub fn display_shipyard(
                 20.,
                 true,
             );
+
             let build_fighter_button = button.add_hidden_section(
                 &mut commands,
                 Val::Px(250.),
@@ -117,7 +130,7 @@ pub fn display_shipyard(
                         },
                     },
                     TextSection {
-                        value: " 1 fighter".to_string(),
+                        value: format!(" {} fighter", for_star.fighter_count),
                         style: TextStyle {
                             font: ui_handles.font_main.clone_weak(),
                             font_size: 20.0,
@@ -132,7 +145,7 @@ pub fn display_shipyard(
 
             let exit_button = button.add_hidden(
                 &mut commands,
-                Val::Px(30.),
+                Val::Px(40.),
                 Val::Px(30.),
                 UiRect::all(Val::Auto),
                 ui_handles.font_material.clone_weak(),
@@ -141,6 +154,31 @@ pub fn display_shipyard(
                 crate::ui_helper::ColorScheme::TEXT,
                 true,
             );
+
+            let add_fighter_button = button.add_hidden(
+                &mut commands,
+                Val::Px(40.),
+                Val::Px(30.),
+                UiRect::all(Val::Auto),
+                ui_handles.font_material.clone_weak(),
+                ShipyardButtons::AddFighter,
+                20.,
+                crate::ui_helper::ColorScheme::TEXT,
+                true,
+            );
+
+            let remove_fighter_button = button.add_hidden(
+                &mut commands,
+                Val::Px(40.),
+                Val::Px(30.),
+                UiRect::all(Val::Auto),
+                ui_handles.font_material.clone_weak(),
+                ShipyardButtons::RemoveFighter,
+                20.,
+                crate::ui_helper::ColorScheme::TEXT,
+                true,
+            );
+
             let base = commands
                 .spawn((
                     NodeBundle {
@@ -236,31 +274,39 @@ pub fn display_shipyard(
                                     ..default()
                                 })
                                 .with_children(|parent| {
-                                    parent.spawn(TextBundle {
-                                        text: Text::from_section(
-                                            format!(
-                                                r#"Build 1 {}
-  credits: {}
-  resources: {}"#,
-                                                ShipKind::Fighter,
-                                                ShipKind::Fighter.cost_credits(),
-                                                ShipKind::Fighter.cost_resources()
+                                    parent.spawn((
+                                        TextBundle {
+                                            text: Text::from_section(
+                                                format!(
+                                                    r#"Build {} {}
+  credits: {} ({})
+  resources: {} ({})"#,
+                                                    for_star.fighter_count,
+                                                    ShipKind::Fighter,
+                                                    ShipKind::Fighter.cost_credits()
+                                                        * for_star.fighter_count as f32,
+                                                    ShipKind::Fighter.cost_credits(),
+                                                    ShipKind::Fighter.cost_resources()
+                                                        * for_star.fighter_count as f32,
+                                                    ShipKind::Fighter.cost_resources(),
+                                                ),
+                                                TextStyle {
+                                                    font: ui_handles.font_sub.clone_weak(),
+                                                    font_size: 20.0,
+                                                    color: Color::WHITE,
+                                                },
                                             ),
-                                            TextStyle {
-                                                font: ui_handles.font_sub.clone_weak(),
-                                                font_size: 20.0,
-                                                color: Color::WHITE,
-                                            },
-                                        ),
-                                        style: Style {
-                                            size: Size {
-                                                width: Val::Px(200.0),
-                                                height: Val::Px(70.0),
+                                            style: Style {
+                                                size: Size {
+                                                    width: Val::Px(200.0),
+                                                    height: Val::Px(70.0),
+                                                },
+                                                ..default()
                                             },
                                             ..default()
                                         },
-                                        ..default()
-                                    });
+                                        ButtonText(ShipyardButtons::BuildFighter),
+                                    ));
                                     parent.spawn(ImageBundle {
                                         image: UiImage(ship_assets.fighter.clone_weak()),
                                         style: Style {
@@ -273,6 +319,16 @@ pub fn display_shipyard(
                                         ..default()
                                     });
                                 });
+                            parent
+                                .spawn(NodeBundle {
+                                    style: Style {
+                                        flex_direction: FlexDirection::Row,
+                                        margin: UiRect::bottom(Val::Px(5.0)),
+                                        ..default()
+                                    },
+                                    ..default()
+                                })
+                                .push_children(&[remove_fighter_button, add_fighter_button]);
                         })
                         .push_children(&[build_fighter_button]);
                     parent.spawn((
@@ -416,7 +472,8 @@ pub fn button_system(
     mut shipyard_events: EventWriter<ShipyardEvent>,
     mut universe: ResMut<Universe>,
     mut fleets_to_spawn: ResMut<FleetsToSpawn>,
-    for_star: Res<ShipyadForStar>,
+    mut for_star: ResMut<ShipyadForStar>,
+    mut fighters_texts: Query<(&mut Text, &ButtonText<ShipyardButtons>)>,
 ) {
     for (interaction, button_id) in interaction_query.iter() {
         if *interaction == Interaction::Clicked {
@@ -434,7 +491,7 @@ pub fn button_system(
                     universe.players[0].savings -= ShipKind::Colony.cost_credits();
                     universe.players[0].resources -= ShipKind::Colony.cost_resources();
                     fleets_to_spawn.0.push(Fleet {
-                        order: Order::Orbit(for_star.0),
+                        order: Order::Orbit(for_star.star),
                         ship: Ship {
                             kind: ShipKind::Colony,
                         },
@@ -444,25 +501,83 @@ pub fn button_system(
                     shipyard_events.send(ShipyardEvent::Close);
                 }
                 ShipyardButtons::BuildFighter => {
-                    if universe.players[0].savings < ShipKind::Fighter.cost_credits() {
+                    if universe.players[0].savings
+                        < ShipKind::Fighter.cost_credits() * for_star.fighter_count as f32
+                    {
                         shipyard_events.send(ShipyardEvent::InsufficentSavings);
                         return;
                     }
-                    if universe.players[0].resources < ShipKind::Fighter.cost_resources() {
+                    if universe.players[0].resources
+                        < ShipKind::Fighter.cost_resources() * for_star.fighter_count as f32
+                    {
                         shipyard_events.send(ShipyardEvent::InsufficentResources);
                         return;
                     }
-                    universe.players[0].savings -= ShipKind::Fighter.cost_credits();
-                    universe.players[0].resources -= ShipKind::Fighter.cost_resources();
+                    universe.players[0].savings -=
+                        ShipKind::Fighter.cost_credits() * for_star.fighter_count as f32;
+                    universe.players[0].resources -=
+                        ShipKind::Fighter.cost_resources() * for_star.fighter_count as f32;
                     fleets_to_spawn.0.push(Fleet {
-                        order: Order::Orbit(for_star.0),
+                        order: Order::Orbit(for_star.star),
                         ship: Ship {
                             kind: ShipKind::Fighter,
                         },
-                        size: FleetSize(1),
+                        size: FleetSize(for_star.fighter_count),
                         owner: Owner(0),
                     });
                     shipyard_events.send(ShipyardEvent::Close);
+                }
+                ShipyardButtons::AddFighter => {
+                    for_star.fighter_count += 1;
+                    for (mut text, button) in &mut fighters_texts {
+                        if matches!(button, ButtonText(ShipyardButtons::BuildFighter)) {
+                            if text.sections.len() == 1 {
+                                text.sections[0].value = format!(
+                                    r#"Build {} {}
+  credits: {} ({})
+  resources: {} ({})"#,
+                                    for_star.fighter_count,
+                                    ShipKind::Fighter,
+                                    ShipKind::Fighter.cost_credits()
+                                        * for_star.fighter_count as f32,
+                                    ShipKind::Fighter.cost_credits(),
+                                    ShipKind::Fighter.cost_resources()
+                                        * for_star.fighter_count as f32,
+                                    ShipKind::Fighter.cost_resources(),
+                                );
+                            } else {
+                                text.sections[1].value =
+                                    format!(" {} fighter", for_star.fighter_count);
+                            }
+                        }
+                    }
+                }
+                ShipyardButtons::RemoveFighter => {
+                    if for_star.fighter_count > 1 {
+                        for_star.fighter_count -= 1;
+                        for (mut text, button) in &mut fighters_texts {
+                            if matches!(button, ButtonText(ShipyardButtons::BuildFighter)) {
+                                if text.sections.len() == 1 {
+                                    text.sections[0].value = format!(
+                                        r#"Build {} {}
+  credits: {} ({})
+  resources: {} ({})"#,
+                                        for_star.fighter_count,
+                                        ShipKind::Fighter,
+                                        ShipKind::Fighter.cost_credits()
+                                            * for_star.fighter_count as f32,
+                                        ShipKind::Fighter.cost_credits(),
+                                        ShipKind::Fighter.cost_resources()
+                                            * for_star.fighter_count as f32,
+                                        ShipKind::Fighter.cost_resources(),
+                                    );
+                                } else {
+                                    text.sections[1].value =
+                                        format!(" {} fighter", for_star.fighter_count);
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

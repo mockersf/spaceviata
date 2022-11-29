@@ -404,7 +404,7 @@ will start earning credits."#
                                     }
 
                                     if fleet_size.0 > 0 {
-                                        killed = 10.0 - universe.star_details[*to].population;
+                                        killed = universe.star_details[*to].population;
                                         universe.star_details[*to].population = 0.0;
                                         universe.star_details[*to].owner = usize::MAX;
                                         universe.players[owner.0].vision[*to] =
