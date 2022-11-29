@@ -181,6 +181,7 @@ impl bevy::app::Plugin for Plugin {
     }
 }
 
+#[allow(clippy::type_complexity)]
 fn start_player_turn(
     mut commands: Commands,
     mut universe: ResMut<Universe>,
