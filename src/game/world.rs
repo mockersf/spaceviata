@@ -156,7 +156,7 @@ fn setup(
                     parent.spawn((
                         SpriteBundle {
                             texture: galaxy_assets.hat.clone_weak(),
-                            transform: Transform::from_scale(Vec3::splat(0.0075))
+                            transform: Transform::from_scale(Vec3::splat(0.075))
                                 .with_translation(
                                     (Vec2::new(-hat_angle.sin(), hat_angle.cos()) * 2.75)
                                         .extend(z_levels::STAR_DECORATION),
