@@ -68,7 +68,7 @@ fn tear_down(mut commands: Commands, query: Query<Entity, With<ScreenTag>>) {
     }
 }
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum UiButtons {
     ZoomIn,
     ZoomOut,
