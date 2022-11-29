@@ -4,7 +4,7 @@ use bevy::{prelude::*, ui::FocusPolicy};
 use bevy_easings::{Ease, EaseFunction, EasingComponent, EasingType};
 
 use crate::{
-    assets::{loader::TurnAssets, UiAssets},
+    assets::UiAssets,
     game::{
         turns::{Message, Turns},
         ui::{ScreenTag, UiButtons},
@@ -83,15 +83,17 @@ pub fn display_messages(
     mut current_message: ResMut<DisplayedMessage>,
     ui_handles: Res<UiAssets>,
     panel: Query<Entity, With<MessagePanelMarker>>,
-    mut content: Query<&mut Text, With<MessageContentMarker>>,
+    mut content: Query<&mut Text, (With<MessageContentMarker>, Without<TurnIcon>)>,
     buttons: Res<Assets<crate::ui_helper::button::Button>>,
-    mut text: Query<(&mut Text, &ButtonText<UiButtons>), Without<MessageContentMarker>>,
+    mut text: Query<
+        (&mut Text, &ButtonText<UiButtons>),
+        (Without<MessageContentMarker>, Without<TurnIcon>),
+    >,
     mut selected_star: ResMut<SelectedStar>,
     universe: Res<Universe>,
     mut controller_target: ResMut<CameraControllerTarget>,
     end_turn_button: Query<Entity, With<EndTurnButton>>,
-    mut turn_icon: Query<(Entity, &mut Visibility, &mut UiImage), With<TurnIcon>>,
-    turn_assets: Res<TurnAssets>,
+    mut turn_icon: Query<(Entity, &mut Visibility, &mut Text), With<TurnIcon>>,
 ) {
     if turns.is_changed() && !turns.messages.is_empty() {
         if let Ok(entity) = panel.get_single() {
@@ -142,8 +144,15 @@ pub fn display_messages(
             ))
             .with_children(|parent| {
                 parent.spawn((
-                    ImageBundle {
-                        image: UiImage(turn_assets.colony_founded.clone_weak()),
+                    TextBundle {
+                        text: Text::from_section(
+                            material_icons::icon_to_char(material_icons::Icon::Flag).to_string(),
+                            TextStyle {
+                                font: ui_handles.font_material.clone_weak(),
+                                font_size: 32.0,
+                                color: Color::WHITE,
+                            },
+                        ),
                         style: Style {
                             size: Size::new(Val::Px(32.0), Val::Px(32.0)),
                             position_type: PositionType::Absolute,
@@ -292,7 +301,8 @@ pub fn display_messages(
             match turns.messages[current_message.0] {
                 Message::ColonyFounded { index, .. } => {
                     turn_icon.single_mut().1.is_visible = true;
-                    turn_icon.single_mut().2 .0 = turn_assets.colony_founded.clone_weak();
+                    turn_icon.single_mut().2.sections[0].value =
+                        material_icons::icon_to_char(material_icons::Icon::Flag).to_string();
                     if selected_star.index != Some(index) {
                         selected_star.index = Some(index);
                     }
@@ -301,7 +311,9 @@ pub fn display_messages(
                 }
                 Message::StarExplored { index, .. } => {
                     turn_icon.single_mut().1.is_visible = true;
-                    turn_icon.single_mut().2 .0 = turn_assets.star_explored.clone_weak();
+                    turn_icon.single_mut().2.sections[0].value =
+                        material_icons::icon_to_char(material_icons::Icon::TravelExplore)
+                            .to_string();
                     if selected_star.index != Some(index) {
                         selected_star.index = Some(index);
                     }
@@ -310,7 +322,9 @@ pub fn display_messages(
                 }
                 Message::Story { index, .. } => {
                     turn_icon.single_mut().1.is_visible = true;
-                    turn_icon.single_mut().2 .0 = turn_assets.story.clone_weak();
+                    turn_icon.single_mut().2.sections[0].value =
+                        material_icons::icon_to_char(material_icons::Icon::MenuBook).to_string();
+
                     if let Some(index) = index {
                         if selected_star.index != Some(index) {
                             selected_star.index = Some(index);
@@ -321,7 +335,9 @@ pub fn display_messages(
                 }
                 Message::Fight { index, .. } => {
                     turn_icon.single_mut().1.is_visible = true;
-                    turn_icon.single_mut().2 .0 = turn_assets.fight.clone_weak();
+                    turn_icon.single_mut().2.sections[0].value =
+                        material_icons::icon_to_char(material_icons::Icon::GppMaybe).to_string();
+
                     if selected_star.index != Some(index) {
                         selected_star.index = Some(index);
                     }
