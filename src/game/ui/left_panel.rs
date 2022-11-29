@@ -12,14 +12,14 @@ use crate::{
 use super::{shipyard, ScreenTag, SelectedStar, DAMPENER, LEFT_PANEL_WIDTH};
 
 #[derive(Component)]
-pub(crate) struct PlayerStatsMarker;
+pub struct PlayerStatsMarker;
 
 #[derive(Component, Default)]
-pub(crate) struct StarList {
+pub struct StarList {
     position: f32,
 }
 
-pub(crate) fn setup(commands: &mut Commands, ui_handles: &UiAssets) {
+pub fn setup(commands: &mut Commands, ui_handles: &UiAssets) {
     let left_panel_top = {
         let base = commands
             .spawn(NodeBundle {
@@ -230,7 +230,7 @@ pub(crate) fn setup(commands: &mut Commands, ui_handles: &UiAssets) {
         .push_children(&[left_panel_top, left_panel_bottom]);
 }
 
-pub(crate) fn update_player_stats(
+pub fn update_player_stats(
     mut text: Query<&mut Text, With<PlayerStatsMarker>>,
     universe: Res<Universe>,
 ) {
@@ -255,7 +255,7 @@ pub(crate) fn update_player_stats(
 }
 
 #[allow(clippy::type_complexity)]
-pub(crate) fn star_list_click(
+pub fn star_list_click(
     interaction_query: Query<(&Interaction, &StarListIndex), (Changed<Interaction>, With<Button>)>,
     mut selected_star: ResMut<SelectedStar>,
     universe: Res<Universe>,
@@ -275,7 +275,7 @@ pub(crate) fn star_list_click(
     }
 }
 
-pub(crate) fn star_list_scroll(
+pub fn star_list_scroll(
     mut mouse_wheel_events: EventReader<MouseWheel>,
     mut query_list: Query<(&mut StarList, &mut Style, &Children, &Node)>,
     query_item: Query<&Node>,
@@ -308,9 +308,9 @@ pub(crate) fn star_list_scroll(
 }
 
 #[derive(Component)]
-pub(crate) struct StarListIndex(usize);
+pub struct StarListIndex(usize);
 
-pub(crate) fn display_star_list(
+pub fn display_star_list(
     mut commands: Commands,
     universe: Res<Universe>,
     ui_container: Query<(Entity, Option<&Children>), With<StarList>>,

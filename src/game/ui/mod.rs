@@ -30,7 +30,7 @@ pub const LEFT_PANEL_WIDTH: f32 = 200.0;
 
 const DAMPENER: Color = Color::rgba(0.15, 0.15, 0.15, 0.75);
 
-pub(crate) struct Plugin;
+pub struct Plugin;
 
 impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut bevy::prelude::App) {
@@ -69,7 +69,7 @@ fn tear_down(mut commands: Commands, query: Query<Entity, With<ScreenTag>>) {
 }
 
 #[derive(Clone, Copy, PartialEq)]
-pub(crate) enum UiButtons {
+pub enum UiButtons {
     ZoomIn,
     ZoomOut,
     GameMenu,
@@ -293,7 +293,7 @@ struct FleetsDetails;
 struct ShipyardButton;
 
 #[derive(Resource, Default)]
-pub(crate) struct SelectedStar {
+pub struct SelectedStar {
     ignore_next_click: bool,
     index: Option<usize>,
     dragging_ship: (Option<Entity>, Option<Entity>),
@@ -896,7 +896,7 @@ fn rotate_mark(mut query: Query<&mut Transform, With<MarkedStar>>, time: Res<Tim
 }
 
 #[derive(Component)]
-pub(crate) struct OneFrameDelay;
+pub struct OneFrameDelay;
 
 fn make_it_visible(
     mut commands: Commands,

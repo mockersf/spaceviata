@@ -3,7 +3,7 @@ use bevy_asset_loader::prelude::{AssetCollection, LoadingState, LoadingStateAppE
 
 use super::names::Names;
 
-pub(crate) trait CloneWeak {
+pub trait CloneWeak {
     fn clone_weak(&self) -> Self;
 }
 
@@ -35,13 +35,13 @@ macro_rules! impl_tuple_handle_clone_weak {
 all_tuples!(impl_tuple_handle_clone_weak, 0, 15, H);
 
 #[derive(Clone, Eq, PartialEq, Debug, Hash)]
-pub(crate) enum AllTheLoading {
+pub enum AllTheLoading {
     Assets,
     Ready,
     Done,
 }
 
-pub(crate) struct AssetPlugin;
+pub struct AssetPlugin;
 
 impl Plugin for AssetPlugin {
     fn build(&self, app: &mut bevy::prelude::App) {
@@ -80,24 +80,24 @@ struct RawUiAssets {
 }
 
 #[derive(AssetCollection)]
-pub(crate) struct ShipAssets {
+pub struct ShipAssets {
     #[asset(path = "ships/enemyRed4.png")]
-    pub(crate) colony_ship: Handle<Image>,
+    pub colony_ship: Handle<Image>,
     #[asset(path = "ships/enemyBlue1.png")]
-    pub(crate) fighter: Handle<Image>,
+    pub fighter: Handle<Image>,
 }
 
 #[derive(Resource)]
-pub(crate) struct UiAssets {
-    pub(crate) selection_handle: Handle<Image>,
-    pub(crate) font_main: Handle<Font>,
-    pub(crate) font_sub: Handle<Font>,
-    pub(crate) font_material: Handle<Font>,
-    pub(crate) panel_handle: (Handle<bevy_ninepatch::NinePatchBuilder<()>>, Handle<Image>),
-    pub(crate) br_panel_handle: (Handle<bevy_ninepatch::NinePatchBuilder<()>>, Handle<Image>),
-    pub(crate) tr_panel_handle: (Handle<bevy_ninepatch::NinePatchBuilder<()>>, Handle<Image>),
-    pub(crate) tl_panel_handle: (Handle<bevy_ninepatch::NinePatchBuilder<()>>, Handle<Image>),
-    pub(crate) button_handle: Handle<crate::ui_helper::button::Button>,
+pub struct UiAssets {
+    pub selection_handle: Handle<Image>,
+    pub font_main: Handle<Font>,
+    pub font_sub: Handle<Font>,
+    pub font_material: Handle<Font>,
+    pub panel_handle: (Handle<bevy_ninepatch::NinePatchBuilder<()>>, Handle<Image>),
+    pub br_panel_handle: (Handle<bevy_ninepatch::NinePatchBuilder<()>>, Handle<Image>),
+    pub tr_panel_handle: (Handle<bevy_ninepatch::NinePatchBuilder<()>>, Handle<Image>),
+    pub tl_panel_handle: (Handle<bevy_ninepatch::NinePatchBuilder<()>>, Handle<Image>),
+    pub button_handle: Handle<crate::ui_helper::button::Button>,
 }
 
 #[derive(AssetCollection)]
@@ -111,15 +111,15 @@ struct RawGalaxyAssets {
 }
 
 #[derive(Resource)]
-pub(crate) struct GalaxyAssets {
-    pub(crate) star_mesh: Handle<Mesh>,
-    pub(crate) blue_star: Handle<ColorMaterial>,
-    pub(crate) yellow_star: Handle<ColorMaterial>,
-    pub(crate) orange_star: Handle<ColorMaterial>,
-    pub(crate) unknown: Handle<ColorMaterial>,
-    pub(crate) star_names: Handle<Names>,
-    pub(crate) hat: Handle<Image>,
-    pub(crate) mask: Handle<Image>,
+pub struct GalaxyAssets {
+    pub star_mesh: Handle<Mesh>,
+    pub blue_star: Handle<ColorMaterial>,
+    pub yellow_star: Handle<ColorMaterial>,
+    pub orange_star: Handle<ColorMaterial>,
+    pub unknown: Handle<ColorMaterial>,
+    pub star_names: Handle<Names>,
+    pub hat: Handle<Image>,
+    pub mask: Handle<Image>,
 }
 
 fn done(world: &mut World) {

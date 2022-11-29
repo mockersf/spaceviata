@@ -35,7 +35,7 @@ const CURRENT_STATE: crate::GameState = crate::GameState::Setup;
 #[derive(Component)]
 struct ScreenTag;
 
-pub(crate) struct Plugin;
+pub struct Plugin;
 impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(SystemSet::on_enter(CURRENT_STATE).with_system(setup))

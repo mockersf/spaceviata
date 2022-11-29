@@ -13,7 +13,7 @@ use super::world::{CameraController, RATIO_ZOOM_DISTANCE};
 
 const CURRENT_STATE: GameState = GameState::Game;
 
-pub(crate) struct Plugin;
+pub struct Plugin;
 
 impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut bevy::prelude::App) {

@@ -10,7 +10,7 @@ use super::{
 };
 
 #[derive(Clone, PartialEq, Debug, Eq, Hash)]
-pub(crate) enum TurnState {
+pub enum TurnState {
     Player,
     Bots,
     Enemy,
@@ -18,12 +18,12 @@ pub(crate) enum TurnState {
 }
 
 #[derive(Resource)]
-pub(crate) struct Turns {
-    pub(crate) count: u32,
-    pub(crate) messages: Vec<Message>,
+pub struct Turns {
+    pub count: u32,
+    pub messages: Vec<Message>,
 }
 
-pub(crate) enum Message {
+pub enum Message {
     Turn(u32),
     ColonyFounded {
         name: String,
@@ -63,7 +63,7 @@ impl Message {
         }
     }
 
-    pub(crate) fn as_sections(&self, ui_handles: &UiAssets) -> Vec<TextSection> {
+    pub fn as_sections(&self, ui_handles: &UiAssets) -> Vec<TextSection> {
         match self {
             Message::Turn(n) => vec![TextSection {
                 value: format!("Turn {}", n),
@@ -171,7 +171,7 @@ impl Message {
         }
     }
 }
-pub(crate) struct Plugin;
+pub struct Plugin;
 impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut App) {
         app.add_state(TurnState::Out)

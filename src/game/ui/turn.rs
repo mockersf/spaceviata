@@ -17,18 +17,18 @@ use crate::{
 use super::{OneFrameDelay, SelectedStar, DAMPENER};
 
 #[derive(Component)]
-pub(crate) struct EndTurnButton;
+pub struct EndTurnButton;
 
 #[derive(Resource, Default)]
-pub(crate) struct DisplayedMessage(pub(crate) usize);
+pub struct DisplayedMessage(pub usize);
 
 #[derive(Component)]
-pub(crate) struct MessagePanelMarker;
+pub struct MessagePanelMarker;
 
 #[derive(Component)]
-pub(crate) struct MessageContentMarker;
+pub struct MessageContentMarker;
 
-pub(crate) fn setup(
+pub fn setup(
     commands: &mut Commands,
     ui_handles: &UiAssets,
     buttons: &Assets<crate::ui_helper::button::Button>,
@@ -74,7 +74,7 @@ pub(crate) fn setup(
         .push_children(&[end_turn]);
 }
 
-pub(crate) fn display_messages(
+pub fn display_messages(
     mut commands: Commands,
     turns: Res<Turns>,
     mut current_message: ResMut<DisplayedMessage>,

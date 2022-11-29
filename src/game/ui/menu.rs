@@ -5,9 +5,9 @@ use crate::assets::UiAssets;
 use super::{ScreenTag, UiButtons};
 
 #[derive(Component)]
-pub(crate) struct MenuContainer;
+pub struct MenuContainer;
 
-pub(crate) fn setup(
+pub fn setup(
     commands: &mut Commands,
     ui_handles: &UiAssets,
     buttons: &Assets<crate::ui_helper::button::Button>,

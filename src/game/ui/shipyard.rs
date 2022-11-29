@@ -15,7 +15,7 @@ use crate::{
 use super::{OneFrameDelay, ScreenTag, SelectedStar, DAMPENER};
 
 #[derive(Clone, Copy)]
-pub(crate) enum ShipyardButtons {
+pub enum ShipyardButtons {
     BuildColonyShip,
     BuildFighter,
     Exit,
@@ -37,7 +37,7 @@ impl From<ShipyardButtons> for String {
     }
 }
 
-pub(crate) enum ShipyardEvent {
+pub enum ShipyardEvent {
     OpenForStar(usize),
     Close,
     InsufficentSavings,
@@ -45,15 +45,15 @@ pub(crate) enum ShipyardEvent {
 }
 
 #[derive(Component)]
-pub(crate) struct ShipyardPanelMarker;
+pub struct ShipyardPanelMarker;
 
 #[derive(Component)]
-pub(crate) struct ShipyardErrorMarker;
+pub struct ShipyardErrorMarker;
 
 #[derive(Resource, Default)]
-pub(crate) struct ShipyadForStar(usize);
+pub struct ShipyadForStar(usize);
 
-pub(crate) fn display_shipyard(
+pub fn display_shipyard(
     mut commands: Commands,
     ui_handles: Res<UiAssets>,
     buttons: Res<Assets<crate::ui_helper::button::Button>>,
@@ -411,7 +411,7 @@ pub(crate) fn display_shipyard(
     }
 }
 
-pub(crate) fn button_system(
+pub fn button_system(
     interaction_query: Query<(&Interaction, &ButtonId<ShipyardButtons>), Changed<Interaction>>,
     mut shipyard_events: EventWriter<ShipyardEvent>,
     mut universe: ResMut<Universe>,

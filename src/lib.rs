@@ -100,7 +100,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
 }
 
 #[derive(Clone, PartialEq, Debug, Eq, Hash)]
-pub(crate) enum GameState {
+pub enum GameState {
     Splash,
     Menu,
     Setup,

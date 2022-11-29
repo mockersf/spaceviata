@@ -4,19 +4,19 @@ use crate::game::ui::OneFrameDelay;
 
 #[derive(bevy::reflect::TypeUuid)]
 #[uuid = "5114f317-f6a6-4436-bd2a-cb380f5eb551"]
-pub(crate) struct Button {
+pub struct Button {
     nine_patch: Handle<bevy_ninepatch::NinePatchBuilder<()>>,
     texture: Handle<Image>,
 }
 
 #[derive(Component)]
-pub(crate) struct ButtonId<T: Into<String>>(pub(crate) T);
+pub struct ButtonId<T: Into<String>>(pub T);
 
 #[derive(Component)]
-pub(crate) struct ButtonText<T: Into<String>>(pub(crate) T);
+pub struct ButtonText<T: Into<String>>(pub T);
 
 impl Button {
-    pub(crate) fn setup(
+    pub fn setup(
         nine_patches: &mut Assets<bevy_ninepatch::NinePatchBuilder>,
         texture_handle: Handle<Image>,
     ) -> Button {
@@ -27,7 +27,7 @@ impl Button {
         }
     }
 
-    pub(crate) fn add<T>(
+    pub fn add<T>(
         &self,
         commands: &mut Commands,
         width: Val,
@@ -46,7 +46,7 @@ impl Button {
         )
     }
 
-    pub(crate) fn add_hidden<T>(
+    pub fn add_hidden<T>(
         &self,
         commands: &mut Commands,
         width: Val,
@@ -81,7 +81,7 @@ impl Button {
         )
     }
 
-    pub(crate) fn add_hidden_section<T>(
+    pub fn add_hidden_section<T>(
         &self,
         commands: &mut Commands,
         width: Val,
@@ -205,7 +205,7 @@ fn button_effect(
     }
 }
 
-pub(crate) struct Plugin;
+pub struct Plugin;
 impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut App) {
         app.add_asset::<Button>().add_system(button_effect);

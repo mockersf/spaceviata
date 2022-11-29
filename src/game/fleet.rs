@@ -66,14 +66,14 @@ impl fmt::Display for ShipKind {
 }
 
 impl ShipKind {
-    pub(crate) fn cost_credits(&self) -> f32 {
+    pub fn cost_credits(&self) -> f32 {
         match self {
             ShipKind::Colony => 10.0,
             ShipKind::Fighter => 1.0,
         }
     }
 
-    pub(crate) fn cost_resources(&self) -> f32 {
+    pub fn cost_resources(&self) -> f32 {
         match self {
             ShipKind::Colony => 5.0,
             ShipKind::Fighter => 1.0,
@@ -86,7 +86,7 @@ const CURRENT_STATE: GameState = GameState::Game;
 #[derive(Component)]
 struct ScreenTag;
 
-pub(crate) struct Plugin;
+pub struct Plugin;
 impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut App) {
         app.add_system_set(

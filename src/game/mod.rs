@@ -22,7 +22,7 @@ struct StarDetails {
 }
 
 #[derive(Resource)]
-pub(crate) struct Universe {
+pub struct Universe {
     galaxy: Vec<Star>,
     players: Vec<Player>,
     star_entities: Vec<Entity>,
@@ -30,7 +30,7 @@ pub(crate) struct Universe {
 }
 
 #[derive(Resource)]
-pub(crate) struct FleetsToSpawn(pub Vec<Fleet>);
+pub struct FleetsToSpawn(pub Vec<Fleet>);
 
 impl Universe {
     fn star_revenue(&self, star_index: usize) -> f32 {
