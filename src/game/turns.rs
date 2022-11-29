@@ -338,7 +338,7 @@ will grow faster."#
                                             });
                                             turns.messages.push(Message::Story {
                                                 title: "revenue".to_string(),
-                                                details: r#"New colony cost credits.
+                                                details: r#"New colonies cost credits.
 Once population has grown, colonies
 will start earning credits."#
                                                     .to_string(),
