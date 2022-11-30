@@ -94,7 +94,7 @@ impl Message {
                 ..
             } => vec![
                 TextSection {
-                    value: "Colony destroyed".to_string(),
+                    value: "Colony destroyed\n".to_string(),
                     style: TextStyle {
                         font: ui_handles.font_main.clone_weak(),
                         font_size: 20.0,
@@ -104,7 +104,7 @@ impl Message {
                 TextSection {
                     value: format!("{} destroyed you colony\non {}", player_name, star_name),
                     style: TextStyle {
-                        font: ui_handles.font_main.clone_weak(),
+                        font: ui_handles.font_sub.clone_weak(),
                         font_size: 20.0,
                         color: Color::WHITE,
                     },
