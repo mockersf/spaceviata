@@ -24,7 +24,7 @@ bevy = { version = "0.9", default-features = false, features = [
 ] }
 
 bevy_embedded_assets = { version = "0.6", optional = true }
-bevy_asset_loader = { version = "0.12", default-features = false }
+bevy_asset_loader = { version = "0.14", default-features = false }
 bevy_easings = { version = "0.9.0", default-features = false, features = [ "ui", "render" ] }
 bevy_ninepatch = { version = "0.9", default-features = false }
 bevy_prototype_lyon = "0.7"
@@ -61,7 +61,6 @@ lto = "fat"
 codegen-units = 1
 
 [patch.crates-io]
-bevy_asset_loader = { git = "https://github.com/mockersf/bevy_asset_loader", branch = "new" }
 winit = { git = "https://github.com/mockersf/winit", branch = "web-touch-event" }
 bevy = { git = "https://github.com/mockersf/bevy", branch = "spaceviata-branch" }
 bevy_prototype_lyon = { git = "https://github.com/mockersf/bevy_prototype_lyon", branch = "support-hdr-0.7" }

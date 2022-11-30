@@ -57,7 +57,7 @@ impl Plugin for AssetPlugin {
     }
 }
 
-#[derive(AssetCollection)]
+#[derive(AssetCollection, Resource)]
 struct RawUiAssets {
     #[asset(path = "ui/dotBlue.png")]
     selection_handle: Handle<Image>,
@@ -79,7 +79,7 @@ struct RawUiAssets {
     button_texture_handle: Handle<Image>,
 }
 
-#[derive(AssetCollection)]
+#[derive(AssetCollection, Resource)]
 pub struct ShipAssets {
     #[asset(path = "ships/enemyRed4.png")]
     pub colony_ship: Handle<Image>,
@@ -100,7 +100,7 @@ pub struct UiAssets {
     pub button_handle: Handle<crate::ui_helper::button::Button>,
 }
 
-#[derive(AssetCollection)]
+#[derive(AssetCollection, Resource)]
 struct RawGalaxyAssets {
     #[asset(path = "star.names")]
     star_names: Handle<Names>,
