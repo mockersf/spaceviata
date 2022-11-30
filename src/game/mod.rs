@@ -5,6 +5,7 @@ use bevy::{
 
 use self::{fleet::Fleet, galaxy::Star};
 
+mod bots;
 pub mod fleet;
 mod galaxy;
 pub mod setup;

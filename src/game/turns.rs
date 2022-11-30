@@ -3,6 +3,7 @@ use bevy::{prelude::*, utils::HashMap};
 use crate::assets::{GalaxyAssets, UiAssets};
 
 use super::{
+    bots,
     fleet::{turns_between, FleetSize, Order, Owner, Ship, ShipKind},
     galaxy::StarColor,
     world::{StarHat, StarMask},
@@ -213,7 +214,8 @@ impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut App) {
         app.add_state(TurnState::Out)
             .add_system_set(SystemSet::on_enter(TurnState::Player).with_system(start_player_turn))
-            .add_system_set(SystemSet::on_update(TurnState::Bots).with_system(run_bots_turn))
+            .add_system_set(SystemSet::on_enter(TurnState::Bots).with_system(bots::start_bots))
+            .add_system_set(SystemSet::on_update(TurnState::Bots).with_system(bots::run_bots_turn))
             .add_system_set(SystemSet::on_update(TurnState::Enemy).with_system(run_enemy_turn));
     }
 }
@@ -831,10 +833,6 @@ button in the bottom right corner."#
         });
     }
     turns.messages.sort_by_key(|m| m.order());
-}
-
-fn run_bots_turn(mut state: ResMut<State<TurnState>>) {
-    let _ = state.set(TurnState::Enemy);
 }
 
 fn run_enemy_turn(mut state: ResMut<State<TurnState>>) {
