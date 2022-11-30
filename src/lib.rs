@@ -35,7 +35,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
                 ..default()
             })
             .set(LogPlugin {
-                filter: format!("winit=error,{}", LogPlugin::default().filter),
+                filter: format!("winit=error,bevy_ecs=debug,{}", LogPlugin::default().filter),
                 ..default()
             });
         #[cfg(feature = "bundled")]
@@ -59,7 +59,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
         .add_plugin(bevy_easings::EasingsPlugin)
         .add_plugin(bevy_ninepatch::NinePatchPlugin::<()>::default());
 
-    if cfg!(debug_assertions) {
+    if cfg!(debug_assertions) && !cfg!(feature = "trace") {
         builder
             .add_plugin(bevy::diagnostic::FrameTimeDiagnosticsPlugin)
             .add_plugin(bevy::diagnostic::LogDiagnosticsPlugin::filtered(vec![
