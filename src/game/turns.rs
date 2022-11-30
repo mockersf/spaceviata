@@ -606,6 +606,9 @@ will start earning credits."#
                                         .is_visible = true;
                                 }
 
+                                // Colony ship is consumed
+                                commands.entity(entity).despawn_recursive();
+
                                 universe.players[owner.0].vision[*to] = StarState::Owned(owner.0);
                                 universe.star_details[*to].owner = owner.0;
                                 universe.star_details[*to].owned_since = turns.count;
