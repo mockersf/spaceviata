@@ -11,7 +11,7 @@ use bevy::{
     },
     sprite::MaterialMesh2dBundle,
 };
-use rand::Rng;
+use rand::{seq::SliceRandom, Rng};
 
 use crate::{
     assets::{names::Names, GalaxyAssets, UiAssets},
@@ -653,10 +653,17 @@ fn tear_down(
     let mut fleets = vec![];
 
     let seed = rand.gen_range(0..creator.nb_players) as usize;
-    let players = (0..(creator.nb_players as usize))
+    let mut bots = [1, 2, 3, 4];
+    bots.shuffle(&mut rand);
+    let mut players = vec![0];
+    players.append(&mut bots.to_vec());
+
+    let players = players
         .into_iter()
-        .map(|player| {
-            let mut angle = PI * 2.0 / creator.nb_players as f32 * (player + seed) as f32;
+        .enumerate()
+        .take(creator.nb_players as usize)
+        .map(|(i, player)| {
+            let mut angle = PI * 2.0 / creator.nb_players as f32 * (i + seed) as f32;
             if creator.nb_players % 2 == 0 {
                 angle += PI / (creator.nb_players as f32 * 1.5);
             }
