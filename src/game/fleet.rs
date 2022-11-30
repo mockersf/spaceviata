@@ -15,21 +15,21 @@ pub enum Order {
     Move { from: usize, to: usize, step: u32 },
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq, Eq)]
 pub enum ShipKind {
     Colony,
     Fighter,
 }
 
-#[derive(Component)]
+#[derive(Clone, Copy, Component)]
 pub struct Ship {
     pub kind: ShipKind,
 }
 
-#[derive(Component)]
+#[derive(Clone, Copy, Component)]
 pub struct FleetSize(pub u32);
 
-#[derive(Component)]
+#[derive(Clone, Copy, Component)]
 pub struct Owner(pub usize);
 
 #[derive(Bundle)]

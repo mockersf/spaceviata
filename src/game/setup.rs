@@ -687,6 +687,14 @@ fn tear_down(
                 },
                 size: FleetSize(1),
             });
+            // fleets.push(Fleet {
+            //     owner: Owner(player),
+            //     order: Order::Orbit(closest_i),
+            //     ship: Ship {
+            //         kind: ShipKind::Fighter,
+            //     },
+            //     size: FleetSize(2),
+            // });
             Player {
                 start: closest_i,
                 vision,

@@ -310,6 +310,16 @@ pub fn display_messages(
                     controller_target.zoom_level = 8.0;
                     controller_target.position = universe.galaxy[index].position;
                 }
+                Message::ColonyDestroyed { index, .. } => {
+                    turn_icon.single_mut().1.is_visible = true;
+                    turn_icon.single_mut().2.sections[0].value =
+                        material_icons::icon_to_char(material_icons::Icon::PublicOff).to_string();
+                    if selected_star.index != Some(index) {
+                        selected_star.index = Some(index);
+                    }
+                    controller_target.zoom_level = 8.0;
+                    controller_target.position = universe.galaxy[index].position;
+                }
                 Message::StarExplored { index, .. } => {
                     turn_icon.single_mut().1.is_visible = true;
                     turn_icon.single_mut().2.sections[0].value =
