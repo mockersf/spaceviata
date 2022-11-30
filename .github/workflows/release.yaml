@@ -22,7 +22,7 @@ jobs:
             image_name: ubuntu-latest
             target: x86_64-unknown-linux-gnu
             features: release
-            profile: release
+            profile: native-release
           - channel: wasm
             image_name: ubuntu-latest
             target: wasm32-unknown-unknown
@@ -32,12 +32,12 @@ jobs:
             image_name: macOS-latest
             target: x86_64-apple-darwin
             features: release
-            profile: release
+            profile: native-release
           - channel: windows
             image_name: windows-latest
             target: x86_64-pc-windows-msvc
             features: release
-            profile: release
+            profile: native-release
     steps:
       - uses: little-core-labs/get-git-tag@v3.0.1
         id: get_version

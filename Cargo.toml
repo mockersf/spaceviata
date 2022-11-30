@@ -60,6 +60,10 @@ opt-level = "z"
 lto = "fat"
 codegen-units = 1
 
+[profile.native-release]
+inherits = "release"
+lto = true
+
 [patch.crates-io]
 winit = { git = "https://github.com/mockersf/winit", branch = "web-touch-event" }
 bevy = { git = "https://github.com/mockersf/bevy", branch = "spaceviata-branch" }
