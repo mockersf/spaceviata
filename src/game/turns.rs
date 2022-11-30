@@ -396,14 +396,14 @@ will start earning credits."#
                                     let mut killed = 0.0;
                                     let mut lost = 0;
                                     let attacked = universe.star_details[*to].owner;
-                                    while population >= 0.0 && fleet_size.0 > 0 {
+                                    while population > 10.0 && fleet_size.0 > 0 {
                                         population -= 10.0;
                                         killed += 10.0;
                                         fleet_size.0 -= 1;
                                         lost += 1;
                                     }
 
-                                    if fleet_size.0 > 0 {
+                                    if fleet_size.0 > 0 && population < 10.0 {
                                         killed = universe.star_details[*to].population;
                                         universe.star_details[*to].population = 0.0;
                                         universe.star_details[*to].owner = usize::MAX;
@@ -431,7 +431,7 @@ will start earning credits."#
                                             3 => Color::PURPLE,
                                             4 => Color::BLACK,
                                             _ => unreachable!(),
-                                        }
+                                        };
                                     }
 
                                     if owner.0 == 0 {
