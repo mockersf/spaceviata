@@ -110,3 +110,5 @@ mod z_levels {
     pub const SHIP: f32 = 0.8;
     pub const SHIP_DRAGGING: f32 = 1.0;
 }
+
+pub const PLAYER_NAMES: [&str; 4] = ["Violetta", "Papageno", "Figaro", "Gilda"];

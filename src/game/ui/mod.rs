@@ -18,7 +18,7 @@ use super::{
     galaxy::StarSize,
     turns::TurnState,
     world::{CameraController, CameraControllerTarget, RATIO_ZOOM_DISTANCE},
-    z_levels, StarState, Universe,
+    z_levels, StarState, Universe, PLAYER_NAMES,
 };
 
 mod left_panel;
@@ -631,7 +631,7 @@ fn display_star_selected(
                         StarState::Owned(i) => {
                             parent.spawn(TextBundle {
                                 text: Text::from_section(
-                                    format!("Last seen: Player {}", i),
+                                    format!("Last seen: {}", PLAYER_NAMES[i]),
                                     TextStyle {
                                         font: ui_assets.font_sub.clone_weak(),
                                         font_size: 20.0,
