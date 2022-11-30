@@ -11,7 +11,7 @@ use bevy::{
     },
     sprite::MaterialMesh2dBundle,
 };
-use rand::Rng;
+use rand::{seq::SliceRandom, Rng};
 
 use crate::{
     assets::{names::Names, GalaxyAssets, UiAssets},
@@ -652,6 +652,9 @@ fn tear_down(
 
     let mut fleets = vec![];
 
+    let mut player_names = ["Turandot", "Violetta", "Papageno", "Figaro", "Gilda"];
+    player_names.shuffle(&mut rand);
+
     let seed = rand.gen_range(0..creator.nb_players) as usize;
     let players = (0..(creator.nb_players as usize))
         .into_iter()
@@ -701,6 +704,7 @@ fn tear_down(
                 savings: 10.0,
                 resources: 10.0,
                 first_colony_done: false,
+                name: player_names[player].to_string(),
             }
         })
         .collect();

@@ -87,6 +87,7 @@ struct Player {
     savings: f32,
     resources: f32,
     first_colony_done: bool,
+    name: String,
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, Debug)]
@@ -110,5 +111,3 @@ mod z_levels {
     pub const SHIP: f32 = 0.8;
     pub const SHIP_DRAGGING: f32 = 1.0;
 }
-
-pub const PLAYER_NAMES: [&str; 4] = ["Violetta", "Papageno", "Figaro", "Gilda"];

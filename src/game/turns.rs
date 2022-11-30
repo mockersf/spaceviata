@@ -6,7 +6,7 @@ use super::{
     fleet::{turns_between, FleetSize, Order, Owner, Ship, ShipKind},
     galaxy::StarColor,
     world::{StarHat, StarMask},
-    StarState, Universe, PLAYER_NAMES,
+    StarState, Universe,
 };
 
 #[derive(Clone, PartialEq, Debug, Eq, Hash)]
@@ -26,13 +26,13 @@ pub struct Turns {
 pub enum Message {
     Turn(u32),
     ColonyFounded {
-        name: String,
+        star_name: String,
         index: usize,
     },
     ColonyDestroyed {
-        name: String,
+        star_name: String,
         index: usize,
-        player: usize,
+        player_name: String,
     },
     StarExplored {
         star_name: String,
@@ -49,11 +49,11 @@ pub enum Message {
     Fight {
         index: usize,
         star_name: String,
-        against: usize,
         attacker: bool,
         ship_lost: u32,
         ship_destroyed: u32,
         population_killed: f32,
+        player_name: String,
     },
 }
 
@@ -79,15 +79,19 @@ impl Message {
                     color: Color::WHITE,
                 },
             }],
-            Message::ColonyFounded { name, .. } => vec![TextSection {
-                value: format!("Colony founded\non {}", name),
+            Message::ColonyFounded { star_name, .. } => vec![TextSection {
+                value: format!("Colony founded\non {}", star_name),
                 style: TextStyle {
                     font: ui_handles.font_main.clone_weak(),
                     font_size: 20.0,
                     color: Color::WHITE,
                 },
             }],
-            Message::ColonyDestroyed { name, player, .. } => vec![
+            Message::ColonyDestroyed {
+                star_name,
+                player_name,
+                ..
+            } => vec![
                 TextSection {
                     value: "Colony destroyed".to_string(),
                     style: TextStyle {
@@ -97,10 +101,7 @@ impl Message {
                     },
                 },
                 TextSection {
-                    value: format!(
-                        "{} destroyed you colony\non {}",
-                        PLAYER_NAMES[*player], name
-                    ),
+                    value: format!("{} destroyed you colony\non {}", player_name, star_name),
                     style: TextStyle {
                         font: ui_handles.font_main.clone_weak(),
                         font_size: 20.0,
@@ -167,11 +168,11 @@ impl Message {
             ],
             Message::Fight {
                 star_name,
-                against,
                 attacker,
                 ship_lost,
                 ship_destroyed,
                 population_killed,
+                player_name,
                 ..
             } => vec![
                 TextSection {
@@ -184,9 +185,9 @@ impl Message {
                 },
                 TextSection {
                     value: if *attacker {
-                        format!("You attacked {}\nand lost {} ships.\nYou destroyed {} ships and\nkilled {:.1} population.", PLAYER_NAMES[*against], ship_lost, ship_destroyed, population_killed)
+                        format!("You attacked {}\nand lost {} ships.\nYou destroyed {} ships and\nkilled {:.1} population.", player_name, ship_lost, ship_destroyed, population_killed)
                     } else {
-                        format!("You defended against {},\n lost {} ships and {:.1} population.\nYou destroyed {} ships.", PLAYER_NAMES[*against], ship_lost, population_killed, ship_destroyed)
+                        format!("You defended against {},\n lost {} ships and {:.1} population.\nYou destroyed {} ships.", player_name, ship_lost, population_killed, ship_destroyed)
                     },
                     style: TextStyle {
                         font: ui_handles.font_sub.clone_weak(),
@@ -567,7 +568,7 @@ fn start_player_turn(
                             if universe.star_details[*to].owner != owner.0 {
                                 if owner.0 == 0 {
                                     turns.messages.push(Message::ColonyFounded {
-                                        name: universe.galaxy[*to].name.clone(),
+                                        star_name: universe.galaxy[*to].name.clone(),
                                         index: *to,
                                     });
                                     if !universe.players[0].first_colony_done {
@@ -724,9 +725,9 @@ will start earning credits."#
                                             .0
                                             .is_visible = false;
                                         turns.messages.push(Message::ColonyDestroyed {
-                                            name: universe.galaxy[*to].name.clone(),
+                                            star_name: universe.galaxy[*to].name.clone(),
+                                            player_name: universe.players[owner.0].name.clone(),
                                             index: *to,
-                                            player: owner.0,
                                         });
                                     }
                                 } else {
@@ -779,11 +780,11 @@ will start earning credits."#
         turns.messages.push(Message::Fight {
             index,
             star_name: universe.galaxy[index].name.clone(),
-            against: fight_report.against,
             attacker: fight_report.attacker,
             ship_lost: fight_report.ship_lost,
             ship_destroyed: fight_report.ship_destroyed,
             population_killed: fight_report.population_killed,
+            player_name: universe.players[fight_report.against].name.clone(),
         });
     }
 
