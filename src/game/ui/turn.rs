@@ -177,7 +177,7 @@ pub fn display_messages(
                         style: Style {
                             size: Size {
                                 width: Val::Undefined,
-                                height: Val::Px(100.0),
+                                height: Val::Px(150.0),
                             },
                             ..default()
                         },
