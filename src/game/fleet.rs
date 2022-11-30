@@ -241,5 +241,5 @@ fn place_fleets(
 }
 
 pub fn turns_between(from: Vec2, to: Vec2) -> u32 {
-    (from.distance(to) / 100.0).exp().floor().max(1.0) as u32
+    ((from.distance(to) / 90.0).exp() * 1.7).floor().max(1.0) as u32
 }
