@@ -157,9 +157,9 @@ impl Message {
                 },
                 TextSection {
                     value: if *attacker {
-                        format!("You attacked player {}\nand lost {} ships.\nYou destroyed {} ships and\nkilled {} population.", against, ship_lost, ship_destroyed, population_killed)
+                        format!("You attacked player {}\nand lost {} ships.\nYou destroyed {} ships and\nkilled {:.1} population.", against, ship_lost, ship_destroyed, population_killed)
                     } else {
-                        format!("You defended against player {},\n lost {} ships and {} population.\nYou destroyed {} ships.", against, ship_lost, population_killed, ship_destroyed)
+                        format!("You defended against player {},\n lost {} ships and {:.1} population.\nYou destroyed {} ships.", against, ship_lost, population_killed, ship_destroyed)
                     },
                     style: TextStyle {
                         font: ui_handles.font_sub.clone_weak(),
