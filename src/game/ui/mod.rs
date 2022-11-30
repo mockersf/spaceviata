@@ -983,15 +983,23 @@ fn dragging_ship(
                         .extend(z_levels::SHIP_DRAGGING);
                 }
                 let hover = transform.translation.xy();
-                if let Some((index, _)) = universe.galaxy.iter().enumerate().find(|(_, star)| {
-                    (star.position * controller.zoom_level / RATIO_ZOOM_DISTANCE).distance(hover)
-                        < <StarSize as Into<f32>>::into(star.size)
-                            * controller.zoom_level.powf(0.7)
-                            * 2.5
-                }) {
+                let coming_from = selected_star.index.unwrap();
+                if let Some((index, _)) = universe
+                    .galaxy
+                    .iter()
+                    .enumerate()
+                    .filter(|(i, _)| *i != coming_from)
+                    .find(|(_, star)| {
+                        (star.position * controller.zoom_level / RATIO_ZOOM_DISTANCE)
+                            .distance(hover)
+                            < <StarSize as Into<f32>>::into(star.size)
+                                * controller.zoom_level.powf(0.7)
+                                * 2.5
+                    })
+                {
                     if over_star.is_none() {
                         let mut path_builder = PathBuilder::new();
-                        let from = universe.galaxy[selected_star.index.unwrap()].position;
+                        let from = universe.galaxy[coming_from].position;
                         let to = universe.galaxy[index].position;
                         let turns = turns_between(from, to);
                         let length = commands
@@ -1031,7 +1039,7 @@ fn dragging_ship(
                             index,
                             [path, length],
                             selected_star.dragging_ship.0.unwrap(),
-                            selected_star.index.unwrap(),
+                            coming_from,
                         ));
                     }
                 } else if let Some((_, entities, _, _)) = *over_star {
