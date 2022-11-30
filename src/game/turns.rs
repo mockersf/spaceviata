@@ -217,6 +217,7 @@ impl bevy::app::Plugin for Plugin {
     }
 }
 
+#[allow(clippy::type_complexity)]
 fn update_mask_for_star(
     star: usize,
     owner: usize,
@@ -318,11 +319,11 @@ fn start_player_turn(
         HashMap::new(),
         |mut acc, (_, order, ship, owner, fleet_size)| {
             match order {
-                Order::Orbit(around) => acc.entry(*around).or_default().push((
-                    owner.clone(),
-                    ship.clone(),
-                    fleet_size.0 as i32,
-                )),
+                Order::Orbit(around) => {
+                    acc.entry(*around)
+                        .or_default()
+                        .push((*owner, *ship, fleet_size.0 as i32))
+                }
                 Order::Move { from, to, step, .. } => {
                     if *step + 1
                         == turns_between(
@@ -330,11 +331,9 @@ fn start_player_turn(
                             universe.galaxy[*to].position,
                         )
                     {
-                        acc.entry(*to).or_default().push((
-                            owner.clone(),
-                            ship.clone(),
-                            fleet_size.0 as i32,
-                        ))
+                        acc.entry(*to)
+                            .or_default()
+                            .push((*owner, *ship, fleet_size.0 as i32))
                     }
                 }
             };
@@ -358,7 +357,7 @@ fn start_player_turn(
                         commands.entity(entity).despawn_recursive();
                         if owner.0 == 0 {
                             fight_reports_per_star
-                                .entry(around.clone())
+                                .entry(*around)
                                 .or_insert(FightReport {
                                     against: other_owner.0,
                                     attacker: false,
@@ -369,7 +368,7 @@ fn start_player_turn(
                                 .ship_lost += fleet_size.0;
                         } else if other_owner.0 == 0 {
                             fight_reports_per_star
-                                .entry(around.clone())
+                                .entry(*around)
                                 .or_insert(FightReport {
                                     against: owner.0,
                                     attacker: true,
@@ -415,7 +414,7 @@ fn start_player_turn(
                             if *n > 0 {
                                 if owner.0 == 0 {
                                     let mut report = fight_reports_per_star
-                                        .entry(around.clone())
+                                        .entry(*around)
                                         .or_insert(FightReport {
                                             against: u,
                                             attacker: false,
@@ -426,7 +425,7 @@ fn start_player_turn(
                                     report.ship_lost += current_lost;
                                 } else if u == 0 {
                                     let mut report = fight_reports_per_star
-                                        .entry(around.clone())
+                                        .entry(*around)
                                         .or_insert(FightReport {
                                             against: owner.0,
                                             attacker: true,
@@ -497,7 +496,7 @@ fn start_player_turn(
                                 if owner.0 == 0 {
                                     update_mask_for_star(*to, other_owner.0, &mut decorations);
                                     fight_reports_per_star
-                                        .entry(to.clone())
+                                        .entry(*to)
                                         .or_insert(FightReport {
                                             against: other_owner.0,
                                             attacker: true,
@@ -508,7 +507,7 @@ fn start_player_turn(
                                         .ship_lost += 1;
                                 } else if other_owner.0 == 0 {
                                     fight_reports_per_star
-                                        .entry(to.clone())
+                                        .entry(*to)
                                         .or_insert(FightReport {
                                             against: owner.0,
                                             attacker: false,
@@ -538,7 +537,7 @@ fn start_player_turn(
                                         &mut decorations,
                                     );
                                     fight_reports_per_star
-                                        .entry(to.clone())
+                                        .entry(*to)
                                         .or_insert(FightReport {
                                             against: universe.star_details[*to].owner,
                                             attacker: true,
@@ -549,7 +548,7 @@ fn start_player_turn(
                                         .ship_lost += 1;
                                 } else if universe.star_details[*to].owner == 0 {
                                     fight_reports_per_star
-                                        .entry(to.clone())
+                                        .entry(*to)
                                         .or_insert(FightReport {
                                             against: owner.0,
                                             attacker: false,
@@ -644,7 +643,7 @@ will start earning credits."#
                                     if *n > 0 {
                                         if owner.0 == 0 {
                                             let mut report = fight_reports_per_star
-                                                .entry(to.clone())
+                                                .entry(*to)
                                                 .or_insert(FightReport {
                                                     against: u,
                                                     attacker: true,
@@ -655,7 +654,7 @@ will start earning credits."#
                                             report.ship_lost += current_lost;
                                         } else if u == 0 {
                                             let mut report = fight_reports_per_star
-                                                .entry(to.clone())
+                                                .entry(*to)
                                                 .or_insert(FightReport {
                                                     against: owner.0,
                                                     attacker: false,
@@ -743,9 +742,8 @@ will start earning credits."#
                                 }
 
                                 if owner.0 == 0 {
-                                    let mut report = fight_reports_per_star
-                                        .entry(to.clone())
-                                        .or_insert(FightReport {
+                                    let mut report =
+                                        fight_reports_per_star.entry(*to).or_insert(FightReport {
                                             against: attacked,
                                             attacker: true,
                                             ship_lost: 0,
@@ -755,9 +753,8 @@ will start earning credits."#
                                     report.ship_lost += lost;
                                     report.population_killed += killed;
                                 } else if attacked == 0 {
-                                    let mut report = fight_reports_per_star
-                                        .entry(to.clone())
-                                        .or_insert(FightReport {
+                                    let mut report =
+                                        fight_reports_per_star.entry(*to).or_insert(FightReport {
                                             against: owner.0,
                                             attacker: false,
                                             ship_lost: 0,
@@ -780,7 +777,7 @@ will start earning credits."#
 
     for (index, fight_report) in fight_reports_per_star {
         turns.messages.push(Message::Fight {
-            index: index,
+            index,
             star_name: universe.galaxy[index].name.clone(),
             against: fight_report.against,
             attacker: fight_report.attacker,
