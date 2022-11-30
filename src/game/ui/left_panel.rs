@@ -313,16 +313,16 @@ pub struct StarListIndex(usize);
 pub fn display_star_list(
     mut commands: Commands,
     universe: Res<Universe>,
-    ui_container: Query<(Entity, Option<&Children>), With<StarList>>,
+    ui_container: Query<Entity, With<StarList>>,
     ui_assets: Res<UiAssets>,
 ) {
     let Ok(ui_container) = ui_container.get_single() else {
         return;
     };
 
-    if universe.is_changed() || ui_container.1.is_some() {
-        commands.entity(ui_container.0).despawn_descendants();
-        commands.entity(ui_container.0).with_children(|parent| {
+    if universe.is_changed() {
+        commands.entity(ui_container).despawn_descendants();
+        commands.entity(ui_container).with_children(|parent| {
             for (star, _) in universe.players[0]
                 .vision
                 .iter()
