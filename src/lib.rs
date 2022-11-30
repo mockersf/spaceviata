@@ -35,6 +35,7 @@ pub fn main() -> Result<(), Box<dyn std::error::Error>> {
                 ..default()
             })
             .set(LogPlugin {
+                #[cfg(feature = "trace")]
                 filter: format!("winit=error,bevy_ecs=debug,{}", LogPlugin::default().filter),
                 ..default()
             });
