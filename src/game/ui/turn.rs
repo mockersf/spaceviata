@@ -355,6 +355,17 @@ pub fn display_messages(
                     controller_target.zoom_level = 8.0;
                     controller_target.position = universe.galaxy[index].position;
                 }
+                Message::Win => {
+                    turn_icon.single_mut().1.is_visible = true;
+                    turn_icon.single_mut().2.sections[0].value =
+                        material_icons::icon_to_char(material_icons::Icon::MilitaryTech)
+                            .to_string();
+                }
+                Message::Lose { .. } => {
+                    turn_icon.single_mut().1.is_visible = true;
+                    turn_icon.single_mut().2.sections[0].value =
+                        material_icons::icon_to_char(material_icons::Icon::Healing).to_string();
+                }
                 Message::Turn(_) => (),
             }
         }

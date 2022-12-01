@@ -16,7 +16,7 @@ use crate::{
 use super::{
     fleet::{turns_between, FleetSize, Order, Owner, Ship, ShipKind},
     galaxy::StarSize,
-    turns::TurnState,
+    turns::{Message, TurnState, Turns},
     world::{CameraController, CameraControllerTarget, RATIO_ZOOM_DISTANCE},
     z_levels, StarState, Universe,
 };
@@ -309,6 +309,7 @@ fn button_system(
     mut displayed_message: ResMut<turn::DisplayedMessage>,
     mut selected_star: ResMut<SelectedStar>,
     mut shipyard: EventWriter<shipyard::ShipyardEvent>,
+    turns: Res<Turns>,
 ) {
     for (interaction, button_id, changed) in interaction_query.iter() {
         if *interaction == Interaction::Clicked {
@@ -330,6 +331,11 @@ fn button_system(
                     shipyard.send(shipyard::ShipyardEvent::Close);
                 }
                 (UiButtons::NextMessage, true) | (UiButtons::LastMessage, true) => {
+                    if matches!(turns.messages[displayed_message.0], Message::Win)
+                        || matches!(turns.messages[displayed_message.0], Message::Lose { .. })
+                    {
+                        let _ = state.set(GameState::Menu);
+                    }
                     displayed_message.0 += 1;
                     selected_star.bypass_change_detection().ignore_next_click = true;
                     shipyard.send(shipyard::ShipyardEvent::Close);

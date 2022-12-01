@@ -24,6 +24,11 @@ pub struct Turns {
     pub messages: Vec<Message>,
 }
 
+pub enum LoseCondition {
+    Deficit,
+    NoMoreColonies,
+}
+
 pub enum Message {
     Turn(u32),
     ColonyFounded {
@@ -56,6 +61,10 @@ pub enum Message {
         population_killed: f32,
         player_name: String,
     },
+    Win,
+    Lose {
+        condition: LoseCondition,
+    },
 }
 
 impl Message {
@@ -66,7 +75,8 @@ impl Message {
             Message::Fight { .. } => 2,
             Message::ColonyFounded { .. } => 3,
             Message::ColonyDestroyed { .. } => 4,
-            Message::Story { order, .. } => 5 + order,
+            Message::Win | Message::Lose { .. } => 5,
+            Message::Story { order, .. } => 6 + order,
         }
     }
 
@@ -188,7 +198,48 @@ impl Message {
                     value: if *attacker {
                         format!("You attacked {}\nand lost {} ships.\nYou destroyed {} ships and\nkilled {:.1} population.", player_name, ship_lost, ship_destroyed, population_killed)
                     } else {
-                        format!("You defended against {},\n lost {} ships and {:.1} population.\nYou destroyed {} ships.", player_name, ship_lost, population_killed, ship_destroyed)
+                        format!("You defended against {},\nlost {} ships and {:.1} population.\nYou destroyed {} ships.", player_name, ship_lost, population_killed, ship_destroyed)
+                    },
+                    style: TextStyle {
+                        font: ui_handles.font_sub.clone_weak(),
+                        font_size: 20.0,
+                        color: Color::WHITE,
+                    },
+                },
+            ],
+            Message::Win => vec![
+                TextSection {
+                    value: "You won\n".to_string(),
+                    style: TextStyle {
+                        font: ui_handles.font_main.clone_weak(),
+                        font_size: 20.0,
+                        color: Color::WHITE,
+                    },
+                },
+                TextSection {
+                    value: "You destroyed all\nenemy colonies.".to_string(),
+                    style: TextStyle {
+                        font: ui_handles.font_sub.clone_weak(),
+                        font_size: 20.0,
+                        color: Color::WHITE,
+                    },
+                },
+            ],
+            Message::Lose { condition } => vec![
+                TextSection {
+                    value: "You lost\n".to_string(),
+                    style: TextStyle {
+                        font: ui_handles.font_main.clone_weak(),
+                        font_size: 20.0,
+                        color: Color::WHITE,
+                    },
+                },
+                TextSection {
+                    value: match condition {
+                        LoseCondition::Deficit => "You have lost too\nmany credits.".to_string(),
+                        LoseCondition::NoMoreColonies => {
+                            "All your colonies have\nbeen destroyed.".to_string()
+                        }
                     },
                     style: TextStyle {
                         font: ui_handles.font_sub.clone_weak(),
@@ -845,6 +896,29 @@ button in the bottom right corner."#
             index: None,
         });
     }
+
+    if universe
+        .star_details
+        .iter()
+        .find(|details| details.owner == 0)
+        .is_none()
+    {
+        turns.messages.push(Message::Lose {
+            condition: LoseCondition::NoMoreColonies,
+        });
+    } else if universe.players[0].savings < -100.0 {
+        turns.messages.push(Message::Lose {
+            condition: LoseCondition::Deficit,
+        });
+    } else if universe
+        .star_details
+        .iter()
+        .find(|details| details.owner != 0 && details.owner != usize::MAX)
+        .is_none()
+    {
+        turns.messages.push(Message::Win);
+    }
+
     turns.messages.sort_by_key(|m| m.order());
 }
 
