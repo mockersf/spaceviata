@@ -519,6 +519,7 @@ fn display_star_selected(
 
     if let Some(index) = selected_star.index {
         let star = &universe.galaxy[index];
+        let good = &universe.galaxy[universe.players[0].start];
         if selected_star.is_changed() {
             commands
                 .entity(universe.star_entities[index])
@@ -608,7 +609,8 @@ fn display_star_selected(
                                     },
                                     TextSection {
                                         value: format!(
-                                            "Resources  {:.1}\n",
+                                            "Resources  {:.1} / {:.1}\n",
+                                            if star.color == good.color { 0.2 } else { 1.5 },
                                             universe.star_ressource(index)
                                         ),
                                         style: TextStyle {
@@ -830,7 +832,7 @@ fn display_star_selected(
                 let (mut style, mut background_color) = star_panel.single_mut();
                 background_color.0 = DAMPENER;
                 style.display = Display::Flex;
-                style.size = Size::new(Val::Px(200.0), Val::Px(120.0));
+                style.size = Size::new(Val::Px(220.0), Val::Px(120.0));
                 style.position.left = Val::Px(
                     pos.x
                         + <StarSize as Into<f32>>::into(star.size)

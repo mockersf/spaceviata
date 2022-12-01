@@ -300,9 +300,9 @@ fn start_player_turn(
                 // harvest resources
                 {
                     let to_get: f32 = if star.color == good_conditions.color {
-                        0.3
+                        0.2
                     } else {
-                        1.0
+                        1.5
                     };
                     let current_resources = (details.resources * 1.2).powf(1.5);
                     let collect = to_get.min(current_resources);
