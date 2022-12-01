@@ -145,10 +145,12 @@ pub fn run_bots_turn(
     // didn't create one very recently
     // there is an not owned star available
     if universe.player_revenue(current_bot) > 2.0
-        && universe.players[current_bot].savings > ShipKind::Colony.cost_credits()
-        && universe.players[current_bot].resources > ShipKind::Colony.cost_credits()
+        && universe.players[current_bot].savings
+            > ShipKind::Colony.cost_credits() * universe.difficulty
+        && universe.players[current_bot].resources
+            > ShipKind::Colony.cost_resources() * universe.difficulty
         && turns.count - status.last_colony_ship_spawned[current_bot] > 2
-        && !universe.players[current_bot]
+        && universe.players[current_bot]
             .vision
             .iter()
             .any(|state| !matches!(state, StarState::Owned(_)))
@@ -170,15 +172,18 @@ pub fn run_bots_turn(
             size: FleetSize(1),
             owner: Owner(current_bot),
         });
-        universe.players[current_bot].savings -= ShipKind::Colony.cost_credits();
-        universe.players[current_bot].resources -= ShipKind::Colony.cost_resources();
+        universe.players[current_bot].savings -=
+            ShipKind::Colony.cost_credits() * universe.difficulty;
+        universe.players[current_bot].resources -=
+            ShipKind::Colony.cost_resources() * universe.difficulty;
         status.last_colony_ship_spawned[current_bot] = turns.count;
     }
 
     let nb_fighter = rand.gen_range(1..(((turns.count as f32).ln() * 10.0) as u32 + 2));
-    if universe.players[current_bot].savings > nb_fighter as f32 * ShipKind::Fighter.cost_credits()
+    if universe.players[current_bot].savings
+        > nb_fighter as f32 * ShipKind::Fighter.cost_credits() * universe.difficulty
         && universe.players[current_bot].resources
-            > nb_fighter as f32 * ShipKind::Fighter.cost_resources()
+            > nb_fighter as f32 * ShipKind::Fighter.cost_resources() * universe.difficulty
     {
         let star = universe
             .galaxy
@@ -198,9 +203,9 @@ pub fn run_bots_turn(
             owner: Owner(current_bot),
         });
         universe.players[current_bot].savings -=
-            ShipKind::Fighter.cost_credits() * nb_fighter as f32;
+            ShipKind::Fighter.cost_credits() * nb_fighter as f32 * universe.difficulty;
         universe.players[current_bot].resources -=
-            ShipKind::Fighter.cost_resources() * nb_fighter as f32;
+            ShipKind::Fighter.cost_resources() * nb_fighter as f32 * universe.difficulty;
     }
 
     status.current += 1;

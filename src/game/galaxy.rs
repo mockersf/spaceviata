@@ -17,6 +17,7 @@ pub struct GalaxyCreator {
     pub _kind: GalaxyKind,
     pub generated: Vec<Star>,
     pub names: Vec<String>,
+    pub difficulty: f32,
 }
 
 #[derive(Clone, Debug)]

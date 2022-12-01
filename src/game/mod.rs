@@ -28,6 +28,7 @@ pub struct Universe {
     players: Vec<Player>,
     star_entities: Vec<Entity>,
     star_details: Vec<StarDetails>,
+    difficulty: f32,
 }
 
 #[derive(Resource)]

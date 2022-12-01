@@ -113,6 +113,7 @@ fn setup(
         size: SizeControl::default().into(),
         density: DensityControl::default().into(),
         _kind: GalaxyKind::default(),
+        difficulty: DifficultyControl::default().into(),
         names: names.get(&galaxy_handles.star_names).unwrap().names.clone(),
     };
 
@@ -336,13 +337,13 @@ fn setup(
     let row_players = {
         let row = commands
             .spawn(NodeBundle {
-                style: row_style,
+                style: row_style.clone(),
                 ..Default::default()
             })
             .id();
         let text = commands
             .spawn(TextBundle {
-                style: category_style,
+                style: category_style.clone(),
                 text: Text::from_section(
                     "players".to_string(),
                     TextStyle {
@@ -368,6 +369,53 @@ fn setup(
                 crate::ui_helper::ColorScheme::TEXT_HIGHLIGHT,
             );
             if nb == galaxy.nb_players {
+                commands.entity(button_entity).insert(Selected);
+            }
+            children.push(button_entity);
+        }
+        commands.entity(row).push_children(&children);
+        row
+    };
+
+    let row_difficulty = {
+        let row = commands
+            .spawn(NodeBundle {
+                style: row_style,
+                ..Default::default()
+            })
+            .id();
+        let text = commands
+            .spawn(TextBundle {
+                style: category_style,
+                text: Text::from_section(
+                    "difficulty".to_string(),
+                    TextStyle {
+                        font: ui_handles.font_main.clone_weak(),
+                        color: ColorScheme::TEXT,
+                        font_size: height / 30.0,
+                        ..Default::default()
+                    },
+                ),
+                ..Default::default()
+            })
+            .id();
+        let mut children = vec![text];
+        for difficulty in [
+            DifficultyControl::Easy,
+            DifficultyControl::Normal,
+            DifficultyControl::Hard,
+        ] {
+            let button_entity = button.add(
+                &mut commands,
+                Val::Px(height / 8.0),
+                Val::Px(height / 20.0),
+                UiRect::all(Val::Auto),
+                ui_handles.font_main.clone_weak(),
+                GalaxyControl::Difficulty(difficulty),
+                height / 40.0,
+                crate::ui_helper::ColorScheme::TEXT_HIGHLIGHT,
+            );
+            if difficulty == DifficultyControl::default() {
                 commands.entity(button_entity).insert(Selected);
             }
             children.push(button_entity);
@@ -424,6 +472,7 @@ fn setup(
         row_size,
         row_density,
         row_players,
+        row_difficulty,
         action_buttons,
     ]);
 
@@ -491,6 +540,7 @@ fn setting_button(
                 GalaxyControl::Size(size) => creator.size = size.into(),
                 GalaxyControl::Density(density) => creator.density = density.into(),
                 GalaxyControl::Players(nb) => creator.nb_players = nb,
+                GalaxyControl::Difficulty(difficulty) => creator.difficulty = difficulty.into(),
                 GalaxyControl::Kind(_) => (),
             }
         }
@@ -532,8 +582,8 @@ fn action_button(
 
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 enum DensityControl {
-    Sparse,
     #[default]
+    Sparse,
     Normal,
     Dense,
 }
@@ -566,12 +616,30 @@ impl From<SizeControl> for f32 {
     }
 }
 
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum DifficultyControl {
+    Easy,
+    #[default]
+    Normal,
+    Hard,
+}
+impl From<DifficultyControl> for f32 {
+    fn from(density: DifficultyControl) -> Self {
+        match density {
+            DifficultyControl::Easy => 1.25,
+            DifficultyControl::Normal => 1.0,
+            DifficultyControl::Hard => 0.8,
+        }
+    }
+}
+
 #[derive(Component, Clone, Copy, Debug)]
 enum GalaxyControl {
     Size(SizeControl),
     Density(DensityControl),
     Players(u32),
     Kind(GalaxyKind),
+    Difficulty(DifficultyControl),
 }
 
 #[allow(clippy::from_over_into)]
@@ -586,6 +654,9 @@ impl Into<String> for GalaxyControl {
             GalaxyControl::Density(DensityControl::Dense) => "dense".to_string(),
             GalaxyControl::Players(n) => format!("{}", n),
             GalaxyControl::Kind(GalaxyKind::Spiral) => "spiral".to_string(),
+            GalaxyControl::Difficulty(DifficultyControl::Easy) => "easy".to_string(),
+            GalaxyControl::Difficulty(DifficultyControl::Normal) => "normal".to_string(),
+            GalaxyControl::Difficulty(DifficultyControl::Hard) => "hard".to_string(),
         }
     }
 }
@@ -716,6 +787,7 @@ fn tear_down(
         galaxy,
         players,
         star_details,
+        difficulty: creator.difficulty,
     });
 
     commands.insert_resource(FleetsToSpawn(fleets));
