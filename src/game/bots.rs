@@ -140,10 +140,19 @@ pub fn run_bots_turn(
     }
 
     let mut rand = rand::thread_rng();
-    if universe.player_revenue(current_bot) > 3.0
+    // enough revenue to create a new colony
+    // enough credits & resources to build a colony ship
+    // didn't create one very recently
+    // there is an not owned star available
+    if universe.player_revenue(current_bot) > 2.0
         && universe.players[current_bot].savings > ShipKind::Colony.cost_credits()
         && universe.players[current_bot].resources > ShipKind::Colony.cost_credits()
-        && turns.count - status.last_colony_ship_spawned[current_bot] > turns.count / 10
+        && turns.count - status.last_colony_ship_spawned[current_bot] > 2
+        && universe.players[current_bot]
+            .vision
+            .iter()
+            .find(|state| !matches!(state, StarState::Owned(_)))
+            .is_some()
     {
         let star = universe
             .galaxy
