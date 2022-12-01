@@ -259,7 +259,12 @@ pub fn display_shipyard(
                         .spawn(NodeBundle {
                             style: Style {
                                 flex_direction: FlexDirection::Column,
-                                margin: UiRect::all(Val::Px(10.0)),
+                                margin: UiRect {
+                                    left: Val::Px(10.0),
+                                    right: Val::Px(10.0),
+                                    top: Val::Px(25.0),
+                                    bottom: Val::Px(10.0),
+                                },
                                 ..default()
                             },
                             ..default()
