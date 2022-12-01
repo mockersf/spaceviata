@@ -17,9 +17,7 @@ bevy = { version = "0.9", default-features = false, features = [
   "bevy_winit",
   "bevy_render",
   "bevy_text",
-  "bevy_audio",
   "png",
-  "vorbis",
 ] }
 
 bevy_embedded_assets = { version = "0.6", optional = true }
