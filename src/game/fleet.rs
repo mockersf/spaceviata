@@ -69,14 +69,14 @@ impl ShipKind {
     pub fn cost_credits(&self) -> f32 {
         match self {
             ShipKind::Colony => 10.0,
-            ShipKind::Fighter => 1.0,
+            ShipKind::Fighter => 3.0,
         }
     }
 
     pub fn cost_resources(&self) -> f32 {
         match self {
             ShipKind::Colony => 5.0,
-            ShipKind::Fighter => 1.0,
+            ShipKind::Fighter => 7.0,
         }
     }
 }

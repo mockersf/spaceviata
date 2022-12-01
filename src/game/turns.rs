@@ -3,7 +3,7 @@ use bevy::{prelude::*, utils::HashMap};
 use crate::assets::{GalaxyAssets, UiAssets};
 
 use super::{
-    bots,
+    bots::{self, BotTurnStatus},
     fleet::{turns_between, FleetSize, Order, Owner, Ship, ShipKind},
     galaxy::StarColor,
     world::{StarHat, StarMask},
@@ -201,6 +201,7 @@ impl Message {
     }
 }
 
+#[derive(Debug)]
 struct FightReport {
     against: usize,
     attacker: bool,
@@ -213,6 +214,10 @@ pub struct Plugin;
 impl bevy::app::Plugin for Plugin {
     fn build(&self, app: &mut App) {
         app.add_state(TurnState::Out)
+            .insert_resource(BotTurnStatus {
+                current: 0,
+                last_colony_ship_spawned: vec![0; 5],
+            })
             .add_system_set(SystemSet::on_enter(TurnState::Player).with_system(start_player_turn))
             .add_system_set(SystemSet::on_enter(TurnState::Bots).with_system(bots::start_bots))
             .add_system_set(SystemSet::on_update(TurnState::Bots).with_system(bots::run_bots_turn))
@@ -262,60 +267,60 @@ fn start_player_turn(
     turns.messages = vec![];
 
     if turns.count != 0 {
-        let good_conditions = &universe.galaxy[universe.players[0].start].clone();
-
         for i in 0..universe.players.len() {
+            let good_conditions = &universe.galaxy[universe.players[i].start].clone();
             universe.players[i].savings += universe.player_revenue(i);
-        }
-        let mut harvested = 0.0;
-        universe
-            .galaxy
-            .clone()
-            .iter()
-            .zip(universe.star_details.iter_mut())
-            .filter(|(_, details)| details.owner == 0)
-            .for_each(|(star, details)| {
-                // grow population
-                {
-                    let max_population = if star.color == good_conditions.color {
-                        120.0 + (turns.count as f32 - details.owned_since as f32) / 5.0
-                    } else {
-                        10.0 + (turns.count as f32 - details.owned_since as f32) / 10.0
-                    };
-                    let lerp = details.population / max_population;
-                    let growth_factor = if lerp < 0.5 {
-                        (10.0 * lerp).powf(3.0)
-                    } else if lerp < 1.0 {
-                        1.0 - (-2.0 * lerp + 2.0).powf(3.0) / 2.0
-                    } else {
-                        1.0 - (-2.0 * lerp + 4.0).powf(3.0) / 2.0
-                    };
-                    details.population = if star.size == good_conditions.size {
-                        details.population + growth_factor
-                    } else {
-                        details.population + growth_factor / 2.0
-                    };
-                }
 
-                // harvest resources
-                {
-                    let to_get: f32 = if star.color == good_conditions.color {
-                        0.2
-                    } else {
-                        1.5
-                    };
-                    let current_resources = (details.resources * 1.2).powf(1.5);
-                    let collect = to_get.min(current_resources);
-                    harvested += collect;
-                    details.resources = if star.color != good_conditions.color {
-                        ((details.resources * 1.2).powf(1.5) - collect).powf(1.0 / 1.5) / 1.2
-                    } else {
-                        ((details.resources).powf(0.8) - collect).powf(1.0 / 0.8)
+            let mut harvested = 0.0;
+            universe
+                .galaxy
+                .clone()
+                .iter()
+                .zip(universe.star_details.iter_mut())
+                .filter(|(_, details)| details.owner == i)
+                .for_each(|(star, details)| {
+                    // grow population
+                    {
+                        let max_population = if star.color == good_conditions.color {
+                            120.0 + (turns.count as f32 - details.owned_since as f32) / 5.0
+                        } else {
+                            10.0 + (turns.count as f32 - details.owned_since as f32) / 10.0
+                        };
+                        let lerp = details.population / max_population;
+                        let growth_factor = if lerp < 0.5 {
+                            (10.0 * lerp).powf(3.0)
+                        } else if lerp < 1.0 {
+                            1.0 - (-2.0 * lerp + 2.0).powf(3.0) / 2.0
+                        } else {
+                            1.0 - (-2.0 * lerp + 4.0).powf(3.0) / 2.0
+                        };
+                        details.population = if star.size == good_conditions.size {
+                            details.population + growth_factor
+                        } else {
+                            details.population + growth_factor / 2.0
+                        };
                     }
-                    .max(0.0);
-                }
-            });
-        universe.players[0].resources += harvested;
+
+                    // harvest resources
+                    {
+                        let to_get: f32 = if star.color == good_conditions.color {
+                            0.2
+                        } else {
+                            1.5
+                        };
+                        let current_resources = (details.resources * 1.2).powf(1.5);
+                        let collect = to_get.min(current_resources);
+                        harvested += collect;
+                        details.resources = if star.color != good_conditions.color {
+                            ((details.resources * 1.2).powf(1.5) - collect).powf(1.0 / 1.5) / 1.2
+                        } else {
+                            ((details.resources).powf(0.8) - collect).powf(1.0 / 0.8)
+                        }
+                        .max(0.0);
+                    }
+                });
+            universe.players[i].resources += harvested;
+        }
     }
 
     let mut fleets_per_star: HashMap<usize, Vec<_>> = fleets.iter().fold(
@@ -381,7 +386,6 @@ fn start_player_turn(
                                 })
                                 .ship_destroyed += fleet_size.0;
                         }
-                        // no visibility to update here
                     }
                 }
                 ShipKind::Fighter => {
@@ -404,7 +408,7 @@ fn start_player_turn(
                         .unwrap_or_else(|| vec![0; 5]);
 
                     for (u, n) in enemy_fighters.iter().enumerate() {
-                        if fleet_size.0 > 0 {
+                        if fleet_size.0 > 0 && *n > 0 {
                             let current_lost = fleet_size.0.min(*n as u32);
                             fleet_size.0 -= current_lost;
                             fleets_per_star.get_mut(around).unwrap().push((
@@ -414,9 +418,9 @@ fn start_player_turn(
                                 },
                                 -(current_lost as i32),
                             ));
-                            if *n > 0 {
+                            if current_lost > 0 {
                                 if owner.0 == 0 {
-                                    let mut report = fight_reports_per_star
+                                    fight_reports_per_star
                                         .entry(*around)
                                         .or_insert(FightReport {
                                             against: u,
@@ -424,10 +428,10 @@ fn start_player_turn(
                                             ship_lost: 0,
                                             ship_destroyed: 0,
                                             population_killed: 0.0,
-                                        });
-                                    report.ship_lost += current_lost;
+                                        })
+                                        .ship_lost += current_lost;
                                 } else if u == 0 {
-                                    let mut report = fight_reports_per_star
+                                    fight_reports_per_star
                                         .entry(*around)
                                         .or_insert(FightReport {
                                             against: owner.0,
@@ -435,14 +439,15 @@ fn start_player_turn(
                                             ship_lost: 0,
                                             ship_destroyed: 0,
                                             population_killed: 0.0,
-                                        });
-                                    report.ship_destroyed += current_lost;
+                                        })
+                                        .ship_destroyed += current_lost;
                                 }
                             }
+                            if fleet_size.0 == 0 {
+                                commands.entity(entity).despawn_recursive();
+                                continue;
+                            }
                         }
-                    }
-                    if fleet_size.0 == 0 {
-                        commands.entity(entity).despawn_recursive();
                     }
                 }
             },
@@ -477,9 +482,11 @@ fn start_player_turn(
                                 };
                         }
 
-                        universe.players[owner.0].vision[*to] = StarState::Uninhabited;
-                        if owner.0 == 0 {
-                            update_mask_for_star(*to, 0, &mut decorations);
+                        if universe.players[owner.0].vision[*to] == StarState::Unknown {
+                            universe.players[owner.0].vision[*to] = StarState::Uninhabited;
+                            if owner.0 == 0 {
+                                update_mask_for_star(*to, 0, &mut decorations);
+                            }
                         }
                     }
                     match ship.kind {
@@ -493,8 +500,9 @@ fn start_player_turn(
                             }) {
                                 // There is an ennemy ship, colony ships always lose
                                 commands.entity(entity).despawn_recursive();
-                                universe.players[owner.0].vision[*to] =
-                                    StarState::Owned(other_owner.0);
+
+                                // universe.players[owner.0].vision[*to] =
+                                //     StarState::Owned(other_owner.0);
 
                                 if owner.0 == 0 {
                                     update_mask_for_star(*to, other_owner.0, &mut decorations);
@@ -507,7 +515,7 @@ fn start_player_turn(
                                             ship_destroyed: 0,
                                             population_killed: 0.0,
                                         })
-                                        .ship_lost += 1;
+                                        .ship_lost += fleet_size.0;
                                 } else if other_owner.0 == 0 {
                                     fight_reports_per_star
                                         .entry(*to)
@@ -518,7 +526,7 @@ fn start_player_turn(
                                             ship_destroyed: 0,
                                             population_killed: 0.0,
                                         })
-                                        .ship_destroyed += 1;
+                                        .ship_destroyed += fleet_size.0;
                                 }
                                 // ship destroyed, continue with next ship
                                 continue;
@@ -548,7 +556,7 @@ fn start_player_turn(
                                             ship_destroyed: 0,
                                             population_killed: 0.0,
                                         })
-                                        .ship_lost += 1;
+                                        .ship_lost += fleet_size.0;
                                 } else if universe.star_details[*to].owner == 0 {
                                     fight_reports_per_star
                                         .entry(*to)
@@ -559,7 +567,7 @@ fn start_player_turn(
                                             ship_destroyed: 0,
                                             population_killed: 0.0,
                                         })
-                                        .ship_destroyed += 1;
+                                        .ship_destroyed += fleet_size.0;
                                 }
 
                                 // ship destroyed, continue with next ship
@@ -636,7 +644,7 @@ will start earning credits."#
                                 .unwrap_or_else(|| vec![0; 5]);
 
                             for (u, n) in enemy_fighters.iter().enumerate() {
-                                if fleet_size.0 > 0 {
+                                if fleet_size.0 > 0 && *n > 0 {
                                     let current_lost = fleet_size.0.min(*n as u32);
                                     fleet_size.0 -= current_lost;
                                     fleets_per_star.get_mut(to).unwrap().push((
@@ -648,7 +656,7 @@ will start earning credits."#
                                     ));
                                     if *n > 0 {
                                         if owner.0 == 0 {
-                                            let mut report = fight_reports_per_star
+                                            fight_reports_per_star
                                                 .entry(*to)
                                                 .or_insert(FightReport {
                                                     against: u,
@@ -656,10 +664,10 @@ will start earning credits."#
                                                     ship_lost: 0,
                                                     ship_destroyed: 0,
                                                     population_killed: 0.0,
-                                                });
-                                            report.ship_lost += current_lost;
+                                                })
+                                                .ship_lost += current_lost;
                                         } else if u == 0 {
-                                            let mut report = fight_reports_per_star
+                                            fight_reports_per_star
                                                 .entry(*to)
                                                 .or_insert(FightReport {
                                                     against: owner.0,
@@ -667,8 +675,8 @@ will start earning credits."#
                                                     ship_lost: 0,
                                                     ship_destroyed: 0,
                                                     population_killed: 0.0,
-                                                });
-                                            report.ship_destroyed += current_lost;
+                                                })
+                                                .ship_destroyed += current_lost;
                                         }
                                         if fleet_size.0 == 0 {
                                             commands.entity(entity).despawn_recursive();
@@ -703,7 +711,7 @@ will start earning credits."#
                                 let mut population = universe.star_details[*to].population;
                                 let mut killed = 0.0;
                                 let mut lost = 0;
-                                while population > 10.0 && fleet_size.0 > 0 {
+                                while population >= 10.0 && fleet_size.0 > 0 {
                                     population -= 10.0;
                                     killed += 10.0;
                                     fleet_size.0 -= 1;
@@ -729,6 +737,7 @@ will start earning credits."#
                                             .unwrap()
                                             .0
                                             .is_visible = false;
+
                                         turns.messages.push(Message::ColonyDestroyed {
                                             star_name: universe.galaxy[*to].name.clone(),
                                             player_name: universe.players[owner.0].name.clone(),
