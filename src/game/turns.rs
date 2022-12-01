@@ -612,6 +612,7 @@ will start earning credits."#
                                         .unwrap()
                                         .0
                                         .is_visible = true;
+                                    update_mask_for_star(*to, 0, &mut decorations);
                                 }
 
                                 // Colony ship is consumed
