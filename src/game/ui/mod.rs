@@ -837,7 +837,9 @@ fn display_star_selected(
                 .world_to_viewport(camera_transform, transform.translation())
                 .unwrap();
             {
-                let (mut style, mut background_color) = star_panel.single_mut();
+                let Ok((mut style, mut background_color)) = star_panel.get_single_mut() else {
+                    return;
+                 };
                 background_color.0 = DAMPENER;
                 style.display = Display::Flex;
                 style.size = Size::new(Val::Px(220.0), Val::Px(120.0));

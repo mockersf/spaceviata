@@ -16,9 +16,11 @@ use rand::{seq::SliceRandom, Rng};
 use crate::{
     assets::{names::Names, GalaxyAssets, UiAssets},
     game::{
+        bots::BotTurnStatus,
         fleet::{Fleet, FleetSize, Order, Owner, Ship, ShipKind},
         galaxy::{GalaxyKind, StarSize},
         turns::Turns,
+        ui::SelectedStar,
         FleetsToSpawn, Player, StarDetails, StarState, Universe,
     },
     ui_helper::{button::ButtonId, ColorScheme},
@@ -723,4 +725,9 @@ fn tear_down(
         count: 0,
         messages: vec![],
     });
+    commands.init_resource::<SelectedStar>();
+    commands.insert_resource(BotTurnStatus {
+        current: 0,
+        last_colony_ship_spawned: vec![0; 5],
+    })
 }
