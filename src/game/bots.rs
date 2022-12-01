@@ -148,11 +148,10 @@ pub fn run_bots_turn(
         && universe.players[current_bot].savings > ShipKind::Colony.cost_credits()
         && universe.players[current_bot].resources > ShipKind::Colony.cost_credits()
         && turns.count - status.last_colony_ship_spawned[current_bot] > 2
-        && universe.players[current_bot]
+        && !universe.players[current_bot]
             .vision
             .iter()
-            .find(|state| !matches!(state, StarState::Owned(_)))
-            .is_some()
+            .any(|state| !matches!(state, StarState::Owned(_)))
     {
         let star = universe
             .galaxy

@@ -892,11 +892,10 @@ button in the bottom right corner."#
         });
     }
 
-    if universe
+    if !universe
         .star_details
         .iter()
-        .find(|details| details.owner == 0)
-        .is_none()
+        .any(|details| details.owner == 0)
     {
         turns.messages.push(Message::Lose {
             condition: LoseCondition::NoMoreColonies,
@@ -905,11 +904,10 @@ button in the bottom right corner."#
         turns.messages.push(Message::Lose {
             condition: LoseCondition::Deficit,
         });
-    } else if universe
+    } else if !universe
         .star_details
         .iter()
-        .find(|details| details.owner != 0 && details.owner != usize::MAX)
-        .is_none()
+        .any(|details| details.owner != 0 && details.owner != usize::MAX)
     {
         turns.messages.push(Message::Win);
     }
