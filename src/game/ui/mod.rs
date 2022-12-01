@@ -609,7 +609,7 @@ fn display_star_selected(
                                     },
                                     TextSection {
                                         value: format!(
-                                            "Resources  {:.1} / {:.1}\n",
+                                            "Resources  {:.1} ({:.1})\n",
                                             if star.color == good.color { 0.2 } else { 1.5 },
                                             universe.star_ressource(index)
                                         ),
