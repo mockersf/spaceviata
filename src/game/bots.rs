@@ -50,7 +50,7 @@ fn rate_star_fighter(
 ) -> u32 {
     turns_between(from, rating.position)
         + match state {
-            StarState::Owned(i) if *i == player => 100,
+            StarState::Owned(i) if *i == player => 500,
             StarState::Owned(_) => {
                 if fleet_size.0 < 10 {
                     500000
