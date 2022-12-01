@@ -176,7 +176,7 @@ pub fn run_bots_turn(
         status.last_colony_ship_spawned[current_bot] = turns.count;
     }
 
-    let nb_fighter = rand.gen_range(1..(turns.count + 1));
+    let nb_fighter = rand.gen_range(1..(((turns.count as f32).ln() * 10.0) as u32 + 2));
     if universe.players[current_bot].savings > nb_fighter as f32 * ShipKind::Fighter.cost_credits()
         && universe.players[current_bot].resources
             > nb_fighter as f32 * ShipKind::Fighter.cost_resources()
