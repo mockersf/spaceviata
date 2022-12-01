@@ -532,13 +532,6 @@ fn start_player_turn(
                                     StarColor::Yellow => galaxy_assets.yellow_star.clone_weak(),
                                 };
                         }
-
-                        if universe.players[owner.0].vision[*to] == StarState::Unknown {
-                            universe.players[owner.0].vision[*to] = StarState::Uninhabited;
-                            if owner.0 == 0 {
-                                update_mask_for_star(*to, 0, &mut decorations);
-                            }
-                        }
                     }
                     match ship.kind {
                         ShipKind::Colony => {
@@ -552,8 +545,8 @@ fn start_player_turn(
                                 // There is an ennemy ship, colony ships always lose
                                 commands.entity(entity).despawn_recursive();
 
-                                // universe.players[owner.0].vision[*to] =
-                                //     StarState::Owned(other_owner.0);
+                                universe.players[owner.0].vision[*to] =
+                                    StarState::Owned(other_owner.0);
 
                                 if owner.0 == 0 {
                                     update_mask_for_star(*to, other_owner.0, &mut decorations);
@@ -743,18 +736,20 @@ will start earning credits."#
                                     }
                                 }
                             }
-                            for (n, u) in enemy_fighters.iter().enumerate() {
-                                if *u > 0 {
-                                    // player n had ship on this star, and an enemy ship survived
-                                    universe.players[n].vision[*to] = StarState::Owned(owner.0);
-                                    if n == 0 {
-                                        update_mask_for_star(*to, owner.0, &mut decorations);
+                            if universe.star_details[*to].population == 0.0 {
+                                for (n, u) in enemy_fighters.iter().enumerate() {
+                                    if *u > 0 {
+                                        // player n had ship on this star, and an enemy ship survived
+                                        universe.players[n].vision[*to] = StarState::Owned(owner.0);
+                                        if n == 0 {
+                                            update_mask_for_star(*to, owner.0, &mut decorations);
+                                        }
                                     }
                                 }
-                            }
-                            universe.players[owner.0].vision[*to] = StarState::Uninhabited;
-                            if owner.0 == 0 {
-                                update_mask_for_star(*to, 0, &mut decorations);
+                                universe.players[owner.0].vision[*to] = StarState::Uninhabited;
+                                if owner.0 == 0 {
+                                    update_mask_for_star(*to, 0, &mut decorations);
+                                }
                             }
 
                             let attacked = universe.star_details[*to].owner;
