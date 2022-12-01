@@ -351,7 +351,7 @@ fn start_player_turn(
 
     let mut fight_reports_per_star = HashMap::new();
 
-    for (entity, mut order, ship, owner, mut fleet_size) in &mut fleets {
+    'next_ship: for (entity, mut order, ship, owner, mut fleet_size) in &mut fleets {
         match order.bypass_change_detection() {
             Order::Orbit(around) => match ship.kind {
                 ShipKind::Colony => {
@@ -445,7 +445,7 @@ fn start_player_turn(
                             }
                             if fleet_size.0 == 0 {
                                 commands.entity(entity).despawn_recursive();
-                                continue;
+                                continue 'next_ship;
                             }
                         }
                     }
@@ -529,7 +529,7 @@ fn start_player_turn(
                                         .ship_destroyed += fleet_size.0;
                                 }
                                 // ship destroyed, continue with next ship
-                                continue;
+                                continue 'next_ship;
                             }
 
                             // fight against population
@@ -571,7 +571,7 @@ fn start_player_turn(
                                 }
 
                                 // ship destroyed, continue with next ship
-                                continue;
+                                continue 'next_ship;
                             }
 
                             // colonize the star!
@@ -686,7 +686,7 @@ will start earning credits."#
                                                 update_mask_for_star(*to, u, &mut decorations);
                                             }
                                             // ship destroyed, continue with next ship
-                                            continue;
+                                            continue 'next_ship;
                                         }
                                     }
                                 }
