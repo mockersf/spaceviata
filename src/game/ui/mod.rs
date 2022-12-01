@@ -327,8 +327,10 @@ fn button_system(
                 }
                 (UiButtons::BackToMenu, true) => state.set(GameState::Menu).unwrap(),
                 (UiButtons::EndTurn, true) => {
-                    turn_state.set(TurnState::Bots).unwrap();
-                    shipyard.send(shipyard::ShipyardEvent::Close);
+                    if displayed_message.0 >= turns.messages.len() - 1 {
+                        turn_state.set(TurnState::Bots).unwrap();
+                        shipyard.send(shipyard::ShipyardEvent::Close);
+                    }
                 }
                 (UiButtons::NextMessage, true) | (UiButtons::LastMessage, true) => {
                     if matches!(turns.messages[displayed_message.0], Message::Win)
