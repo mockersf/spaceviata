@@ -337,7 +337,7 @@ fn start_player_turn(
                         } else {
                             10.0 + (turns.count as f32 - details.owned_since as f32) / 10.0
                         };
-                        let lerp = details.population / max_population;
+                        let lerp = (details.population / max_population).min(1.2);
                         let growth_factor = if lerp < 0.5 {
                             (10.0 * lerp).powf(3.0)
                         } else if lerp < 1.0 {
